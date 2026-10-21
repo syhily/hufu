@@ -43,10 +43,12 @@ final class HufuInputController: IMKInputController {
     private var specialInput = ""
     private var specialPage = 0
     private var specialPageSize = 5
-    /// 只打繁体 / 只打简体: rime indices of the candidates the panel shows, in display
-    /// order (displayIndex → rimeIndex); empty unless `scriptFiltered`.
-    private var scriptKept: [Int] = []
-    private var scriptFiltered = false
+    /// 简繁: rime indices of the candidates the panel shows, in display order
+    /// (displayIndex → rimeIndex). 混打 sorts the page by tier, 只打… drops candidates.
+    private var scriptOrder: [Int] = []
+    /// True when `scriptOrder` differs from the page's own order — then numbering,
+    /// highlight and selection keys all go through the mapping.
+    private var scriptRearranged = false
     /// Display position of the highlighted candidate while filtering.
     private var scriptHighlight = 0
 
@@ -602,14 +604,14 @@ final class HufuInputController: IMKInputController {
             highlightedIndex = 0
             pageNumber = specialPage
             isLastPage = specialPage >= specialPageCount - 1
-        } else if scriptFiltered {
+        } else if scriptRearranged {
             // 只打繁体 / 只打简体 drop candidates: the panel shows the kept ones
             // renumbered 1..n, and `select` maps a display index back to rime's.
-            candidates = scriptKept.enumerated().map { display, rime in
+            candidates = scriptOrder.enumerated().map { display, rime in
                 let candidate = context.candidates[rime]
                 return PanelState.Candidate(label: "\(display + 1)", text: candidate.text, comment: candidate.comment)
             }
-            highlightedIndex = scriptKept.firstIndex(of: context.highlightedIndex) ?? 0
+            highlightedIndex = scriptOrder.firstIndex(of: context.highlightedIndex) ?? 0
             scriptHighlight = highlightedIndex
             pageNumber = context.pageNumber
             isLastPage = context.isLastPage
@@ -648,11 +650,11 @@ final class HufuInputController: IMKInputController {
         }
         guard let session = liveSession else { return }
         let rimeIndex: Int
-        if scriptFiltered {
-            // The panel renumbered what survived the filter: map back before asking
-            // librime, whose page still holds the dropped candidates.
-            guard index >= 0, index < scriptKept.count else { return }
-            rimeIndex = scriptKept[index]
+        if scriptRearranged {
+            // The panel renumbered and reordered the page: map back before asking
+            // librime, whose page still holds the original order.
+            guard index >= 0, index < scriptOrder.count else { return }
+            rimeIndex = scriptOrder[index]
         } else {
             rimeIndex = index
         }
@@ -714,13 +716,15 @@ final class HufuInputController: IMKInputController {
         sync(client: textClient)
     }
 
-    /// Applies the 简繁 filter to this page of candidates. The mode actually in force
+    /// Applies 简繁 to this page of candidates: 混打 reorders it by tier, 打简出繁 and the
+    /// two "only" modes drop what falls outside their table. The mode actually in force
     /// comes from the session's `simplification` option, so ⌃O / ⌃⇧4 (混打 ↔ 打简出繁,
     /// 只打简体 ↔ 只打繁体) is reflected immediately.
     private func updateScriptFilter(candidates: [RimeCandidate], session: RimeSession) {
         let mode = engine.features.scriptMode.resolved(traditional: session.option("simplification"))
-        scriptFiltered = mode.filters && !candidates.isEmpty
-        scriptKept = scriptFiltered ? engine.scriptFilter.keep(candidates.map(\.text), mode: mode) : []
+        let order = engine.scriptFilter.order(candidates.map(\.text), mode: mode)
+        scriptOrder = order
+        scriptRearranged = order != Array(candidates.indices)
     }
 
     /// Puts one of the frontend's candidates into the app. librime only held the raw
@@ -756,11 +760,12 @@ final class HufuInputController: IMKInputController {
         return true
     }
 
-    /// Keys while filtered candidates are up: digits and the schema's 次选 / 三选 (`;`
-    /// `'`) pick the displayed candidate, space takes the displayed highlight. Both are
-    /// mapped through `select`, so librime never selects a candidate the panel hid.
+    /// Keys while the page is reordered or filtered (混打, 只打…): digits and the schema's
+    /// 次选 / 三选 (`;` `'`) pick the displayed candidate, space takes the displayed
+    /// highlight. Everything is mapped through `select`, so librime never acts on a
+    /// position the panel does not show.
     private func handleScriptKey(_ event: NSEvent) -> Bool {
-        guard scriptFiltered,
+        guard scriptRearranged,
               event.modifierFlags.intersection([.command, .control, .option]).isEmpty,
               let typed = event.charactersIgnoringModifiers, typed.count == 1,
               let character = typed.first else { return false }
@@ -768,7 +773,7 @@ final class HufuInputController: IMKInputController {
         case "1"..."9", ";", "'", " ":
             // Nothing survived the filter on this page: swallow the key rather than let
             // librime commit a candidate the panel never showed.
-            guard !scriptKept.isEmpty else { return true }
+            guard !scriptOrder.isEmpty else { return true }
             switch character {
             case ";": select(1)
             case "'": select(2)

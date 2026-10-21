@@ -202,8 +202,8 @@ private struct ScriptSection: View {
 
     private var explanation: LocalizedStringKey {
         switch model.features.scriptMode {
-        case .mixed: "简体优先，同一编码下词库里的繁体字形也能选。"
-        case .tradOutput: "用简体编码打字，候选直接是繁体。"
+        case .mixed: "简体优先：按《通用规范汉字表》一级→二级→三级排序，繁体字形排在最后。"
+        case .tradOutput: "用简体编码打字，候选直接是繁体；候选同样限定在 8105 字集内。"
         case .tradOnly: "只出繁体；转换后仍带简体字形的候选会被过滤。"
         case .simpOnly: "只出《通用规范汉字表》里的简体字，繁体字形和表外生僻字不显示。"
         }
