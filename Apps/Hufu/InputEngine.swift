@@ -158,11 +158,16 @@ final class InputEngine {
 
     private func reloadFeatures() {
         let wasTraditional = features.traditional, wasAsciiPunct = features.asciiPunct
+        let wasConvenience = (features.dateTimeCandidates, features.calculatorCandidates, features.numeralsCandidates)
         features = HufuFeatures.load(paths)
         if features.traditional != wasTraditional { activeController?.applyScriptOption() }
         if features.asciiPunct != wasAsciiPunct, asciiPunct != nil {
             asciiPunct = features.asciiPunct
             activeController?.applyPunctOption()
+        }
+        if wasConvenience != (features.dateTimeCandidates, features.calculatorCandidates, features.numeralsCandidates) {
+            // 便利功能: the panel shows the frontend's own candidates for `/time`, `=1+2`…
+            activeController?.refreshSpecialCandidates()
         }
         usage.isEnabled = features.usageStats
         if !features.aiPolish { activeController?.cancelPolish() }

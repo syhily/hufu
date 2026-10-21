@@ -664,8 +664,22 @@ final class HufuInputController: IMKInputController {
             specialPage = 0
         }
         specialPageSize = max(1, pageSize)
-        specialCandidates = input.isEmpty ? nil : SpecialInput.candidates(for: input)
+        specialCandidates = input.isEmpty ? nil : SpecialInput.candidates(for: input, options: specialOptions)
         if specialPage >= specialPageCount { specialPage = 0 }
+    }
+
+    /// Settings › 输入习惯 › 便利功能, read live so a toggle needs no deploy.
+    private var specialOptions: SpecialInput.Options {
+        let features = engine.features
+        return SpecialInput.Options(dateTime: features.dateTimeCandidates,
+                                    calculator: features.calculatorCandidates,
+                                    numerals: features.numeralsCandidates)
+    }
+
+    /// A 便利功能 switch changed: rebuild the panel now, not on the next key.
+    func refreshSpecialCandidates() {
+        guard isComposing else { return }
+        sync(client: textClient)
     }
 
     /// Puts one of the frontend's candidates into the app. librime only held the raw
@@ -690,7 +704,7 @@ final class HufuInputController: IMKInputController {
               let typed = event.charactersIgnoringModifiers, typed.count == 1,
               let character = typed.first,
               let action = SpecialInput.action(for: character, input: liveSession?.input ?? "",
-                                               pageCount: specialPageCount) else { return false }
+                                               pageCount: specialPageCount, options: specialOptions) else { return false }
         switch action {
         case .select(let index):
             guard index < visible.count else { return true }

@@ -193,6 +193,39 @@ struct SpecialInputTests {
         }
     }
 
+    /// Settings › 输入习惯 › 便利功能: a switch that is off yields no candidates at all,
+    /// and leaves the other two alone.
+    @Test func switchesTurnEachFamilyOff() {
+        let fixed = context("2026-10-22 23:05:36")
+        let clockOnly = SpecialInput.Options(dateTime: true, calculator: true, numerals: true)
+        #expect(SpecialInput.candidates(for: "/time", context: fixed, options: clockOnly) != nil)
+
+        let withoutDateTime = SpecialInput.Options(dateTime: false, calculator: true, numerals: true)
+        for input in ["/time", "/date", "/week", "/cdate", "/fsj", "/orzh", "/olzh", "/wtxs"] {
+            #expect(SpecialInput.candidates(for: input, context: fixed, options: withoutDateTime) == nil, "\(input)")
+        }
+        #expect(SpecialInput.candidates(for: "=1+2", options: withoutDateTime) != nil)
+        #expect(SpecialInput.candidates(for: "/1234.56", options: withoutDateTime) != nil)
+
+        let withoutCalculator = SpecialInput.Options(dateTime: true, calculator: false, numerals: true)
+        #expect(SpecialInput.candidates(for: "=1+2", options: withoutCalculator) == nil)
+        #expect(SpecialInput.candidates(for: "/1234.56", options: withoutCalculator) != nil)
+        #expect(SpecialInput.candidates(for: "/time", context: fixed, options: withoutCalculator) != nil)
+
+        let withoutNumerals = SpecialInput.Options(dateTime: true, calculator: true, numerals: false)
+        #expect(SpecialInput.candidates(for: "/1234.56", options: withoutNumerals) == nil)
+        #expect(SpecialInput.candidates(for: "/0", options: withoutNumerals) == nil)
+        #expect(SpecialInput.candidates(for: "=1+2", options: withoutNumerals) != nil)
+        #expect(SpecialInput.candidates(for: "/time", context: fixed, options: withoutNumerals) != nil)
+
+        let allOff = SpecialInput.Options(dateTime: false, calculator: false, numerals: false)
+        for input in ["/time", "/date", "/week", "/cdate", "/1234.56", "=1+2"] {
+            #expect(SpecialInput.candidates(for: input, context: fixed, options: allOff) == nil, "\(input)")
+        }
+        // Keys fall through to the engine when nothing is injected.
+        #expect(SpecialInput.action(for: "1", input: "/time", pageCount: 1, options: allOff) == .select(0))
+    }
+
     /// What a key does while the frontend's page is up (the controller only dispatches).
     @Test func keysSelectPageOrGrowTheInput() {
         // /time: digits cannot extend it, so they select.

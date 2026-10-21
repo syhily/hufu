@@ -28,13 +28,30 @@ public enum SpecialInput {
         }
     }
 
+    /// Which convenience inputs are on (Settings › 输入习惯 › 便利功能). Everything is
+    /// on by default, which is how Hufu shipped before the switches existed.
+    public struct Options: Sendable, Equatable {
+        public var dateTime: Bool
+        public var calculator: Bool
+        public var numerals: Bool
+
+        public init(dateTime: Bool = true, calculator: Bool = true, numerals: Bool = true) {
+            self.dateTime = dateTime
+            self.calculator = calculator
+            self.numerals = numerals
+        }
+    }
+
     /// All candidates for a special input, in the order the lua version yielded them,
-    /// or nil when the input is not special (or cannot produce anything).
-    public static func candidates(for input: String, context: Context = Context()) -> [Candidate]? {
+    /// or nil when the input is not special, its switch is off, or it cannot produce
+    /// anything.
+    public static func candidates(for input: String, context: Context = Context(),
+                                  options: Options = Options()) -> [Candidate]? {
         guard let first = input.first, first == "/" || first == "=" else { return nil }
-        if first == "=" { return calculator(String(input.dropFirst())) }
+        if first == "=" { return options.calculator ? calculator(String(input.dropFirst())) : nil }
         let body = String(input.dropFirst())
-        if body.first?.isNumber == true { return numerals(body) }
+        if body.first?.isNumber == true { return options.numerals ? numerals(body) : nil }
+        guard options.dateTime else { return nil }
         switch body {
         case "time", "fsj", "fuj", "okao":
             return clock(context)
@@ -59,10 +76,11 @@ public enum SpecialInput {
         case page(backward: Bool)
     }
 
-    public static func action(for character: Character, input: String, pageCount: Int) -> Action? {
+    public static func action(for character: Character, input: String, pageCount: Int,
+                              options: Options = Options()) -> Action? {
         switch character {
         case "1"..."9":
-            if candidates(for: input + String(character)) != nil { return nil }
+            if candidates(for: input + String(character), options: options) != nil { return nil }
             return .select((character.wholeNumberValue ?? 1) - 1)
         case ";":
             return .select(1) // the schema's 次选

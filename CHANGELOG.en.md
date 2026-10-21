@@ -17,6 +17,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 - Time, date, weekday and lunar calendar lookup: `/time`, `/date`, `/week` and `/cdate`, plus Tiger-Code homophone triggers.
 - An `=expression` calculator that returns the result inline.
 - `/number` uppercase amounts, now implemented natively in the front end.
+- All three can be turned off in Settings › 输入习惯 › 便利功能.
 
 ### Removed
 

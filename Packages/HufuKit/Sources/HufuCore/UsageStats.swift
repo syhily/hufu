@@ -34,6 +34,13 @@ public struct HufuFeatures: Sendable, Codable, Equatable {
     /// English punctuation by default (librime's `ascii_punct` switch). The state is
     /// shared by all apps: ⌃⇧3 in one app switches the others too (#10).
     public var asciiPunct = false
+    /// `/time` `/date` `/week` `/cdate` (and 虎码's homophones) offer the clock, the
+    /// date, the weekday and the lunar date. On by default.
+    public var dateTimeCandidates = true
+    /// `=1+2*3` offers the evaluated expression. On by default.
+    public var calculatorCandidates = true
+    /// `/1234.56` offers Chinese numerals and 元角分. On by default.
+    public var numeralsCandidates = true
 
     public struct AIAction: Sendable, Codable, Equatable, Identifiable {
         public var id: UUID
@@ -66,6 +73,9 @@ public struct HufuFeatures: Sendable, Codable, Equatable {
         draftAutoCommit = try container.decodeIfPresent(Int.self, forKey: .draftAutoCommit) ?? defaults.draftAutoCommit
         traditional = try container.decodeIfPresent(Bool.self, forKey: .traditional) ?? defaults.traditional
         asciiPunct = try container.decodeIfPresent(Bool.self, forKey: .asciiPunct) ?? defaults.asciiPunct
+        dateTimeCandidates = try container.decodeIfPresent(Bool.self, forKey: .dateTimeCandidates) ?? defaults.dateTimeCandidates
+        calculatorCandidates = try container.decodeIfPresent(Bool.self, forKey: .calculatorCandidates) ?? defaults.calculatorCandidates
+        numeralsCandidates = try container.decodeIfPresent(Bool.self, forKey: .numeralsCandidates) ?? defaults.numeralsCandidates
     }
 
     public static let changedNotification = Notification.Name("dev.yufan.hufu.features")

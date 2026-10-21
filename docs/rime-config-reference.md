@@ -641,6 +641,8 @@ Hufu 不捆绑 librime-lua，因此 `lua_processor@*` / `lua_translator@*` / `lu
 | charset_comment_filter.lua | Unicode 分区提示 | 已移除 |
 | unicode_display.lua | Unicode 编码显示 | 已移除 |
 
+三类前端候选各有开关（`hufu/features.json` 的 `dateTimeCandidates`、`calculatorCandidates`、`numeralsCandidates`，默认开），在 设置 › 输入习惯 › 便利功能 里调整；改动即时通知输入法，不需要重新部署。关闭后这些编码交回方案，不再注入候选。
+
 Hufu 可视化：高级 YAML（开关由 switches 组暴露 emoji_cn/simplification 等即可）。
 catalog: switches.emoji_cn, switches.simplification
 

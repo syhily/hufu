@@ -21,6 +21,22 @@ struct UsageStatsTests {
         #expect(try decoder.decode(HufuFeatures.self, from: JSONEncoder().encode(features)).asciiPunct == true)
     }
 
+    /// 便利功能 arrived after the first release: an old file turns all three on.
+    @Test func convenienceSwitchesDefaultOn() throws {
+        let defaults = HufuFeatures()
+        #expect(defaults.dateTimeCandidates && defaults.calculatorCandidates && defaults.numeralsCandidates)
+
+        let decoder = JSONDecoder()
+        let old = try decoder.decode(HufuFeatures.self, from: Data(#"{"asciiPunct":true}"#.utf8))
+        #expect(old.dateTimeCandidates && old.calculatorCandidates && old.numeralsCandidates)
+
+        var off = HufuFeatures()
+        off.dateTimeCandidates = false
+        off.numeralsCandidates = false
+        let roundTrip = try decoder.decode(HufuFeatures.self, from: JSONEncoder().encode(off))
+        #expect(!roundTrip.dateTimeCandidates && roundTrip.calculatorCandidates && !roundTrip.numeralsCandidates)
+    }
+
     @Test func countsOnlyShortChineseWords() {
         #expect(UsageStatsStore.isCountable("智能体"))
         #expect(!UsageStatsStore.isCountable("我"))

@@ -34,7 +34,7 @@ struct CatalogPane: View {
 
     var subtitle: LocalizedStringKey {
         switch pane {
-        case .general: "候选词数量、方案选单、简繁与虎码开关。"
+        case .general: "候选词数量、方案选单、简繁、便利功能与虎码开关。"
         case .switching: "Caps Lock 与 Shift 在输入中的行为，以及中英文切换方式。"
         case .keys: "快捷菜单与方案选单的触发方式，以及翻页键。"
         default: ""
@@ -50,6 +50,7 @@ struct CatalogPane: View {
             if pane == .general {
                 ScriptSection()
                 PunctuationSection()
+                ConvenienceSection()
             }
             if pane == .keys {
                 QuickMenuShortcutsSection()
@@ -167,6 +168,42 @@ private struct ScriptSection: View {
             if let setting = model.setting("simplification.opencc_config") { SettingRow(setting: setting) }
         } header: {
             Text("简繁体")
+        }
+    }
+}
+
+/// 便利功能: candidates the input method makes itself, in place of the old lua translators.
+private struct ConvenienceSection: View {
+    @Environment(SettingsModel.self) private var model
+
+    var body: some View {
+        Section {
+            toggle("时间与日期",
+                   detail: "打 /time 取时间，/date 取日期，/week 取星期，/cdate 取农历；也收 /fsj、/frq、/fxq、/fnl 等虎码谐音。",
+                   keyPath: \.dateTimeCandidates)
+            toggle("计算器",
+                   detail: "以 = 开头算数，如 =1+2*3、(1+2)/4、=10%3，选词即上屏结果。",
+                   keyPath: \.calculatorCandidates)
+            toggle("大写数字",
+                   detail: "打 / 加数字，如 /1234.56，给出大写、小写和元角分写法。",
+                   keyPath: \.numeralsCandidates)
+        } header: {
+            Text("便利功能")
+        } footer: {
+            Text("这几种输入由输入法直接给出候选，不经过词典；关掉后不再提供候选，按键交回方案处理。")
+        }
+    }
+
+    private func toggle(_ title: LocalizedStringKey, detail: LocalizedStringKey,
+                        keyPath: WritableKeyPath<HufuFeatures, Bool>) -> some View {
+        Toggle(isOn: Binding(
+            get: { model.features[keyPath: keyPath] },
+            set: { on in model.updateFeatures { $0[keyPath: keyPath] = on } }
+        )) {
+            VStack(alignment: .leading, spacing: 2) {
+                Text(title)
+                Text(detail).font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+            }
         }
     }
 }
