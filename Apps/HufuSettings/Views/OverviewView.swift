@@ -53,7 +53,7 @@ struct OverviewView: View {
                 .font(.title3).foregroundStyle(Theme.secondaryText)
             HStack(spacing: 8) {
                 Tag(text: "librime 1.17", symbol: "cpu")
-                Tag(text: model.enabledSchemas.first.map { $0 == "tigress" ? "主方案 虎码" : "主方案 \($0)" } ?? "尚未部署",
+                Tag(text: model.enabledSchemas.first.map { $0 == "tigress" ? "主方案 虎码" : "主方案 \($0)" } ?? "尚未生效",
                     symbol: "character.book.closed")
             }
         }
@@ -80,12 +80,12 @@ struct OverviewView: View {
                     symbol: "keyboard.badge.ellipsis", ok: model.isInstalled && state == .ready
                 )
                 StatusCard(
-                    title: "部署", value: model.isDeployed ? "已部署" : "等待首次部署",
+                    title: "配置", value: model.isDeployed ? "已生效" : "等待首次应用",
                     detail: model.hasPendingChanges ? "正在应用更改…" : "配置与输入法一致",
                     symbol: "shippingbox", ok: model.isDeployed && !model.hasPendingChanges
                 )
                 StatusCard(
-                    title: "输入方案", value: model.enabledSchemas.first.map { $0 == "tigress" ? "虎码" : $0 } ?? "未部署",
+                    title: "输入方案", value: model.enabledSchemas.first.map { $0 == "tigress" ? "虎码" : $0 } ?? "未启用",
                     detail: "虎码官方秃版 · tigress",
                     symbol: "character.book.closed", ok: !model.enabledSchemas.isEmpty
                 )

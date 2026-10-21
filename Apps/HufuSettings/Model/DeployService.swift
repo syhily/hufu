@@ -63,7 +63,7 @@ final class DeployService {
             // Never start a second writer on timeout: the input method may still be
             // deploying. Report the unknown outcome instead.
             return await requestViaInputMethod(mode: automatic ? "auto" : "full", progress: progress)
-                ?? .failure("输入法未在 3 分钟内返回部署结果，可能仍在部署；请稍后查看日志 \(paths.logDir.path)")
+                ?? .failure("输入法未在 3 分钟内返回结果，可能仍在应用设置；请稍后查看日志 \(paths.logDir.path)")
         }
         let result = await run(["deploy"])
         return result.ok ? .success : .failure(Self.summarize(result.output))
@@ -84,7 +84,7 @@ final class DeployService {
     /// imported snapshots itself (a second process cannot open its user dictionaries).
     func deployImportedViaInputMethod() async -> Outcome {
         await requestViaInputMethod(mode: "import", progress: { _, _ in })
-            ?? .failure("输入法未在 3 分钟内返回导入结果，可能仍在部署；请稍后查看日志 \(paths.logDir.path)")
+            ?? .failure("输入法未在 3 分钟内返回导入结果，可能仍在处理；请稍后查看日志 \(paths.logDir.path)")
     }
 
     /// Validates pending changes in a throwaway copy of the workspace.
@@ -108,7 +108,7 @@ final class DeployService {
                 // Only the answer to this request counts.
                 guard note.userInfo?["request"] as? String == request else { return }
                 let ok = note.userInfo?["ok"] as? Bool ?? false
-                let message = note.userInfo?["message"] as? String ?? "部署失败"
+                let message = note.userInfo?["message"] as? String ?? "设置未能生效"
                 continuation.yield(ok ? .success : .failure("\(message)（日志：\(logDir)）"))
                 continuation.finish()
             }

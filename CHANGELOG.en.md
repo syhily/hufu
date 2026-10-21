@@ -22,7 +22,9 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ### Changed
 
+- Settings changes apply on their own: the redeploy button, menu item, status and progress bar are gone. Appearance edits apply in milliseconds, schema and phrase edits rebuild automatically; a failure shows the reason at the bottom of the window and retries once.
 - The simplified↔traditional table (st_tu) now ships with the installer's librime/OpenCC layer; the schema repo no longer bundles stock OpenCC tables. Conversion covers Tiger-Code's full charset, and traditional characters remain directly typable with their own codes when conversion is off.
+
 
 ### Removed
 

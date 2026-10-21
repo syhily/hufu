@@ -232,7 +232,7 @@ final class InputEngine {
         drainDeployQueue()
     }
 
-    /// Equivalent of Squirrel's 重新部署: rebuild everything and restart sessions.
+    /// Applies pending configuration and restarts sessions (Settings asks for this).
     /// Text being composed is committed first so nothing the user typed is lost.
     ///
     /// `incremental` (automatic deploys after a settings change): appearance-only changes
@@ -292,7 +292,7 @@ final class InputEngine {
     private func finishImport(deployed: Bool) {
         guard let job = runningImport else { return }
         runningImport = nil
-        guard deployed else { return failImport(job, message: "部署失败，词频快照未合并，详见日志") }
+        guard deployed else { return failImport(job, message: "应用失败，词频快照未合并，详见日志") }
         guard !job.snapshots.isEmpty else {
             for request in job.requests { postResult(ok: true, request: request, message: nil) }
             return
@@ -365,11 +365,11 @@ final class InputEngine {
 
     private func syncUserData(requests: [String?], importedSnapshots: [String]) {
         guard deployLock == nil, let lock = WorkspaceLock.acquire(paths) else {
-            showStatus("另一个部署正在进行")
+            showStatus("另一个操作正在进行")
             if !importedSnapshots.isEmpty {
                 SquirrelImporter.Report.appendWarning(SquirrelImporter.Report.mergeFailed(importedSnapshots.count), paths: paths)
             }
-            let message = importedSnapshots.isEmpty ? "另一个部署正在进行，请稍后再同步" : "另一个部署正在进行，词频快照未合并，可稍后重新导入"
+            let message = importedSnapshots.isEmpty ? "另一个操作正在进行，请稍后再同步" : "另一个操作正在进行，词频快照未合并，可稍后重新导入"
             for request in requests { postResult(ok: false, request: request, message: message) }
             return
         }
@@ -421,7 +421,7 @@ final class InputEngine {
         if ok, awaitingDeployAck { ConfigLayers(paths: paths).markDeployed() }
         awaitingDeployAck = false
         if ok { followPrimarySchema() }
-        let failure = syncInProgress ? "同步失败，详见日志" : "部署失败，详见日志"
+        let failure = syncInProgress ? "同步失败，详见日志" : "应用失败，详见日志"
         syncInProgress = false
         deployLock = nil
         for request in pendingRequests { postResult(ok: ok, request: request, message: ok ? nil : failure) }
@@ -447,7 +447,7 @@ final class InputEngine {
     private func handle(_ notification: RimeNotification) {
         switch notification {
         case .deployStarted:
-            showStatus(syncInProgress ? "同步中…" : "部署中…")
+            showStatus(syncInProgress ? "同步中…" : "正在应用设置…")
         case .deploySucceeded:
             reloadFrontend()
             if syncInProgress {
@@ -455,11 +455,11 @@ final class InputEngine {
                 showStatus("同步完成")
                 finishDeploy(ok: true)
             } else {
-                showStatus(frontendDeployed ? "部署完成" : "外观配置部署失败")
+                showStatus(frontendDeployed ? "设置已生效" : "外观配置未能生效")
                 finishDeploy(ok: frontendDeployed, schemasDeployed: true)
             }
         case .deployFailed:
-            showStatus(syncInProgress ? "同步失败" : "部署失败")
+            showStatus(syncInProgress ? "同步失败" : "设置未能生效")
             finishDeploy(ok: false)
         case let .optionChanged(name, enabled):
             guard Date().timeIntervalSince(lastUserKeyAt) < 0.6,
@@ -550,10 +550,10 @@ final class InputEngine {
 
     private var deployNoticeGeneration = -1
 
-    /// Shows "部署中…" at most once per engine generation when keys arrive mid-deploy.
+    /// Shows "正在应用设置…" at most once per engine generation when keys arrive mid-apply.
     func noteKeyDuringDeploy() {
         guard deployNoticeGeneration != generation else { return }
         deployNoticeGeneration = generation
-        showStatus("部署中，稍候即可输入中文…")
+        showStatus("正在应用设置，稍候即可输入中文…")
     }
 }

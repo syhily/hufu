@@ -5,7 +5,7 @@ import Foundation
 import RimeKit
 
 struct Deploy: AsyncParsableCommand {
-    static let configuration = CommandConfiguration(abstract: "Compile the workspace (like Squirrel's 重新部署).")
+    static let configuration = CommandConfiguration(abstract: "Rebuild the workspace: compile schemas, dictionaries and the frontend config.")
 
     @OptionGroup var workspace: WorkspaceOptions
 

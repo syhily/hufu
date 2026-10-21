@@ -33,10 +33,6 @@ struct HufuSettingsApp: App {
         .commands {
             AboutCommands(selection: $selection)
             CommandGroup(replacing: .newItem) {}
-            CommandMenu("部署") {
-                Button("重新部署") { Task { await model.deploy() } }
-                    .keyboardShortcut("r", modifiers: [.command, .shift])
-            }
         }
     }
 }

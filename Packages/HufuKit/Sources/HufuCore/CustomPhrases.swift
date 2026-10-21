@@ -60,7 +60,7 @@ public struct CustomPhrases: Sendable, Equatable {
         "# hufu 用户自定义短语表，挂在 tigress 主词典的 import_tables 上。",
         "# 由「Hufu 设置」的自定义短语页维护；也可手工添加，每行一条：",
         "#   词组<TAB>编码<TAB>权重",
-        "# 编码为虎码，权重可省略。修改后需重新部署生效。",
+        "# 编码为虎码，权重可省略。修改后几秒内自动生效。",
         "---",
         "name: huma_custom",
         "version: \"1\"",

@@ -187,7 +187,7 @@ private struct ScriptSection: View {
             } label: {
                 VStack(alignment: .leading, spacing: 3) {
                     Text("繁体标准")
-                    Text("转换用的 OpenCC 字表，改完需要重新部署；对繁简混打和只打简体没有影响。")
+                    Text("转换用的 OpenCC 字表，改完几秒后自动生效；对繁简混打和只打简体没有影响。")
                         .font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
                 }
             }

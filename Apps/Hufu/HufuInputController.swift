@@ -819,7 +819,6 @@ final class HufuInputController: IMKInputController {
         // shadow each app's own Settings shortcut (#6).
         menu.addItem(item(String(localized: "虎符输入法设置…"), #selector(openSettings(_:))))
         menu.addItem(.separator())
-        menu.addItem(item(String(localized: "重新部署"), #selector(deploy(_:))))
         menu.addItem(item(String(localized: "同步用户数据"), #selector(syncUserData(_:))))
         menu.addItem(item(String(localized: "打开用户文件夹"), #selector(openUserFolder(_:))))
         menu.addItem(item(String(localized: "打开日志文件夹"), #selector(openLogFolder(_:))))
@@ -846,7 +845,6 @@ final class HufuInputController: IMKInputController {
         }
     }
 
-    @objc func deploy(_ sender: Any?) { engine.redeploy() }
     @objc func syncUserData(_ sender: Any?) { engine.syncUserData() }
     @objc func openUserFolder(_ sender: Any?) { NSWorkspace.shared.open(engine.paths.userDataDir) }
     @objc func openLogFolder(_ sender: Any?) { NSWorkspace.shared.open(engine.paths.logDir) }

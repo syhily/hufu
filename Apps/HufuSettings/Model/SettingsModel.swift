@@ -30,10 +30,6 @@ final class SettingsModel {
         didSet { if hasPendingChanges { changeCount += 1; scheduleAutoDeploy() } }
     }
     private(set) var deployState: DeployState = .idle
-    /// 0…1 while a deploy runs (estimated from the previous duration), nil otherwise.
-    private(set) var deployProgress: Double?
-    /// What the input method is doing right now, e.g. "正在编译 2 个方案…".
-    private(set) var deployStage = ""
     private var changeCount = 0
     private var autoDeployTask: Task<Void, Never>?
     private(set) var lastError: String?
@@ -97,9 +93,6 @@ final class SettingsModel {
     /// What the last import could not carry over (e.g. learned frequencies). A successful
     /// deploy says nothing about these, so the import card shows them (#23).
     var importWarnings: [String] { _ = revision; return SquirrelImporter.Report.load(paths)?.warnings ?? [] }
-    /// The deploy status mentions import warnings only for the import that produced them;
-    /// the import card keeps listing them.
-    private(set) var justImported = false
 
     // MARK: - Settings
 
@@ -312,21 +305,28 @@ final class SettingsModel {
         autoDeployTask = Task { [weak self] in
             try? await Task.sleep(for: .milliseconds(600))
             guard !Task.isCancelled, let self else { return }
-            await self.deploy(automatic: true)
+            await self.deploy()
         }
     }
 
-    /// Applies pending changes. Automatic deploys are incremental (appearance changes
-    /// reload in milliseconds); the manual 重新部署 rebuilds everything.
-    func deploy(automatic: Bool = false) async {
+    /// Applies pending changes. There is no user-facing deploy: every write ends up here,
+    /// and incremental vs full is decided per change (appearance reloads in milliseconds;
+    /// schema and phrase edits rebuild, see `needsEngineReload`). One automatic retry
+    /// covers a transient failure; past that the banner stays up and the next change
+    /// tries again.
+    private func deploy(retries: Int = 1) async {
         // Deploys run one after another; a request made meanwhile waits for its turn.
         let previous = deployChain
         let task = Task { [weak self] in
             await previous?.value
-            await self?.performDeploy(automatic: automatic)
+            await self?.performDeploy()
         }
         deployChain = task
         await task.value
+        guard case .failed = deployState, retries > 0, hasPendingChanges else { return }
+        try? await Task.sleep(for: .seconds(2))
+        guard hasPendingChanges else { return }
+        await deploy(retries: retries - 1)
     }
 
     private var deployChain: Task<Void, Never>?
@@ -334,52 +334,25 @@ final class SettingsModel {
     /// appearance-only fast path is not enough and the sessions must be recreated.
     @ObservationIgnored private var needsEngineReload = false
 
-    private func performDeploy(automatic: Bool) async {
-        // An automatic pass queued behind another may find nothing left to apply.
-        if automatic, !hasPendingChanges { return }
+    private func performDeploy() async {
+        // A pass queued behind another may find nothing left to apply.
+        guard hasPendingChanges else { return }
         let startedWith = changeCount
-        justImported = false
         deployState = .deploying
-        deployStage = "正在保存设置…"
-        let started = Date()
-        let expected = max(0.3, UserDefaults.standard.double(forKey: automatic ? "deploy.lastAutoDuration" : "deploy.lastDuration"))
-        deployProgress = 0.05
-        let ticker = Task { [weak self] in
-            // Eases toward 90 % over the expected duration; the result jumps to 100 %.
-            while !Task.isCancelled {
-                try? await Task.sleep(for: .milliseconds(50))
-                guard let self, self.deployState == .deploying else { return }
-                let t = Date().timeIntervalSince(started) / (expected == 0.3 ? 2.5 : expected)
-                self.deployProgress = 0.05 + 0.85 * (1 - exp(-2.2 * t))
-            }
-        }
         let reload = needsEngineReload
         needsEngineReload = false
-        let result = await deployer.deploy(automatic: automatic && !reload) { [weak self] stage, total in
-            self?.deployStage = switch stage {
-            case "frontend": "正在应用外观…"
-            case "schemas" where total > 0: "正在编译 \(total) 个配置…"
-            default: "正在部署…"
-            }
-        }
-        ticker.cancel()
-        UserDefaults.standard.set(Date().timeIntervalSince(started), forKey: automatic ? "deploy.lastAutoDuration" : "deploy.lastDuration")
+        let result = await deployer.deploy(automatic: !reload)
         switch result {
         case .success:
             deployState = .succeeded(Date())
-            deployProgress = 1
             if changeCount == startedWith { hasPendingChanges = false }
+            lastError = nil
         case let .failure(message):
             deployState = .failed(message)
-            deployProgress = nil
+            lastError = "设置未能生效：\(message)"
             if reload { needsEngineReload = true }
         }
-        deployStage = ""
         revision += 1
-        Task { [weak self] in
-            try? await Task.sleep(for: .milliseconds(450))
-            if self?.deployState != .deploying { self?.deployProgress = nil }
-        }
         // Edits made while deploying get their own pass.
         if changeCount != startedWith, case .succeeded = deployState { scheduleAutoDeploy() }
     }
@@ -421,7 +394,6 @@ final class SettingsModel {
             let result = await deployer.run(["import-squirrel", "--from", source.path])
             deployState = result.ok ? .succeeded(Date()) : .failed(result.output.suffix(400).description)
         }
-        justImported = true
         phrases = CustomPhrases.loadDictionary(from: store.phraseTableURL(phraseTable))
         if case .succeeded = deployState { hasPendingChanges = false }
         revision += 1
@@ -547,7 +519,6 @@ final class SettingsModel {
 
     @discardableResult
     func syncNow() async -> Bool {
-        justImported = false
         deployState = .deploying
         let outcome = await deployer.sync()
         switch outcome {

@@ -40,7 +40,7 @@ Hufu is a native macOS frontend for Tiger-Code (虎码). It embeds [librime](htt
 - **Native candidate window** — AppKit and Core Text, with a one-row or vertical-list layout, light/dark schemes, and adjustable fonts, radii and spacing. Themes can be imported through `hufu-ime://` links.
 - **Visual settings** — Overview, AI Assistant, Usage Statistics, Typing, Chinese/English, Shortcuts, Appearance, Apps, Vocabulary, Custom Phrases, Snippets, Sync & Backup, Advanced and About.
 - **Optional AI** — Apple's on-device Foundation Models (macOS 26) or an OpenAI-compatible endpoint. ⌃⌥P runs translation, polishing and custom actions; the assistant can also change settings in natural language and extract vocabulary from an article (you supply the Tiger-Code codes).
-- **Custom phrases** — maintain the `huma_custom` table in Settings with hand-written Tiger-Code codes; it is merged into the main dictionary and takes effect on the next deployment.
+- **Custom phrases** — maintain the `huma_custom` table in Settings with hand-written Tiger-Code codes; it is merged into the main dictionary and takes effect a few seconds later.
 - **Snippets and statistics** — categorized snippets for phone numbers, addresses and more; optional usage statistics stay on this Mac and can be turned off or cleared.
 - **Sync and backup** — merge learned frequencies across Macs through a RIME sync folder; Hufu runs no sync server. A local backup file can be exported and restored.
 - **Import from other input methods** — read-only import of dictionaries, custom phrases, colour schemes and frequency snapshots from Squirrel, Weasel or fcitx RIME directories. Schemas and schema patches are not imported; Pinyin tables must be recoded to Tiger-Code before they can be used.
@@ -115,7 +115,7 @@ These bindings come from the official Tiger-Code schema and the bundled `default
 
 Settings pages:
 
-- **Overview** — input-method status, deployment status, import, diagnostic export.
+- **Overview** — input-method status, configuration status, import, diagnostic export.
 - **AI Assistant** — on-device or bring-your-own endpoint, AI actions, draft layer, settings assistant, vocabulary extraction.
 - **Usage Statistics** — daily characters, hours and apps, pinning frequent words.
 - **Typing** — candidate count, the four script modes and Traditional standard, Tiger-Code switches, punctuation.
@@ -132,7 +132,7 @@ Settings pages:
 
 ### Custom phrases
 
-Settings › Custom Phrases writes to `huma_custom.dict.yaml` in the user directory. The main `tigress` dictionary imports that table, so new phrases appear in candidates after the next deployment. Codes are Tiger-Code and must be entered by hand; the weight is optional.
+Settings › Custom Phrases writes to `huma_custom.dict.yaml` in the user directory. The main `tigress` dictionary imports that table, so new phrases appear in candidates a few seconds after the edit. Codes are Tiger-Code and must be entered by hand; the weight is optional.
 
 ### Importing from another input method
 
@@ -145,7 +145,7 @@ Settings › Custom Phrases writes to `huma_custom.dict.yaml` in the user direct
 | `~/Library/Hufu/Rime/` | librime workspace: build output, user frequencies, `hufu/imported` (hand-written patches), `hufu/generated` (written by Settings) |
 | `~/Library/Logs/Hufu/` | librime logs, WARNING by default, no typed text |
 
-The settings app does not link librime. It reads and writes configuration layers and asks the input method to redeploy through distributed notifications. Settings are composed from three layers: Hufu defaults → hand-written patches → changes made in Settings. See [Architecture](docs/architecture.md) and the [decision records](docs/decisions/).
+The settings app does not link librime. It reads and writes configuration layers and hands changes to the input method through distributed notifications, with no user action. Settings are composed from three layers: Hufu defaults → hand-written patches → changes made in Settings. See [Architecture](docs/architecture.md) and the [decision records](docs/decisions/).
 
 ## Privacy
 

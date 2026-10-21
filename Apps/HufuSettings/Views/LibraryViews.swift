@@ -312,13 +312,13 @@ struct DictionariesView: View {
                             .font(.caption)
                     }
                 } else {
-                    Text("词库信息不可用。重新部署后会自动生成。")
+                    Text("词库信息不可用。改动任意设置后会自动生成。")
                         .font(.callout).foregroundStyle(.secondary)
                 }
             } header: {
                 Text("内置虎码词库")
             } footer: {
-                Text("自定义短语在「自定义短语」页维护，写入 huma_custom.dict.yaml 并合并进虎码主词库，重新部署后生效。")
+                Text("自定义短语在「自定义短语」页维护，写入 huma_custom.dict.yaml 并合并进虎码主词库，改完几秒后自动生效。")
                     .font(.caption).foregroundStyle(.secondary)
             }
         }
@@ -346,7 +346,7 @@ struct PhrasesView: View {
             search.isEmpty || $0.text.localizedCaseInsensitiveContains(search) || $0.code.contains(search.lowercased())
         }
         VStack(alignment: .leading, spacing: 14) {
-            PaneHeader(title: "自定义短语", subtitle: "编码为虎码，如 虎码=zhmn、你好=jxbh；权重可省略。修改后自动重新部署。", symbol: "text.quote")
+            PaneHeader(title: "自定义短语", subtitle: "编码为虎码，如 虎码=zhmn、你好=jxbh；权重可省略。修改后自动生效。", symbol: "text.quote")
             HStack(spacing: 10) {
                 Text("短语表 huma_custom · 合并进虎码主词库")
                     .font(.callout).foregroundStyle(.secondary)

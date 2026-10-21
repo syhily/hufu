@@ -15,7 +15,7 @@ RIME 的配置文件分布在三个位置：
 
 1. **共享目录（shared）**：macOS 上为 `/Library/Input Methods/Squirrel.app/Contents/SharedSupport/`，存放出厂默认配置（`default.yaml`、`squirrel.yaml`、`key_bindings.yaml`、`punctuation.yaml`、`symbols.yaml`、朙月拼音等预设方案、opencc 词典、语法模型）。**不可修改**，升级输入法会被覆盖。
 2. **用户目录（user）**：`~/Library/Rime/`，存放用户配置与个性化方案。同名文件若 `config_version` 更高，则整文件覆盖共享目录版本（例如用户目录 `squirrel.yaml` 的 `config_version: '2025-10-23'` 高于出厂的 `'1.0'`，整份生效）。推荐做法是不整文件复制，而是写 `<同名>.custom.yaml` 补丁。
-3. **构建目录（build）**：`~/Library/Rime/build/`，部署（Deploy）时 librime 把所有 YAML 编译合并后的产物，运行时只读这里。修改任何源 YAML 后必须「重新部署」才生效。
+3. **构建目录（build）**：`~/Library/Rime/build/`，部署（Deploy）时 librime 把所有 YAML 编译合并后的产物，运行时只读这里。修改任何源 YAML 后必须重新编译才生效；Hufu 设置里的改动会自动完成这一步，不需要手动操作。
 
 加载优先级（同名配置源，后者覆盖前者）：
 
@@ -73,7 +73,7 @@ catalog: switches.emoji_cn
 
 ## 部署流程与 installation.yaml / user.yaml
 
-「重新部署」= librime 重新编译：解析 default/schema/custom → 应用 `__include`/`__patch`/patch → 编译词典（`.dict.yaml` → build/*.bin）、语法模型、OpenCC → 写入 build/。前端菜单「同步用户数据」则是另一件事（见 userdb 一节）。
+「重新部署」= librime 重新编译：解析 default/schema/custom → 应用 `__include`/`__patch`/patch → 编译词典（`.dict.yaml` → build/*.bin）、语法模型、OpenCC → 写入 build/。前端菜单「同步用户数据」则是另一件事（见 userdb 一节）。Hufu 里没有面向用户的「重新部署」：设置里的任何改动都会自动完成上述编译，外观类改动只重载前端配置。
 
 `installation.yaml`（每次部署更新）本机实例：
 
@@ -334,7 +334,7 @@ speller:
 - **自动纠错**：`derive/^([wghk])ai$/$1ia/`（wia→wai）、`derive/([wrtypsdfghklzcbnm])ang$/$1nag/` 等数十条。
 - **拼写映射示例**：`xform/^sh/Ⓤ/`、`xform/iu$/Ⓠ/` 等把韵母映射到带圈占位符，最后 `xlit/ⓆⓌⓇ…/qwrtyui…/` 转写到实际键位；`derive/^([aoe])([ioun])$/$1$1$2/` 处理零声母双写。
 
-注意：custom patch 替换 `algebra` 是整个列表替换；改动后必须重新部署（词典需按新拼写重编译）。
+注意：custom patch 替换 `algebra` 是整个列表替换；改动后词表要按新拼写重编译（Hufu 会自动完成，无需手动操作）。
 
 Hufu 可视化：仅高级 YAML。Hufu 不提供模糊音、简拼或拼写规则开关；虎码的 `speller` 只定义合法编码字符与最大码长。
 catalog: —
@@ -655,7 +655,7 @@ Hufu 不捆绑 librime-lua，因此 `lua_processor@*` / `lua_translator@*` / `lu
 | charset_comment_filter.lua | Unicode 分区提示 | 已移除 |
 | unicode_display.lua | Unicode 编码显示 | 已移除 |
 
-三类前端候选各有开关（`hufu/features.json` 的 `dateTimeCandidates`、`calculatorCandidates`、`numeralsCandidates`，默认开），在 设置 › 输入习惯 › 便利功能 里调整；改动即时通知输入法，不需要重新部署。关闭后这些编码交回方案，不再注入候选。
+三类前端候选各有开关（`hufu/features.json` 的 `dateTimeCandidates`、`calculatorCandidates`、`numeralsCandidates`，默认开），在 设置 › 输入习惯 › 便利功能 里调整；改动即时通知输入法，无需任何手动操作。关闭后这些编码交回方案，不再注入候选。
 
 Hufu 可视化：高级 YAML（开关由 switches 组暴露 emoji_cn 等即可）。
 catalog: switches.emoji_cn

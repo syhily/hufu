@@ -86,21 +86,6 @@ struct RootView: View {
         } detail: {
             detail(for: selection ?? .overview)
                 .background(Theme.canvas)
-                .overlay(alignment: .top) { DeployProgressBar() }
-                .toolbar {
-                    if selection != .about {
-                        // Status sits outside the button's glass capsule: text on a tinted
-                        // (prominent) capsule is unreadable in both light and dark mode.
-                        if #available(macOS 26, *) {
-                            ToolbarItem(placement: .primaryAction) { DeployStatus() }
-                                .sharedBackgroundVisibility(.hidden)
-                            ToolbarItem(placement: .primaryAction) { DeployButton() }
-                        } else {
-                            ToolbarItem(placement: .primaryAction) { DeployStatus() }
-                            ToolbarItem(placement: .primaryAction) { DeployButton() }
-                        }
-                    }
-                }
         }
         .tint(Theme.accent)
         .onboardingHost(bypassed: selection == .about)
@@ -159,82 +144,6 @@ struct RootView: View {
     }
 }
 
-/// Changes apply automatically; the toolbar only reports what is happening.
-struct DeployStatus: View {
-    @Environment(SettingsModel.self) private var model
-
-    var body: some View {
-        HStack(spacing: 6) {
-            switch model.deployState {
-            case .deploying:
-                ProgressView().controlSize(.small)
-                Text(model.deployStage.isEmpty ? "正在应用…" : model.deployStage).foregroundStyle(.secondary)
-            case let .failed(message):
-                Label("应用失败", systemImage: "exclamationmark.triangle.fill")
-                    .foregroundStyle(Theme.warning)
-                    .help(message)
-            case .succeeded where !model.hasPendingChanges:
-                if !model.justImported || model.importWarnings.isEmpty {
-                    Label("已生效", systemImage: "checkmark.circle.fill")
-                        .foregroundStyle(Theme.success)
-                        .labelStyle(.titleAndIcon)
-                        .transition(.opacity)
-                } else {
-                    Label("配置已生效，导入有提醒", systemImage: "exclamationmark.triangle.fill")
-                        .foregroundStyle(Theme.warning)
-                        .help(model.importWarnings.joined(separator: "\n"))
-                }
-            default:
-                if model.hasPendingChanges {
-                    Text("即将应用…").foregroundStyle(.secondary)
-                }
-            }
-        }
-        .font(.callout)
-        .fixedSize()
-        .padding(.horizontal, 12) // off the window edge
-        .animation(.easeOut(duration: 0.2), value: model.deployState)
-    }
-}
-
-/// Shown only when an automatic deploy failed; ⇧⌘R still forces a full redeploy.
-struct DeployButton: View {
-    @Environment(SettingsModel.self) private var model
-
-    var body: some View {
-        if case .failed = model.deployState {
-            Button {
-                Task { await model.deploy() }
-            } label: {
-                Label("重试", systemImage: "arrow.clockwise").labelStyle(.titleAndIcon)
-            }
-            .help("完整重新部署（⇧⌘R）")
-        }
-    }
-}
-
-/// Thin progress line under the toolbar while settings are being applied.
-struct DeployProgressBar: View {
-    @Environment(SettingsModel.self) private var model
-
-    var body: some View {
-        if let progress = model.deployProgress {
-            GeometryReader { proxy in
-                Capsule()
-                    .fill(Theme.accent.gradient)
-                    .frame(width: max(8, proxy.size.width * progress), height: 3)
-                    .animation(.easeOut(duration: 0.25), value: progress)
-            }
-            .frame(height: 3)
-            .opacity(progress >= 1 ? 0 : 1)
-            .animation(.easeOut(duration: 0.35).delay(0.1), value: progress >= 1)
-            .allowsHitTesting(false)
-            .accessibilityLabel("正在应用设置")
-            .accessibilityValue(Text("\(Int(progress * 100))%"))
-        }
-    }
-}
-
 struct ErrorBanner: View {
     @Environment(SettingsModel.self) private var model
 
@@ -267,13 +176,4 @@ enum LaunchOptions {
     }
 
     static var pane: Pane? { argument("--pane").flatMap(Pane.init(rawValue:)) }
-}
-
-extension View {
-    /// Prominent when there is something to deploy; a plain bordered button otherwise
-    /// (a gray tint reads as "disabled").
-    @ViewBuilder
-    func adaptiveProminence(_ prominent: Bool) -> some View {
-        if prominent { buttonStyle(.borderedProminent) } else { buttonStyle(.bordered) }
-    }
 }

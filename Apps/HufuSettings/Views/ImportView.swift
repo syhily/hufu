@@ -51,7 +51,7 @@ struct ImportSheet: View {
                 Spacer()
                 Button("取消") { dismiss() }
                     .keyboardShortcut(.cancelAction)
-                Button("导入并部署") {
+                Button("导入") {
                     let chosen = source
                     dismiss()
                     Task { await model.importSquirrel(from: chosen) }
@@ -78,7 +78,7 @@ struct ImportSheet: View {
             Label("\(path) → 外观补丁（\(target.customName)）", systemImage: "square.stack.3d.up")
                 .font(.callout).foregroundStyle(Theme.accentText)
         case let .importSnapshots(path):
-            Label("\(path)/ 词频快照 → 部署后合并", systemImage: "chart.bar.doc.horizontal").font(.callout)
+            Label("\(path)/ 词频快照 → 导入后合并", systemImage: "chart.bar.doc.horizontal").font(.callout)
         case let .skip(path, reason):
             Label("\(path) — 跳过：\(reason)", systemImage: "minus.circle")
                 .font(.caption).foregroundStyle(.tertiary)

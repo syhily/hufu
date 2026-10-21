@@ -28,8 +28,8 @@ bash scripts/install-dev.sh
 
 - [ ] 在系统设置启用 Hufu，必要时注销并重新登录；运行 `"$HOME/Library/Input Methods/Hufu.app/Contents/Helpers/hufu" doctor`，检查方案与路径（不应列出任何原生插件）。
 - [ ] 在 **TextEdit、Safari、VS Code、微信** 中实测虎码连续输入、候选翻页与选择、空格 / 回车上屏、退格、标点、中英切换、焦点切换与应用重启，记录应用版本。
-- [ ] 验证设置 App 各页面能打开，修改配置后自动重新部署生效；确认已有用户配置与词频未被意外覆盖。
-- [ ] 验证自定义短语：在设置中添加一条带虎码编码的短语，重新部署后能打出。
+- [ ] 验证设置 App 各页面能打开，修改配置后几秒内自动生效，界面上不出现任何「部署」按钮或状态；确认已有用户配置与词频未被意外覆盖。
+- [ ] 验证自定义短语：在设置中添加一条带虎码编码的短语，几秒后能直接打出（不需手动应用任何东西）。
 - [ ] 验证导入：用临时 RIME 目录只读导入，确认源目录内容与时间戳不变；拼音码表应提示需改为虎码编码。
 - [ ] 对最终下载的 `.pkg` / `.zip` 另做安装与输入冒烟测试，并确认 `Hufu Settings.app` 安装到 `/Applications`。
 
@@ -45,7 +45,7 @@ HUFU_BENCH_DIR="$(mktemp -d "${TMPDIR:-/tmp}/hufu-bench.XXXXXX")"
   --schema tigress --keys tuja --iterations 2000 --assert-p99-ms 5
 ```
 
-- [ ] 测量输入法进程的常驻内存：`ps -o pid=,rss=,etime=,command= -p "$(pgrep -x Hufu)"`，RSS 单位为 KiB。记录空闲、连续输入 10 分钟和重新部署后的数值；超标须定位或在发布说明中如实披露。
+- [ ] 测量输入法进程的常驻内存：`ps -o pid=,rss=,etime=,command= -p "$(pgrep -x Hufu)"`，RSS 单位为 KiB。记录空闲、连续输入 10 分钟和改动设置触发重建后的数值；超标须定位或在发布说明中如实披露。
 - [ ] 可用 `/usr/bin/time -l` 包裹 bench 命令记录 CLI 峰值内存；该结果不能代替输入法进程的常驻内存。
 
 ## 签名与公证

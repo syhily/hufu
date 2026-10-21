@@ -144,7 +144,7 @@ struct UsageStatsView: View {
             }
             Button("取消", role: .cancel) { pinning = nil; pinCode = "" }
         } message: {
-            Text("写入自定义短语表 huma_custom，重新部署后该词排在候选第一位。")
+            Text("写入自定义短语表 huma_custom，几秒后自动生效，该词排在候选第一位。")
         }
     }
 
