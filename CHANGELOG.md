@@ -1,0 +1,49 @@
+# 更新日志
+
+Hufu 每个版本面向用户的变动都记在这里。English: [CHANGELOG.en.md](CHANGELOG.en.md)。
+
+格式参照 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)，版本号遵循[语义化版本](https://semver.org/lang/zh-CN/)：
+
+- 每个版本一节：`## [版本号] - YYYY-MM-DD`，下一行用引用写发布状态。
+- 条目按类型分组，只用这六类，按此顺序：**新增**、**变更**、**修复**、**移除**、**安全**、**已知问题**。没有内容的类型不写。
+- 一条说一件用户能感知的事：先说在哪里、发生了什么，再说现在怎样；不写内部实现和提交号。
+- 未发布的改动写在 `## [Unreleased]` 下，发版时整体移到新版本。
+
+## [Unreleased]
+
+## [0.1.0] - 2026-10-21
+
+> 首个公开发布 · 基于 AIME 0.1.10 派生 · 签名与公证状态以 Release 说明为准
+
+### 新增
+
+- 基于 librime 1.17.0（预编译，`Vendor/librime.lock` 固定 sha256）的 macOS 输入法，原生候选窗支持横排一行 / 竖排列表与亮暗配色。
+- 内置虎码官方秃版 2026.08.15（schema `tigress`），词表过滤为单字与四字及以下词组：117,662 单字、125,655 词组、3,134 简码词，共 246,451 条原始记录。
+- 保留官方方案能力：`` ` `` 拼音反查、`'` 临时英文、拆分提示、拼音注解、emoji 注解、简繁切换（默认 `st_tu.json`）、全字集 / 常用字开关。
+- Hufu 设置：概览、AI 助手、输入统计、输入习惯、中英切换、快捷键、外观、应用、词库、自定义短语、常用语、同步与备份、高级、关于。
+- 外观页提供主题与配色编辑，支持 `hufu-ime://theme` 链接导入。
+- AI 助手：Apple 端侧模型（Foundation Models，macOS 26）或 OpenAI 兼容接口；⌃⌥P 触发翻译、润色与自定义动作；支持自然语言改配置与词汇提取（编码需手工补虎码）。
+- 自定义短语：`huma_custom` 表合并进虎码主词典，重新部署后生效。
+- 常用语、可选输入统计、词频同步与本地备份。
+- 可只读导入鼠须管、小狼毫、fcitx 的 RIME 配置；导入的拼音码表需自行改为虎码编码。
+- 命令行 `hufu`：deploy / bench / doctor / diagnostics / import-squirrel / get / set / sync / register。
+- tag 触发的发布流程：GitHub Actions 构建、签名（配置凭据时）、公证，产出 `Hufu-<版本>.pkg`、`.zip` 与校验文件。
+
+### 变更
+
+- 项目派生自 AIME，曾用名 Huma，现名 Hufu（虎符输入法），仓库迁移到 github.com/syhily/hufu。
+- 用户目录改为 `~/Library/Hufu/Rime`，与鼠须管的 `~/Library/Rime` 相互独立。
+- 默认且仅内置虎码一个方案；系统要求 macOS 15+；Apple 端侧模型需 macOS 26。
+- 原生插件只保留 librime-lua；安装包不再包含 GPL 组件。
+
+### 移除
+
+- 输入方案切换页、模糊音与拼写页。
+- 在线词库订阅、方案包下载与整句语言模型。
+- 以词定字与在线更新检查。
+- librime-octagram（GPL-3.0）与 librime-predict 原生插件。
+
+### 已知问题
+
+- 界面截图待重做。
+- 暂无 Homebrew cask 与在线主题画廊。

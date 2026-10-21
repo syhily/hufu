@@ -1,0 +1,48 @@
+name: Dictionaries
+
+on:
+  push:
+    paths:
+      - 'dicts/huma'
+      - '.gitmodules'
+      - 'scripts/filter-huma-dict.py'
+      - 'scripts/patch-huma-schema.py'
+      - 'scripts/stage-huma.sh'
+      - 'scripts/dictionary-metadata.py'
+      - 'SharedSupport/huma_custom.dict.yaml'
+      - 'SharedSupport/hufu/**'
+      - 'SharedSupport/hufu.yaml'
+  pull_request:
+    paths:
+      - 'dicts/huma'
+      - '.gitmodules'
+      - 'scripts/filter-huma-dict.py'
+      - 'scripts/patch-huma-schema.py'
+      - 'scripts/stage-huma.sh'
+      - 'scripts/dictionary-metadata.py'
+      - 'SharedSupport/huma_custom.dict.yaml'
+      - 'SharedSupport/hufu/**'
+      - 'SharedSupport/hufu.yaml'
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: macos-26
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+
+      - name: Fetch librime (OpenCC data)
+        run: bash scripts/fetch-librime.sh
+
+      - name: Assemble dictionaries
+        run: |
+          mkdir -p Packages/HufuKit/.build
+          bash scripts/stage-huma.sh
+
+      - name: Check dictionary metadata
+        run: python3 scripts/dictionary-metadata.py --shared-dir build/SharedSupport --check

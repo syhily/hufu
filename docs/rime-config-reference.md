@@ -1,0 +1,684 @@
+# RIME 配置项权威参考（Hufu 调研文档）
+
+> 适用对象：Hufu（基于 librime 的 macOS 输入法 + 可视化配置 App，内置虎码 tigress 方案）。
+>
+> 本文件保留 RIME 通用配置知识；其中拼音示例仅作引擎参考，Hufu 当前只内置虎码（tigress）。
+> 在线词库订阅、方案包、整句语言模型、模糊音设置与更新通道已随功能裁剪移除。
+> 事实来源：本机 `~/Library/Rime/` 真实用户配置、Squirrel 1.1.2 自带 `SharedSupport/` 配置、Rime 官方 Wiki（Configuration / CustomizationGuide / RimeWithSchemata / SpellingAlgebra）、LEOYoon-Tsaw《Rime_description》、librime-lua Wiki。
+> 每节末尾用 `catalog: <id>` 标注本文件与 `config/catalog.json` 的交叉引用；「Hufu 可视化」标注该项是否已被可视化目录收录。
+>
+> **现状（2026-10）**：设置 App 已移除原始 YAML 补丁编辑界面，也不再支持方案定制（增删 / 自制方案、方案补丁编辑）。下文标为「高级 YAML」的项表示**界面不提供**，仅供了解 RIME 配置；需要调整时直接编辑用户目录文件（自行承担风险），或以代码现状为准。
+
+## 文件体系与加载顺序
+
+RIME 的配置文件分布在三个位置：
+
+1. **共享目录（shared）**：macOS 上为 `/Library/Input Methods/Squirrel.app/Contents/SharedSupport/`，存放出厂默认配置（`default.yaml`、`squirrel.yaml`、`key_bindings.yaml`、`punctuation.yaml`、`symbols.yaml`、朙月拼音等预设方案、opencc 词典、语法模型）。**不可修改**，升级输入法会被覆盖。
+2. **用户目录（user）**：`~/Library/Rime/`，存放用户配置与个性化方案。同名文件若 `config_version` 更高，则整文件覆盖共享目录版本（例如用户目录 `squirrel.yaml` 的 `config_version: '2025-10-23'` 高于出厂的 `'1.0'`，整份生效）。推荐做法是不整文件复制，而是写 `<同名>.custom.yaml` 补丁。
+3. **构建目录（build）**：`~/Library/Rime/build/`，部署（Deploy）时 librime 把所有 YAML 编译合并后的产物，运行时只读这里。修改任何源 YAML 后必须「重新部署」才生效。
+
+加载优先级（同名配置源，后者覆盖前者）：
+
+```
+SharedSupport/xxx.yaml  →  ~/Library/Rime/xxx.yaml  →  ~/Library/Rime/xxx.custom.yaml (patch)
+```
+
+配置层级分三层，逐层合并：
+
+- **default.yaml**：全局默认（schema_list、menu、switcher、ascii_composer、punctuator、recognizer、key_binder）。
+- **schema（`<方案名>.schema.yaml`）**：输入方案本体，引用 default 的预设（`import_preset: default`）并可覆盖任何键。
+- **前端（`squirrel.yaml` / Hufu 的 `hufu.yaml`）**：外观与应用级选项，键结构与 squirrel.yaml 相同。
+
+本机实际生效链举例：`default.custom.yaml` 把 `menu/page_size` 从 5 改成 9、`schema_list` 精简为 `[tigress]`；`squirrel.custom.yaml` 把配色改为 `mac_light` / `mac_dark`。
+
+Hufu 可视化：已收录（加载顺序为只读知识；可视化写入的是 `hufu.yaml` 与各 `*.custom.yaml`）。
+catalog: menu.page_size, switches.emoji_cn
+
+## 编译内嵌与补丁语法（__include / __patch / __append / __merge）
+
+YAML 编译期支持四种合并指令，写在任意映射节点内：
+
+| 指令 | 语义 | 示例 |
+|---|---|---|
+| `__include: <文件>:/<路径>` | 把另一 YAML 的指定子树包含进来 | `__include: default:/punctuator` |
+| `__patch: <文件>:/<路径>` | 用另一文件的子树作为补丁合并到当前节点 | `__patch: key_bindings:/emacs_editing` |
+| `__append` / `__prepend` | 向列表追加 / 前插元素 | `__append: [{when: paging, accept: comma, send: Page_Up}]` |
+| `__merge` | 把给定映射合并进当前映射 | 较少用，等价于浅合并 |
+
+真实示例（`tigress.schema.yaml`）：
+
+```yaml
+punctuator:
+  __include: default:/punctuator        # 继承全局标点设置
+  full_shape:
+    __include: default:/punctuator/full_shape
+  symbols:
+    __include: symbols_v:/symbols        # v 模式符号表
+```
+
+而 `*.custom.yaml` 补丁文件只有两类顶层键：
+
+```yaml
+patch:
+  menu/page_size: 9                      # 斜杠路径定位深层键
+  ascii_composer/switch_key/Caps_Lock: commit_text
+  "key_binder/bindings":                 # 含特殊字符的路径需加引号
+    - { when: always, accept: "Control+Shift+4", toggle: simplification }
+```
+
+补丁路径中的高级写法（librime ≥ 1.x 支持）：`/+` 追加列表元素、`/@3` 或 `/@last` 定位列表第 N 项（如 `switches/@3/reset: 1` 修改第 4 个开关的默认值）。注意 `patch` 对**列表整体替换**——重写 `switches` 等列表键时必须把原方案的全部项复制一遍再增删，不能只写增量。
+
+Hufu 可视化：高级 YAML（可视化目录只写扁平键值，多规则场景引导用户编辑 `*.custom.yaml`）。
+catalog: switches.emoji_cn
+
+## 部署流程与 installation.yaml / user.yaml
+
+「重新部署」= librime 重新编译：解析 default/schema/custom → 应用 `__include`/`__patch`/patch → 编译词典（`.dict.yaml` → build/*.bin）、语法模型、OpenCC → 写入 build/。前端菜单「同步用户数据」则是另一件事（见 userdb 一节）。
+
+`installation.yaml`（每次部署更新）本机实例：
+
+```yaml
+distribution_code_name: Hufu
+distribution_name: "Hufu"
+distribution_version: 0.1.0
+install_time: "Wed Sep 18 15:55:54 2024"
+installation_id: "d523dbf9-97a0-4a1f-b6e4-2dbdc72f4e7a"   # 同步目录子目录名
+rime_version: 1.17.0
+update_time: "Thu Jan 15 09:59:41 2026"
+```
+
+- `installation_id`：本机唯一标识，同步时以它为子目录名区分多台设备；可在文件中自定义 `sync_dir`（默认 `~/Library/Hufu/Rime/sync`）。
+- `distribution_*`：发行方信息，写入用户词典快照头部。
+
+`user.yaml`（运行时状态，勿手改）：
+
+```yaml
+var:
+  last_build_time: 1790578427
+  previously_selected_schema: tigress
+  schema_access_time:
+    tigress: 1726647766
+```
+
+Hufu 可视化：高级 YAML（deployment 由 librime 触发）；同步目录在「同步与备份」页设置。
+catalog: —（安装目录由同步页管理）
+
+## Schema 元信息
+
+每个 `*.schema.yaml` 顶部：
+
+```yaml
+schema:
+  schema_id: tigress           # 方案 ID，与文件名、词典名对应
+  name: "虎码"                  # 方案选单中显示的名称
+  version: 0.9
+  author:
+    - {}
+  description: |
+    虎码（官方秃版，单字与四字及以下词组）
+    敲 ` 鍵進入拼音反查
+  dependencies:                # 依赖的其它方案（其词典可被引用）
+    - core2022                 # 自定义字集工具方案
+    - PY_c                     # 拼音方案
+    - easy_english             # 英文
+```
+
+要点：`schema_id` 决定 build/ 产物文件名与用户词典名（`<schema_id>.userdb`）；`dependencies` 中的方案可以先部署，本方案通过 `table_translator@xxx` + 独立词典引用它们。多方案共库时必须设 `prism` 隔离用户词典。
+
+Hufu 可视化：无方案切换页；`default.yaml` 的 `schema_list` 固定为虎码，设置里只显示当前方案。
+catalog: —（schema_list 不开放编辑）
+
+## switches 开关
+
+方案顶部的可切换选项，出现在「方案选单 / 状态切换菜单」里。虎码方案的开关（tigress.schema.yaml）：
+
+```yaml
+switches:
+  - name: ascii_mode
+    reset: 0
+    states: [ 中文, 西文 ]
+  - name: extended_char          # 自定义字集
+    reset: 1
+    states: [ 全集, 常用 ]
+  - name: pinyin                 # 拼音滤镜
+    reset: 0
+    states: [ 拼, pīn ]
+  - name: emoji_cn               # emoji 滤镜
+    reset: 0
+    states: [ 🈚, 🈶 ]
+  - name: chaifen
+    reset: 0
+    states: [ 拆隐, 拆显 ]
+  - name: simplification         # 简转繁滤镜
+    reset: 0
+    states: [ 简中, 繁中 ]
+```
+
+规则：`name` 与 `options`（多选一）二选一——`name` 是二态开关，`options` 是多选（如明月拼音的 `zh_hans/zh_hant/zh_hant_tw`）；`reset` 是部署后的初始状态索引；`states`/`abbrev` 决定菜单显示；`switcher/save_options` 列出的开关会被记忆（见 switcher 节）。opencc 类开关（simplification、emoji_cn）由 `simplifier@xxx` 的 `option_name` 关联消费。
+
+Hufu 可视化：已收录（常用开关默认值做成 bool）。
+catalog: switches.emoji_cn, switches.simplification, switches.full_shape, switches.ascii_punct, switches.chaifen, switches.pinyin, switches.extended_char
+
+## engine 总览
+
+`engine:` 定义一条输入处理流水线，四段按序执行（tigress.schema.yaml:42-85）：
+
+```yaml
+engine:
+  processors:     # 按键 → 编辑操作 / 组件调度
+    - lua_processor@*select_character
+    - ascii_composer
+    - recognizer
+    - key_binder
+    - speller
+    - punctuator
+    - selector
+    - navigator
+    - express_editor
+  segmentors:     # 输入码 → 分段（tag 标记）
+    - ascii_segmentor
+    - matcher
+    - abc_segmentor
+    - affix_segmentor@radical_lookup
+    - punct_segmentor
+    - fallback_segmentor
+  translators:    # 分段 → 候选（按 tag 认领）
+    - punct_translator
+    - script_translator
+    - lua_translator@*date_translator
+    - ...
+  filters:        # 候选 → 加工（排序/转换/去重）
+    - lua_filter@*corrector
+    - simplifier@emoji
+    - simplifier@traditionalize
+    - uniquifier
+```
+
+语法要点：`@名字` 挂载具名组件（配置写在顶层同名节点，如 `table_translator@custom_phrase` 读 `custom_phrase:` 节点）；lua 组件用 `lua_xxx@*脚本名`，`*` 表示全局命名空间（所有方案共享，虎码脚本），`@脚本名@名字空间` 可带独立配置。顺序敏感：processors 中越靠后优先级越低；filters 中越靠前越先看到候选。
+
+Hufu 可视化：高级 YAML（流水线结构不开放编辑；翻译器参数见下两节）。
+catalog: —（见 translators 节的 translator.enable_completion）
+
+## processors 处理器
+
+按键事件按列表顺序流经各 processor，返回「已消费」即终止。常见组件：
+
+- **ascii_composer**：处理中西文切换键（Shift/CapsLock），决定输入进 ascii 模式还是进拼写区。详见 ascii_composer 节。
+- **recognizer**：用 `recognizer/patterns` 正则匹配输入码前缀，命中则打上对应 tag（email、url、punct、reverse_lookup……），后续 segmentor/translator 按 tag 处理。例：`punct: "^v([0-9]|10|[A-Za-z]+)$"` 把 v 开头的输入标记为符号模式。
+- **key_binder**：按 `bindings` 把按键翻译成其它按键或动作（翻页、开关切换）。详见 key_binder 节。
+- **speller**：把输入码按 `speller/algebra` 规则换算成音节并切分，是拼音类方案的核心。详见 speller 节。
+- **punctuator**：在适当时机把标点键转换为标点候选（受 ascii_punct/full_shape 开关控制）。
+- **selector**：处理选词键（数字键、空格、alternative_select_keys）。
+- **navigator**：光标在拼写区内移动。
+- **express_editor / fluid_editor**：编辑已确认的句段。express_editor 直接上屏已确认部分；fluid_editor（旧称）行为不同，现代方案统一用 express_editor。
+- **lua_processor@\*select_character**：以词定字（按 `[`/`]` 取候选首/尾字）。Hufu 已不提供该功能，内置虎码方案也未挂载。
+
+Hufu 可视化：高级 YAML（流水线结构不开放编辑）；翻页键在快捷键页。
+catalog: keys.paging_minus_equal
+
+## segmentors 分段器
+
+把输入串切成带 tag 的段落，各 translator 只翻译自己 tag 的段：
+
+- **ascii_segmentor**：西文模式整段成 ascii 段。
+- **matcher**：匹配 recognizer 打出的前缀模式（url、email 等）。
+- **abc_segmentor**：按 speller 切分出的音节边界分段（拼音主体）。
+- **affix_segmentor@radical_lookup**：识别反查前缀（如 `uU` 部件拆字）。
+- **punct_segmentor**：标点段。
+- **fallback_segmentor**：兜底，把剩余输入逐字成段。
+
+一般无需调整；新增「xx 模式」时需在 recognizer、segmentors、translators 三处配套注册。
+
+Hufu 可视化：高级 YAML（仅暴露 v 模式前缀）。
+catalog: recognizer.punct_prefix
+
+## translators 翻译器
+
+按 tag 认领分段并产出候选。主要类型与本机实例：
+
+- **script_translator**：音节表驱动的主翻译器，读 `<translator>` 节点（dictionary: tigress），支持组句、调频、用户词典。
+- **table_translator**：码表翻译器（固定编码查表），实例：`table_translator@custom_phrase`（自定义短语，initial_quality: 99 顶到最前）、`table_translator@easy_english`（英文混输）。
+- **reverse_lookup_translator / reverse_lookup_filter**：反查（用另一种编码查主词典，或给候选注音）。虎码通过 `affix_segmentor` + `table_translator` + `reverse_lookup_filter` 实现拼音反查（`` ` `` 引导）。
+- **punct_translator**：标点/符号候选，读 `punctuator` 配置与 symbols 表。
+- **echo_translator**：把输入原样回显为候选（常配 recognizer 的 email/url tag，让网址可直接上屏）。
+- **history_translator**：最近上屏内容重复输入。
+- **lua_translator@\*…**：Lua 脚本翻译器；虎码方案挂载 number_translator、calculator_translator、shijian2_translator 等。
+
+Hufu 可视化：编码提示已收录；其余翻译器参数走高级 YAML。
+catalog: translator.enable_completion
+
+## translators 常用参数
+
+`script_translator` / `table_translator` 支持的常用参数（以虎码实际配置为例）：
+
+| 参数 | 含义 | 本机值（tigress 主翻译器） |
+|---|---|---|
+| `dictionary` | 主词典名（`<name>.dict.yaml`） | `tigress` |
+| `prism` | 多方案共库时的用户词典隔离名 | 单方案，未设置 |
+| `enable_user_dict` | 是否启用用户词典（调频/造词） | `false` |
+| `enable_sentence` | 是否组句（table_translator 应关） | `false` |
+| `enable_completion` | 输入中按前缀补全码表词 | 主翻译器 `false`；easy_english `true` |
+| `enable_word_completion` | 长词自动补全（librime > 1.11.2） | 未设置，使用默认值 |
+| `initial_quality` | 候选初始权重（决定各翻译器间排序） | 主翻译器未设置；easy_english `-1` |
+| `spelling_hints` | 候选注释带 N 位拼写提示 | 未设置 |
+| `always_show_comments` | 无注释时也显示编码注释 | 未设置 |
+| `preedit_format` | 输入码显示形态换算 | 主翻译器未设置；easy_english 把下划线转成空格 |
+| `comment_format` | 注释显示形态换算 | 去掉编码提示前的 `~` |
+| `contextual_suggestions` | 跨句上下文选词（octagram） | 不适用：octagram 插件已移除 |
+| `max_homophones` / `max_homographs` | 语言模型同音/同形候选上限 | 不适用：未启用语言模型 |
+
+语言模型（octagram grammar）与「整句语言模型」下载已随功能裁剪移除；当前方案不配置 `grammar`。
+
+Hufu 可视化：编码提示已收录；其余参数走高级 YAML。
+catalog: translator.enable_completion
+
+## filters 过滤器
+
+对候选流做转换/排序/过滤，按列表顺序执行：
+
+- **simplifier@xxx**：OpenCC 简繁/emoji 转换。`simplifier@emoji_cn`（option_name: emoji_cn，opencc_config: emoji.json，inherit_comment: false）把候选经 emoji 映射多一份；`simplifier@simplification`（option_name: simplification，opencc_config: s2t.json，可选 s2hk/s2tw/s2twp，tips: none，tags 限定作用段）实现繁体输出。
+  catalog: simplification.opencc_config（设置 › 输入习惯 › 繁体标准）。「默认输出」简体/繁体不写配置：Hufu 在每个新会话上设置 `simplification` 开关（`hufu/features.json` 的 `traditional`）。
+- **uniquifier**：去除完全相同的候选（一般放在 filters 最后）。
+- **charset_filter**（librime 内置，需配合 extended_charset 开关）：过滤字符集外汉字。
+- **single_char_filter**：只留单字候选。
+- **lua_filter@\*…**：RIME 生态中常见的 Lua 滤镜（corrector、autocap_filter、v_filter、pin_cand_filter、long_word_filter、reduce_english_filter、search@radical_pinyin 等）；Hufu 只随虎码方案挂载其自带的 Lua 滤镜，不内置这些额外滤镜。
+
+Hufu 可视化：emoji 与简繁走开关；上述常见 Lua 滤镜不属于内置虎码方案。
+catalog: switches.emoji_cn, switches.simplification
+
+## speller 与拼写运算 algebra
+
+`speller:` 定义拼写规则，拼音类方案核心：
+
+```yaml
+speller:
+  alphabet: zyxwvutsrqponmlkjihgfedcbaZYXWVUTSRQPONMLKJIHGFEDCBA`   # 合法输入字符（含 ` 辅码引导符）
+  initials: ...            # 可作为音节开头的字符（比 alphabet 少 `，使单个 ` 直接上屏）
+  delimiter: " '"          # 音节分隔符：空格与单引号
+  algebra:                 # 拼写运算规则（核心）
+    ...
+```
+
+**拼写运算（Spelling Algebra）** 六种算子，把词典中的标准拼音换算成用户实际击键序列：
+
+| 算子 | 语义 | 示例 |
+|---|---|---|
+| `xlit/A/B/` | 字符一一转写 | `xlit/āḃçď…/ABCD…/` |
+| `xform/re/repl/` | 正则替换（不可逆） | 拼写运算 `xform/iu$/Ⓠ/` |
+| `derive/re/repl/` | 派生（原式与新式并存） | `derive/^([zcs])h/$1/` 模糊音 |
+| `abbrev/re/repl/` | 略写（参与简拼、低权重） | `abbrev/^([a-z]).+$/$1/` 超级简拼 |
+| `erase/re/` | 该拼写不出词 | `erase/^xx$/` |
+| `fuzz/re/repl/` | 模糊匹配（可跨音节） | 较少用，效果近似 derive 但更宽 |
+
+典型应用（以下为拼音类方案的写法，仅用于说明 RIME 的拼写运算；虎码使用码表编码，不配置这些 algebra 规则）：
+
+- **模糊音**：`derive/^([zcs])h/$1/`（zh/ch/sh→z/c/s）、`derive/^([zcs])([^h])/$1h$2/`（反向）、`derive/^n/l/`、`derive/^l/n/` 等。
+- **超级简拼**：`erase/^hm$/`（屏蔽特例）+ `abbrev/^([a-z]).+$/$1/` + `abbrev/^([zcs]h).+$/$1/`（各音节取首字母）。
+- **v/u 容错**：`derive/^([jqxy])v/$1u/`、`derive/^([nl])ue$/$1ve/` 等 4 条。
+- **自动纠错**：`derive/^([wghk])ai$/$1ia/`（wia→wai）、`derive/([wrtypsdfghklzcbnm])ang$/$1nag/` 等数十条。
+- **拼写映射示例**：`xform/^sh/Ⓤ/`、`xform/iu$/Ⓠ/` 等把韵母映射到带圈占位符，最后 `xlit/ⓆⓌⓇ…/qwrtyui…/` 转写到实际键位；`derive/^([aoe])([ioun])$/$1$1$2/` 处理零声母双写。
+
+注意：custom patch 替换 `algebra` 是整个列表替换；改动后必须重新部署（词典需按新拼写重编译）。
+
+Hufu 可视化：仅高级 YAML。Hufu 不提供模糊音、简拼或拼写规则开关；虎码的 `speller` 只定义合法编码字符与最大码长。
+catalog: —
+
+## punctuator 与 symbols 符号表
+
+`punctuator:` 控制标点输出，三套映射：`full_shape`（全角）、`half_shape`（半角，中文标点习惯）、`ascii_style`（西文标点，预设文件中）。条目三种形式：
+
+```yaml
+full_shape:
+  '.' : { commit: 。 }            # commit：直接上屏
+  '<' : [ 《, 〈, «, ‹ ]           # 列表：给候选
+  "'" : { pair: [ '‘', '’' ] }     # pair：成对符号自动交替
+```
+
+- `punctuator/digit_separators: ",.:"`：数字中间的这些符号不转标点（输入 3.14 直接得 3.14）。
+- **symbols 表**：v 模式符号。虎码 `punctuator: import_preset: symbols`，条目形如 `'vsz': [ ⚀⚁⚂⚃⚄⚅ ]`、`'va': [ā, á, ǎ, à]`；配合 `recognizer/patterns/punct` 决定触发前缀。
+- 全局 default.yaml 内联了完整 full/half_shape（如 `,`→`，`、`[`→`[ 「, 【, 〔, ［ ]`、`'`→pair 引号）；Squirrel 出厂版则 `__include: punctuation:/full_shape`。
+
+Hufu 可视化：部分已收录（digit_separators；符号表本体为高级 YAML）。
+catalog: punctuator.digit_separators
+
+## key_binder 按键绑定
+
+```yaml
+key_binder:
+  import_preset: default
+  bindings:
+    - { when: composing, accept: Tab, send: Shift+Right }       # 键映射：按 Tab 当作 Shift+Right
+    - { when: paging, accept: minus, send: Page_Up }            # 翻页
+    - { when: has_menu, accept: equal, send: Page_Down }
+    - { when: always, accept: "Control+Shift+4", toggle: simplification }  # 切换开关
+    - { when: always, accept: "Control+Shift+1", select: .next }               # 选下一个方案
+```
+
+- **when 条件**：`composing`（有输入码）、`has_menu`（有候选）、`paging`（翻过多页）、`always`（任意时刻）。
+- **动作**：`accept: 按键名`（捕获的键）、`send: 按键名`（改发其它键）、`toggle: 开关名`（切换 switches 中的开关）、`select: 方案ID或.next`（切换输入方案）。
+- **editor/bindings**（schema 内）：编辑键，如 `space: confirm`、`Return: commit_raw_input`、`Control+BackSpace: back_syllable`、`Escape: cancel`。
+- **以词定字**：RIME 生态中可用 `key_binder/select_first_character: bracketleft`、`select_last_character: bracketright`，由 lua_processor@select_character 消费。Hufu 已移除该功能，相关快捷键与设置项不再提供。
+- 出厂预设集中在 `key_bindings.yaml`：emacs_editing、paging_with_minus_equal、paging_with_comma_period、paging_with_brackets、numbered_mode_switch、windows_compatible_mode_switch 等，用 `bindings/__patch: key_bindings:/xxx` 引入。
+
+Hufu 可视化：翻页方式、快捷菜单与方案选单触发方式已收录；其余按键映射走高级 YAML。
+catalog: keys.paging_minus_equal, keys.paging_comma_period
+
+设置 › 快捷键 › 快捷菜单：长按触发键（Option / Control / Command / 关闭，约 0.35 秒）保存到 `hufu/features.json` 的 `menuHoldKey`，即时通知输入法读取，不写 RIME 按键绑定。固定组合键为 ⌃⌥M；候选窗菜单按钮是否显示仍在外观设置。设置 › 快捷键 › 方案选单：`switcher.hotkeys`（原来位于输入习惯），ID、默认值与 `switcher/hotkeys` 写入方式保持不变。
+
+## ascii_composer 中西文切换
+
+```yaml
+ascii_composer:
+  good_old_caps_lock: true       # true=CapsLock 直接切西文；false=CapsLock 作为「大写临时西文+回车上屏」
+  switch_key:
+    Caps_Lock: commit_code       # 本机 custom 值；出厂为 clear
+    Shift_L: commit_code         # 左 Shift：上屏输入码并切西文
+    Shift_R: noop
+    Control_L: noop
+    Control_R: noop
+    Eisu_toggle: clear           # 日文键盘英数键
+```
+
+`switch_key` 各键取值含义：
+
+| 值 | 行为 |
+|---|---|
+| `inline_ascii` | 进入临时西文（编辑区内联），回车上屏后回中文 |
+| `commit_text` | 上屏已组好的文字并切西文 |
+| `commit_code` | 上屏原始输入码并切西文 |
+| `noop` | 该键不处理（交还给系统） |
+| `clear` | 清除输入并切西文 |
+
+`good_old_caps_lock: true` 时 CapsLock 表现为老式大写锁（按下即西文）；false 时 CapsLock 进入「首字母大写模式」，回车上屏后自动回中文。
+
+Hufu 可视化：已收录。
+catalog: ascii_composer.good_old_caps_lock, ascii_composer.caps_lock, ascii_composer.shift_l, ascii_composer.shift_r, ascii_composer.control_l, ascii_composer.control_r
+
+## switcher 方案选单
+
+`default.yaml` / `default.custom.yaml` 中：
+
+```yaml
+switcher:
+  caption: 「方案选单」
+  hotkeys:
+    - Control+grave
+    - Control+F8
+    - F4
+  save_options:                  # 切换方案后要「记忆」的开关
+    - ascii_punct
+    - simplification
+    - full_shape
+    - emoji_cn
+    - chaifen
+    - extended_char
+    - pinyin
+  fold_options: true             # 开关多时在选单中折叠
+  abbreviate_options: true       # 用 switches 的 abbrev 缩写显示
+  option_list_separator: ' / '
+```
+
+- `hotkeys`：唤出方案选单的热键列表。
+- `caption`：打开方案选单时的提示文字，RIME 将它放在组字区。Hufu 跟随「内联预编辑」及应用覆盖设置，在输入框或候选窗显示；开启候选内联预上屏时，候选预览可能替代这段提示。可视化名称为「方案选单提示文字」，默认内容仍是 `「方案选单」`。
+- `save_options`：列出的开关状态会被记忆到用户词典，重启/切方案后保持；不在列表中的开关每次回到 `reset` 值。
+- `fold_options` / `abbreviate_options`：控制选单中开关的折叠与缩写显示。
+
+Hufu 可视化：已收录。
+catalog: switcher.hotkeys, switcher.save_options, switcher.fold_options, switcher.caption
+
+## menu 候选菜单
+
+```yaml
+menu:
+  page_size: 9                                # 每页候选数（1–10，默认 5，本机 custom 改 9）
+  # alternative_select_labels: [①②③…]         # 自定义候选序号标签
+  # alternative_select_keys: ASDFGHJKL         # 自定义选词键
+```
+
+- `page_size`：最常用项，决定每页候选个数与数字键数量。
+- `alternative_select_keys`：除数字外的第二组选词键（stringList 逐字符）。
+- `alternative_select_labels`：候选前的序号显示字符。
+
+Hufu 可视化：已收录。
+catalog: menu.page_size, menu.alternative_select_keys
+
+## recognizer 模式识别
+
+`recognizer/patterns:` 用正则把输入码打 tag，供 segmentor/translator 分流：
+
+default.yaml（全局）：
+```yaml
+recognizer:
+  patterns:
+    email: "^[A-Za-z][-_.0-9A-Za-z]*@.*$"
+    url: "^(www[.]|https?:|ftp[.:]|mailto:|file:).*$|^[a-z]+[.].+$"
+    underscore: "^[A-Za-z]+_.*"
+    # uppercase: "[A-Z][-_+.'0-9A-Za-z]*$"   # 出厂有，大写开头临时英文
+```
+
+tigress.schema.yaml（方案级，先 `import_preset: default` 再补充）：
+```yaml
+recognizer:
+  import_preset: default
+  patterns:
+    punct: "^/([0-9]0?|[A-Za-z]+)$"         # 符号前缀
+    reverse_lookup: "^`[a-z]*'?$"           # 拼音反查
+    easy_english: "^'[A-Z|a-z]*`?$"         # 英文
+    expression: "^=.*$"                     # 表达式
+```
+
+每个模式通常三件套：pattern（打 tag）→ affix/matcher segmentor（分段）→ 对应 translator（产出候选）。部分拼音方案会把 punct 改为大写 `^V…$` 以避开编码。
+
+Hufu 可视化：高级 YAML（punct 前缀为计划项）。
+catalog: recognizer.punct_prefix
+
+## 词典 dict.yaml 与 custom_phrase
+
+`tigress_ci.dict.yaml` 头部（词典定义文件）：
+
+```yaml
+# Rime dictionary
+---
+name: tigress_ci
+version: "2026.08.14"
+sort: by_weight
+use_preset_vocabulary: false
+columns:                        # 码表列定义
+  - text
+  - weight
+  - code
+  - stem
+encoder:                        # 形码造词规则
+  rules:
+    - length_equal: 2
+      formula: "AaAbBaBb"
+    - length_equal: 3
+      formula: "AaBaCaCb"
+    - length_in_range: [4, 99]
+      formula: "AaBaCaZa"
+...
+```
+
+dict.yaml 支持的头部键：`name`、`version`、`sort`（by_weight / original）、`use_preset_vocabulary`（引入八股文预设词频）、`import_tables`（合并码表）、`columns`（码表列定义，默认 `text/code/weight`）、`encoder`（形码造词规则）。正文为 Tab 分隔的 `词条 编码 [权重]`，一词多码重复多行。
+
+`custom_phrase.txt`（自定义短语，table_translator 直读，不走编译）：
+
+```
+#@/db_name custom_phrase.txt
+#@/db_type tabledb
+噷	hm
+有	u	3
+Amazon	amazon
+```
+
+格式 `词汇<Tab>编码<Tab>权重`（权重可省）。配置侧：`table_translator@custom_phrase` 设 `user_dict: custom_phrase`、`db_class: stabledb`（只读、不调频；改 tabledb 可调频）、`initial_quality: 99`（压过一切候选）。
+
+Hufu 不使用 `custom_phrase.txt`：设置 › 自定义短语维护 `huma_custom.dict.yaml`，经虎码主词典的 `import_tables` 合并；编码需手工填写虎码。
+catalog: —（自定义短语为专用页面，不是通用 YAML 项）
+
+## userdb 用户词典与同步
+
+- **用户词典**：`<schema_id>.userdb/` 目录，LevelDB 格式（`*.ldb` 数据文件、`MANIFEST-*`、`CURRENT`、`LOG`），记录用户造词与动态调频。schema 设 `prism` 后目录名为 `<prism>.userdb`。
+- **同步**：前端菜单「同步用户数据」把用户词典导出为文本快照（`sync/<installation_id>/tigress.userdb.txt`，809KB）并合并其它设备快照。`installation.yaml` 可设：
+  - `sync_dir: "/path/to/dir"`：同步根目录（可指向 iCloud/Dropbox/NAS 做多端同步），默认 `~/Library/Rime/sync`。
+  - `installation_id: "我的Mac"`：本机标识，快照按它分子目录。
+- 同步是「快照合并」而非实时同步：词频按设备合并取最新/最高，删除不传播（librime 同步语义）。
+- 本机 `sync/d523dbf9-…/` 内除 userdb 快照外还备份了 schema/custom_phrase 等配置文件。
+
+Hufu 可视化：高级 YAML（sync_dir 写入 installation.yaml，不属 default/schema/frontend 三类，故不入目录）。
+catalog: —（installation.yaml 暂无可视化项）
+
+## 前端 squirrel.yaml：style 外观
+
+Hufu 的前端配置文件为 `hufu.yaml`，键结构与 `squirrel.yaml` 完全相同（本节以 squirrel 为准）。顶层键：`config_version`（须高于出厂版本才生效）、`keyboard_layout: last`（last/default/布局 ID）、`chord_duration: 0.1`（和弦秒数）、`show_notifications_when: appropriate`（always/never/appropriate）、`style`、`preset_color_schemes`、`app_options`。
+
+`style:` 全字段（出厂默认 + 实际用法）：
+
+| 字段 | 默认 | 说明 |
+|---|---|---|
+| `color_scheme` / `color_scheme_dark` | native | 浅色/深色模式配色方案名（对应 preset_color_schemes 键名） |
+| `candidate_list_layout` | stacked | 候选排列：`stacked` 竖排 / `linear` 横排（`horizontal` 键自 1.0.1 移除） |
+| `text_orientation` | horizontal | 文字方向 horizontal / vertical |
+| `inline_preedit` | true | 输入码内联在编辑区 |
+| `inline_candidate` | false | 首选候选内联预上屏 |
+| `memorize_size` | true | 记住候选窗大小 |
+| `mutual_exclusive` | false | 各外观选项互斥（高度由内容决定） |
+| `translucency` | false | 半透明毛玻璃 |
+| `show_paging` | false | 显示翻页指示 |
+| `corner_radius` | 7 | 候选窗圆角（配色方案里的同名键优先） |
+| `hufu/max_width` | 640 | **Hufu 扩展**：候选窗最大宽度（点）。只约束长候选：单个候选超出时以省略号截断，含长候选的一页超出时换行；普通候选（每个不超过该值的 1/3）一页始终一行，仅受屏幕宽度 90% 限制；0 表示单个候选仅受屏幕宽度 60% 限制（参考 Weasel `max_width`） |
+| `hufu/corner_radius` | 10 | **Hufu 扩展**：优先于配色方案的圆角；设置 App 的「候选窗圆角」写这里，0 为直角。未设置时圆角不低于 8pt（高亮不低于 5pt） |
+| `hilited_corner_radius` | 0 | 高亮候选圆角 |
+| `hufu/hilited_corner_radius` | 6 | **Hufu 扩展**：优先于配色方案的高亮圆角 |
+| `surrounding_extra_expansion` | 0 | 高亮块四周额外扩张 |
+| `border_height` / `border_width` | -2 | 边框高/宽（负值为内缩） |
+| `line_spacing` | 5 | 候选行距 |
+| `spacing` | 8 | 候选间距 |
+| `base_offset` | 0 | 文字基线微调 |
+| `shadow_size` | 0 | 阴影大小 |
+| `alpha` | 1 | 整体不透明度 0–1（用户自定义方案中常见） |
+| `font_face` / `font_point` | 'Avenir' / 16 | 候选字体与字号 |
+| `label_font_face` / `label_font_point` | 同上 | 序号标签字体 |
+| `comment_font_face` / `comment_font_point` | 同上 | 注释字体 |
+| `candidate_format` | `'[label]. [candidate] [comment]'` | 候选格式串；现代写法 `"%c\u2005%@\u2005"`（%c=候选 %@=注释） |
+
+Hufu 可视化：常用外观字段已收录；竖排文字方向、阴影与翻页指示等前端选项不在目录中。
+catalog: appearance.color_scheme, appearance.color_scheme_dark, appearance.candidate_list_layout, appearance.inline_preedit, appearance.inline_candidate, appearance.corner_radius, appearance.hilited_corner_radius, appearance.max_width, appearance.border_height, appearance.border_width, appearance.line_spacing, appearance.spacing, appearance.base_offset, appearance.alpha, appearance.translucency, appearance.font_face, appearance.font_point, appearance.label_font_face, appearance.label_font_point, appearance.comment_font_face, appearance.comment_font_point, appearance.candidate_format
+
+## preset_color_schemes 配色方案
+
+`preset_color_schemes:` 下每个键是一套方案，内置 21 套（native、aqua、azure、luna、ink、lost_temple、dark_temple、psionics、purity_of_form、purity_of_essence、starcraft、google、solarized_rock、clean_white、apathy、dust、mojave_dark、solarized_light、solarized_dark、retro_green、retro_orange）。本机用户新增/覆盖 16 套（mac_light、mac_dark、macos_light、macos_dark、wechat_light/dark、mac_green/orange/blue、win10、milan、purity、nord_light/dark、google、apathy 等）。
+
+单套方案全部颜色键（以 solarized_light 为例，squirrel.yaml:317-334）：
+
+```yaml
+solarized_light:
+  name: 曬經・日／Solarized Light
+  author: 雪齋 <lyc20041@gmail.com>
+  color_space: display_p3              # srgb | display_p3（macOS 10.12+）
+  back_color: 0xF0E5F6FB               # 窗口背景
+  border_color: 0xEDFFFF               # 边框
+  preedit_back_color: 0x403516         # 内联预编辑区背景
+  text_color: 0xA1A095                 # 预编辑输入码文字
+  hilited_text_color: 0x2C8BAE         # 已选中文字（内联部分）
+  hilited_back_color: 0x4C4022         # 已选中文字背景
+  candidate_text_color: 0x595E00       # 候选文字
+  candidate_back_color: 0xFFFFFF       # 候选背景（可省略）
+  label_color: 0xA36407                # 候选序号
+  comment_text_color: 0x005947         # 注释文字
+  hilited_candidate_text_color: 0x3942CB   # 高亮候选文字
+  hilited_candidate_back_color: 0xD7E8ED   # 高亮候选背景
+  hilited_candidate_label_color: 0x2566C6  # 高亮候选序号
+  hilited_comment_text_color: 0x8144C2     # 高亮候选注释
+```
+
+**颜色格式（重要）**：`0x` 前缀十六进制，**顺序为 BGR**——24 位 `0xBBGGRR`，32 位 `0xAABBGGRR`（A=alpha）。即文件注释所称「BGR顺序」，与常见 RGB 相反；写可视化取色器时必须做通道转换。（部分第三方主题沿用 weasel 键名 horizontal/margin_x 等，Squirrel 不识别。）
+
+Hufu 兼容旧配色的 `hilited_back_color`：没有独立的 `hilited_candidate_back_color` 时，候选高亮使用前者；独立候选颜色（包括显式透明色）始终优先。数值型颜色按 24 位不透明 RGB/BGR 或更大的 32 位带 alpha 值解析；需要保留前导零透明通道时使用明确的八位十六进制字符串。YAML 中的 `0x` 字符串不会因为未加引号而自动转成十进制。
+
+Hufu 可视化：已收录（自定义方案 hufu_custom 的核心颜色键）。
+catalog: appearance.custom.back_color, appearance.custom.border_color, appearance.custom.text_color, appearance.custom.candidate_text_color, appearance.custom.label_color, appearance.custom.comment_text_color, appearance.custom.hilited_candidate_back_color, appearance.custom.hilited_candidate_text_color, appearance.custom.hilited_candidate_label_color, appearance.custom.hilited_comment_text_color
+
+### Hufu 主题包与 `hufu-ime://theme` 导入
+
+Hufu 在 `preset_color_schemes` 之上定义了可分享的主题包（13 个颜色键、`0xAARRGGBB`）。链接 `hufu-ime://theme?v=1&d=<base64url>` 由「Hufu 设置」确认后写入
+`hufu/generated/` 的 `preset_color_schemes/<id>` 与 `style/color_scheme(_dark)`。格式与规则见 [themes.md](themes.md)。
+
+## app_options 应用级选项
+
+按 App 的 Bundle ID 覆盖行为（default/custom 中均支持 patch）：
+
+```yaml
+app_options:
+  com.microsoft.VSCode:
+    ascii_mode: true        # 进入该 App 默认西文
+    vim_mode: true          # 跟随 vim 模式自动切中英（需 App 支持）
+  com.apple.Terminal:
+    ascii_mode: true
+    no_inline: true         # 禁用内联预编辑（终端兼容）
+  com.google.Chrome:
+    inline: true            # 强制内联（规避 squirrel#435 双上屏）
+```
+
+可用键：`ascii_mode`、`ascii_punct`、`inline` / `no_inline`（互斥）、`vim_mode`。
+
+Hufu 可视化：已收录（设置 › 应用，按应用默认中英文）。
+catalog: advanced.app_options
+
+## Lua 扩展机制与虎码常用脚本
+
+librime-lua 允许在 engine 中以 `lua_processor@*name` / `lua_translator@*name` / `lua_filter@*name` / `lua_segmentor@*name` 挂载 `lua/name.lua`；`*` 前缀表示全局命名空间，方案间共享。脚本内可用完整 RIME API（Candidate、Preedit、CommitHistory 等）。
+
+虎码 `dicts/huma/lua/`（submodule [hufu-scheme](https://github.com/syhily/hufu-scheme)）脚本一览（挂载情况以 `tigress.schema.yaml` 为准）：
+
+| 脚本 | 挂载 | 功能 |
+|---|---|---|
+| calculator_translator.lua | lua_translator | 简易计算器 |
+| number.lua | lua_translator | 数字/金额大写 |
+| shijian2.lua | lua_translator | 日期时间与星期 |
+| exe.lua | lua_processor | exe 启动器 |
+| core2022_filter.lua | lua_filter | 自定义字集过滤 |
+| charset_comment_filter.lua | lua_filter | Unicode 分区提示 |
+| unicode_display.lua | lua_filter | Unicode 编码显示 |
+
+Hufu 可视化：高级 YAML（开关由 switches 组暴露 emoji_cn/simplification 等即可）。
+catalog: switches.emoji_cn, switches.simplification
+
+## catalog.json 字段说明与收录总表
+
+`config/catalog.json` 是 Hufu 可视化配置 App 的机器可读目录：
+
+- `groups[]`：分组（general 输入习惯 / switching 中英切换 / keys 快捷键 / appearance 外观 / advanced 高级）。
+- `settings[]`：每项含 `id`（点号路径）、`group`、`title`、`description`、`file`（default=default.custom.yaml，schema=当前方案 .custom.yaml，frontend=hufu.yaml）、`keypath`（RIME 补丁斜杠路径）、`type`（bool/int/double/string/enum/color/font/hotkey/stringList）、`default`、可选 `min`/`max`/`options`/`doc`（本文档锚点）。
+- keys 组部分 bool 项附 `bindings: [...]`：开启时向 `key_binder/bindings` 追加的绑定。
+- 前端项的 keypath 与 squirrel.yaml 相同，写入 hufu.yaml。
+- color 类型值为 Squirrel 的 `0xAABBGGRR` 格式。
+
+收录总表即 catalog.json 本身；本文各节末尾的 `catalog:` 行为反向索引。
+
+catalog: menu.page_size
+
+
+---
+
+> **Hufu 候选窗当前未实现的 squirrel.yaml 前端选项**（已从可视化目录移除，写入不会生效）：
+> `style/text_orientation: vertical`（竖排）、`style/shadow_size`、`style/show_paging`、`style/memorize_size`、
+> `style/mutual_exclusive`、`keyboard_layout`、`show_notifications_when`。列入 Roadmap，实现后再加回目录。
+
+## ascii_state（Hufu 扩展，hufu.yaml）
+
+| 键 | 默认 | 说明 |
+|---|---|---|
+| `ascii_state/scope` | `global` | 中英状态共享范围：`global` 所有应用共享（参考 Weasel `global_ascii`、fcitx5 ShareInputState=All）；`app` 每个应用分别记忆（ShareInputState=Program）；`window` 每个输入框独立（librime 默认行为） |
+
+`app_options/<bundle id>/ascii_mode: true` 的应用在任何范围下都单独记忆：首次进入为英文，之后保持用户在该应用中的选择，且不影响其他应用。
+
+catalog: ascii_state.scope
+
+
+## AI 助手（Hufu 应用设置）
+
+设置 › AI 助手 › OpenAI 兼容接口的「自定义请求体」存于 `hufu/features.json` 的 `aiExtraJSON` 字段。
+用户填入的 JSON 对象的顶层字段会合并进每次 chat/completions 请求的 body，可覆盖 `temperature`、`max_tokens` 等参数；`model`、`messages`、`stream` 由程序控制，不会被覆盖。非法 JSON 不发送。
+
+catalog: —（Hufu 应用设置，不在 RIME 配置目录）

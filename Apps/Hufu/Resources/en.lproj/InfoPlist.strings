@@ -1,0 +1,4 @@
+"dev.yufan.hufu.inputmethod.hans" = "Hufu";
+"dev.yufan.hufu.inputmethod" = "Hufu";
+CFBundleName = "Hufu";
+CFBundleDisplayName = "Hufu";

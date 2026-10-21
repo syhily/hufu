@@ -1,0 +1,18 @@
+{
+  "subject": "Hufu input source (menu bar) icon",
+  "issue": "https://github.com/syhily/hufu",
+  "approved": "2026-10-21, 「虎」 glyph for the Hufu rebrand",
+  "shape": "22×16 pt rounded rectangle (radius 3.5 pt) with the merged glyph outline subtracted, matching macOS input source icons",
+  "glyph": "虎 (U+864E)",
+  "font": "Noto Sans SC",
+  "fontSource": "../base-v1/font-source.json",
+  "fontSHA256": "a3041811a78c361b1de50f953c805e0244951c21c5bd412f7232ef0d899af0da",
+  "weight": 650,
+  "size": 12.5,
+  "license": "SIL Open Font License 1.1 (../base-v1/licenses/NotoSansSC-OFL.txt); the outline is artwork made with the font, the font itself is not distributed",
+  "generator": "scripts/gen-input-source-icon.swift",
+  "files": {
+    "Hufu-ai.pdf": "2e70b23a743648a12f85c2c466cd8b13bcf06543795f8d38cf34d751af43b819",
+    "Hufu-ai.svg": "56cb56bf6ef692a456e0f6cbd609dcb22a85c14383e27548dfb0002758d3298b"
+  }
+}

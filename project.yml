@@ -1,0 +1,157 @@
+name: Hufu
+options:
+  bundleIdPrefix: dev.yufan.hufu
+  developmentLanguage: zh-Hans
+  deploymentTarget:
+    macOS: "15.0"
+  createIntermediateGroups: true
+  groupSortPosition: top
+settings:
+  base:
+    MARKETING_VERSION: "0.1.0"
+    CURRENT_PROJECT_VERSION: "1"
+    SWIFT_VERSION: "6.0"
+    SWIFT_STRICT_CONCURRENCY: complete
+    SWIFT_EMIT_LOC_STRINGS: YES
+    LOCALIZATION_PREFERS_STRING_CATALOGS: YES
+    ENABLE_USER_SCRIPT_SANDBOXING: NO
+    DEAD_CODE_STRIPPING: YES
+    ENABLE_HARDENED_RUNTIME: YES
+    CODE_SIGN_STYLE: Automatic
+    DEVELOPMENT_TEAM: PX694P4CGY
+    CODE_SIGN_IDENTITY: "-"
+    INFOPLIST_KEY_NSHumanReadableCopyright: "© 2026 syhily. 原创源码 MIT。"
+  configs:
+    Debug:
+      CODE_SIGN_IDENTITY: Apple Development
+packages:
+  HufuKit:
+    path: Packages/HufuKit
+targets:
+  Hufu:
+    type: application
+    platform: macOS
+    productName: Hufu
+    sources:
+      - path: Apps/Hufu
+      - path: Apps/Shared
+    dependencies:
+      - package: HufuKit
+        product: RimeKit
+      - package: HufuKit
+        product: HufuCore
+      - package: HufuKit
+        product: HufuPanel
+      - package: HufuKit
+        product: HufuAI
+      - sdk: InputMethodKit.framework
+      - sdk: Carbon.framework
+    info:
+      path: Apps/Hufu/Info.plist
+      properties:
+        CFBundleDisplayName: Hufu
+        CFBundleName: Hufu
+        NSHumanReadableCopyright: "© 2026 syhily. 原创源码 MIT。"
+        LSUIElement: true
+        LSBackgroundOnly: false
+        NSPrincipalClass: NSApplication
+        LSApplicationCategoryType: public.app-category.utilities
+        InputMethodConnectionName: dev.yufan.hufu.inputmethod_Connection
+        InputMethodServerControllerClass: HufuInputController
+        InputMethodServerDelegateClass: HufuInputController
+        tsInputMethodIconFileKey: Hufu.pdf
+        tsInputMethodCharacterRepertoireKey: [Hans, Hant, Latn]
+        TISInputSourceID: dev.yufan.hufu.inputmethod
+        TICapsLockLanguageSwitchCapable: true
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        ComponentInputModeDict:
+          tsInputModeListKey:
+            dev.yufan.hufu.inputmethod.hans:
+              TISInputSourceID: dev.yufan.hufu.inputmethod.hans
+              TISIntendedLanguage: zh-Hans
+              tsInputModeScriptKey: smUnicodeScript
+              tsInputModeCharacterRepertoireKey: [Hans, Hant]
+              tsInputModeKeyEquivalentModifiersKey: 4608
+              tsInputModeMenuIconFileKey: Hufu.pdf
+              tsInputModeAlternateMenuIconFileKey: Hufu.pdf
+              tsInputModePaletteIconFileKey: Hufu.pdf
+              tsInputModePrimaryInScriptKey: true
+              tsInputModeIsVisibleKey: true
+              tsInputModeDefaultStateKey: true
+          tsVisibleInputModeOrderedArrayKey: [dev.yufan.hufu.inputmethod.hans]
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: dev.yufan.hufu.inputmethod
+        HUFU_INFO_TEMPLATE: "$(SRCROOT)/Apps/Hufu/Info.plist"
+        INFOPLIST_FILE: "$(DERIVED_FILE_DIR)/HufuInfo.plist"
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        LD_RUNPATH_SEARCH_PATHS: "$(inherited) @executable_path/../Frameworks"
+        CODE_SIGN_ENTITLEMENTS: Apps/Hufu/Hufu.entitlements
+    preBuildScripts:
+      - name: Stamp build metadata
+        script: bash "$SRCROOT/scripts/stamp-build-metadata.sh"
+        inputFiles: ["$(HUFU_INFO_TEMPLATE)"]
+        outputFiles: ["$(DERIVED_FILE_DIR)/HufuInfo.plist"]
+        basedOnDependencyAnalysis: false
+    postBuildScripts:
+      - name: Embed librime plugins and SharedSupport
+        script: bash "$SRCROOT/scripts/embed-runtime.sh"
+        basedOnDependencyAnalysis: false
+  Hufu Settings:
+    type: application
+    platform: macOS
+    productName: Hufu Settings
+    sources:
+      - path: Apps/HufuSettings
+        excludes: [".impeccable"]
+      - path: Apps/Shared
+    dependencies:
+      - package: HufuKit
+        product: HufuCore
+      - package: HufuKit
+        product: HufuPanel
+      - package: HufuKit
+        product: HufuAI
+    info:
+      path: Apps/HufuSettings/Info.plist
+      properties:
+        CFBundleDisplayName: Hufu Settings
+        CFBundleName: Hufu Settings
+        NSHumanReadableCopyright: "© 2026 syhily. 原创源码 MIT。"
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        LSApplicationCategoryType: public.app-category.productivity
+        # hufu-ime://theme?v=1&d=… links (docs/themes.md).
+        CFBundleURLTypes:
+          - CFBundleURLName: dev.yufan.hufu.theme
+            CFBundleURLSchemes: [hufu-ime]
+            CFBundleTypeRole: Viewer
+        NSPrincipalClass: NSApplication
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: dev.yufan.hufu.settings
+        HUFU_INFO_TEMPLATE: "$(SRCROOT)/Apps/HufuSettings/Info.plist"
+        INFOPLIST_FILE: "$(DERIVED_FILE_DIR)/HufuInfo.plist"
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        CODE_SIGN_ENTITLEMENTS: Apps/HufuSettings/HufuSettings.entitlements
+    preBuildScripts:
+      - name: Stamp build metadata
+        script: bash "$SRCROOT/scripts/stamp-build-metadata.sh"
+        inputFiles: ["$(HUFU_INFO_TEMPLATE)"]
+        outputFiles: ["$(DERIVED_FILE_DIR)/HufuInfo.plist"]
+        basedOnDependencyAnalysis: false
+schemes:
+  Hufu:
+    build:
+      targets:
+        Hufu: all
+        Hufu Settings: all
+    run:
+      config: Debug
+  Hufu Settings:
+    build:
+      targets:
+        Hufu Settings: all
+    run:
+      config: Debug

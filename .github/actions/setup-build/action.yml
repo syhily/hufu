@@ -1,0 +1,32 @@
+name: Set up Hufu build
+description: Latest stable Xcode, XcodeGen, cached vendor downloads, pinned librime and Tiger-Code dictionaries.
+
+runs:
+  using: composite
+  steps:
+    - name: Select latest stable Xcode
+      uses: maxim-lobanov/setup-xcode@v1
+      with:
+        xcode-version: latest-stable
+
+    - name: Install XcodeGen
+      shell: bash
+      run: brew install xcodegen
+
+    - name: Cache vendor downloads
+      uses: actions/cache@v4
+      with:
+        path: Vendor/.cache
+        key: ${{ runner.os }}-${{ runner.arch }}-vendor-${{ hashFiles('Vendor/librime.lock') }}
+
+    - name: Fetch librime
+      shell: bash
+      run: bash scripts/fetch-librime.sh
+
+    - name: Stage Tiger-Code dictionaries
+      shell: bash
+      run: |
+        # stage-huma also filters the word table and stages plugins; find needs this
+        # directory on a clean checkout.
+        mkdir -p Packages/HufuKit/.build
+        bash scripts/stage-huma.sh

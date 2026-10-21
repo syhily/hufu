@@ -1,0 +1,3 @@
+[submodule "dicts/huma"]
+	path = dicts/huma
+	url = https://github.com/syhily/hufu-scheme

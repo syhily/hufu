@@ -1,0 +1,1072 @@
+{
+  "version": 1,
+  "groups": [
+    {
+      "id": "general",
+      "title": "输入习惯",
+      "icon": "keyboard"
+    },
+    {
+      "id": "switching",
+      "title": "中英切换",
+      "icon": "globe"
+    },
+    {
+      "id": "keys",
+      "title": "快捷键",
+      "icon": "command"
+    },
+    {
+      "id": "appearance",
+      "title": "外观",
+      "icon": "paintpalette"
+    },
+    {
+      "id": "advanced",
+      "title": "高级",
+      "icon": "wrench.and.screwdriver"
+    }
+  ],
+  "settings": [
+    {
+      "id": "menu.page_size",
+      "group": "general",
+      "title": "候选词个数",
+      "description": "每页显示的候选数量（1–10），同时决定数字选词键个数。",
+      "file": "default",
+      "keypath": "menu/page_size",
+      "type": "int",
+      "min": 1,
+      "max": 10,
+      "default": 5,
+      "doc": "#menu"
+    },
+    {
+      "id": "simplification.opencc_config",
+      "group": "general",
+      "title": "繁体标准",
+      "description": "虎码的 simplification 开关输出繁体时使用的字形与用词。由 OpenCC 在本机转换。",
+      "file": "schema",
+      "keypath": "simplification/opencc_config",
+      "type": "enum",
+      "options": [
+        {
+          "value": "st_tu.json",
+          "title": "虎码标准（简→繁·异）"
+        },
+        {
+          "value": "s2t.json",
+          "title": "通用繁体"
+        },
+        {
+          "value": "s2tw.json",
+          "title": "台湾正体"
+        },
+        {
+          "value": "s2twp.json",
+          "title": "台湾正体（含常用词）"
+        },
+        {
+          "value": "s2hk.json",
+          "title": "香港繁体"
+        }
+      ],
+      "default": "st_tu.json",
+      "doc": "#simplification"
+    },
+    {
+      "id": "translator.enable_completion",
+      "group": "general",
+      "title": "编码提示",
+      "description": "输入编码时在候选后提示剩余编码。虎码默认关闭。",
+      "file": "schema",
+      "keypath": "translator/enable_completion",
+      "type": "bool",
+      "default": false,
+      "doc": "#translators-常用参数"
+    },
+    {
+      "id": "switches.simplification",
+      "group": "general",
+      "title": "繁体输出默认开启（部署时）",
+      "description": "对应虎码 simplification 开关的 reset；运行时以「默认输出」为准，打字时 ⌃O 可临时切换。",
+      "file": "schema",
+      "keypath": "switches/@name=simplification/reset",
+      "type": "bool",
+      "default": false,
+      "doc": "#simplification"
+    },
+    {
+      "id": "switches.emoji_cn",
+      "group": "general",
+      "title": "Emoji 注解默认开启",
+      "description": "候选后显示 emoji 注解（⌃I 切换）。",
+      "file": "schema",
+      "keypath": "switches/@name=emoji_cn/reset",
+      "type": "bool",
+      "default": false,
+      "doc": "#switches"
+    },
+    {
+      "id": "switches.chaifen",
+      "group": "general",
+      "title": "拆分提示默认开启",
+      "description": "在候选注释里显示虎码字根拆分（⌃J 切换）。",
+      "file": "schema",
+      "keypath": "switches/@name=chaifen/reset",
+      "type": "bool",
+      "default": false,
+      "doc": "#switches"
+    },
+    {
+      "id": "switches.pinyin",
+      "group": "general",
+      "title": "拼音注解默认开启",
+      "description": "在候选注释里显示拼音（⌃P 切换）。",
+      "file": "schema",
+      "keypath": "switches/@name=pinyin/reset",
+      "type": "bool",
+      "default": false,
+      "doc": "#switches"
+    },
+    {
+      "id": "switches.extended_char",
+      "group": "general",
+      "title": "仅显示常用字",
+      "description": "开启时只显示常用字集（虎码默认）；关闭后显示全字集，含生僻字（⌃H 切换）。",
+      "file": "schema",
+      "keypath": "switches/@name=extended_char/reset",
+      "type": "bool",
+      "default": true,
+      "doc": "#switches"
+    },
+    {
+      "id": "switches.ascii_punct",
+      "group": "general",
+      "title": "英文标点默认开启（部署时）",
+      "description": "对应虎码 ascii_punct 开关的 reset；运行时以「标点」为准，⌃. 可切换。",
+      "file": "schema",
+      "keypath": "switches/@name=ascii_punct/reset",
+      "type": "bool",
+      "default": false,
+      "doc": "#switches"
+    },
+    {
+      "id": "switches.full_shape",
+      "group": "general",
+      "title": "全角字符默认开启",
+      "description": "对应虎码 full_shape 开关的 reset。",
+      "file": "schema",
+      "keypath": "switches/@name=full_shape/reset",
+      "type": "bool",
+      "default": false,
+      "doc": "#switches"
+    },
+    {
+      "id": "switcher.hotkeys",
+      "group": "keys",
+      "title": "方案选单快捷键",
+      "description": "唤出「方案选单」的热键列表。出厂默认 Control+grave / Control+F8 / F4。",
+      "file": "default",
+      "keypath": "switcher/hotkeys",
+      "type": "hotkeyList",
+      "default": [
+        "Control+grave",
+        "Control+F8",
+        "F4"
+      ],
+      "doc": "#switcher"
+    },
+    {
+      "id": "switcher.save_options",
+      "group": "general",
+      "title": "记忆的开关",
+      "description": "列入的开关状态会被记忆（重启/切换方案后保持），未列入的开关每次回到默认值。",
+      "file": "default",
+      "keypath": "switcher/save_options",
+      "type": "switchList",
+      "default": [
+        "ascii_punct",
+        "simplification",
+        "full_shape",
+        "emoji_cn",
+        "chaifen",
+        "extended_char",
+        "pinyin"
+      ],
+      "doc": "#switcher"
+    },
+    {
+      "id": "switcher.fold_options",
+      "group": "general",
+      "title": "折叠方案选单开关",
+      "description": "开关较多时在方案选单中折叠显示。",
+      "file": "default",
+      "keypath": "switcher/fold_options",
+      "type": "bool",
+      "default": false,
+      "doc": "#switcher"
+    },
+    {
+      "id": "switcher.caption",
+      "group": "general",
+      "title": "方案选单提示文字",
+      "description": "打开方案选单时的提示文字。跟随「内联预编辑」显示在输入框的组字区或候选窗；开启候选内联预上屏时可能显示候选预览。",
+      "file": "default",
+      "keypath": "switcher/caption",
+      "type": "enum",
+      "default": "「方案选单」",
+      "doc": "#switcher",
+      "options": [
+        {
+          "value": "「方案选单」",
+          "title": "「方案选单」"
+        },
+        {
+          "value": "〔方案选单〕",
+          "title": "〔方案选单〕"
+        },
+        {
+          "value": "方案选单",
+          "title": "方案选单"
+        },
+        {
+          "value": "切换输入方案",
+          "title": "切换输入方案"
+        }
+      ]
+    },
+    {
+      "id": "ascii_state.scope",
+      "group": "switching",
+      "title": "中英状态共享",
+      "description": "切换应用或窗口时，中文 / 英文状态如何延续。「应用」页里设为默认英文的应用始终单独记忆：首次进入为英文，之后保持你在其中的选择。",
+      "file": "frontend",
+      "keypath": "ascii_state/scope",
+      "type": "enum",
+      "options": [
+        {
+          "value": "global",
+          "title": "所有应用共享（推荐）"
+        },
+        {
+          "value": "app",
+          "title": "每个应用分别记忆"
+        },
+        {
+          "value": "window",
+          "title": "每个输入框独立"
+        }
+      ],
+      "default": "global",
+      "doc": "#ascii_state"
+    },
+    {
+      "id": "ascii_composer.good_old_caps_lock",
+      "group": "switching",
+      "title": "Caps Lock 传统行为",
+      "description": "开启：Caps Lock 直接切换西文（老式大写锁）。关闭：Caps Lock 进入首字母大写模式，回车上屏后自动回中文。",
+      "file": "default",
+      "keypath": "ascii_composer/good_old_caps_lock",
+      "type": "bool",
+      "default": true,
+      "doc": "#ascii_composer"
+    },
+    {
+      "id": "ascii_composer.caps_lock",
+      "group": "switching",
+      "title": "Caps Lock 键行为",
+      "description": "按下 Caps Lock 时的动作。",
+      "file": "default",
+      "keypath": "ascii_composer/switch_key/Caps_Lock",
+      "type": "enum",
+      "options": [
+        {
+          "value": "inline_ascii",
+          "title": "临时西文（内联，回车后回中文）"
+        },
+        {
+          "value": "commit_text",
+          "title": "上屏文字并切西文"
+        },
+        {
+          "value": "commit_code",
+          "title": "上屏输入码并切西文"
+        },
+        {
+          "value": "clear",
+          "title": "清空输入并切西文"
+        },
+        {
+          "value": "noop",
+          "title": "不处理（交还系统）"
+        }
+      ],
+      "default": "clear",
+      "doc": "#ascii_composer"
+    },
+    {
+      "id": "ascii_composer.shift_l",
+      "group": "switching",
+      "title": "左 Shift 键行为",
+      "description": "按下左 Shift 时的动作。",
+      "file": "default",
+      "keypath": "ascii_composer/switch_key/Shift_L",
+      "type": "enum",
+      "options": [
+        {
+          "value": "inline_ascii",
+          "title": "临时西文（内联，回车后回中文）"
+        },
+        {
+          "value": "commit_text",
+          "title": "上屏文字并切西文"
+        },
+        {
+          "value": "commit_code",
+          "title": "上屏输入码并切西文"
+        },
+        {
+          "value": "clear",
+          "title": "清空输入并切西文"
+        },
+        {
+          "value": "noop",
+          "title": "不处理"
+        }
+      ],
+      "default": "commit_code",
+      "doc": "#ascii_composer"
+    },
+    {
+      "id": "ascii_composer.shift_r",
+      "group": "switching",
+      "title": "右 Shift 键行为",
+      "description": "按下右 Shift 时的动作。",
+      "file": "default",
+      "keypath": "ascii_composer/switch_key/Shift_R",
+      "type": "enum",
+      "options": [
+        {
+          "value": "inline_ascii",
+          "title": "临时西文（内联，回车后回中文）"
+        },
+        {
+          "value": "commit_text",
+          "title": "上屏文字并切西文"
+        },
+        {
+          "value": "commit_code",
+          "title": "上屏输入码并切西文"
+        },
+        {
+          "value": "clear",
+          "title": "清空输入并切西文"
+        },
+        {
+          "value": "noop",
+          "title": "不处理"
+        }
+      ],
+      "default": "commit_code",
+      "doc": "#ascii_composer"
+    },
+    {
+      "id": "ascii_composer.control_l",
+      "group": "switching",
+      "title": "左 Control 键行为",
+      "description": "按下左 Control 时的动作（通常 noop）。",
+      "file": "default",
+      "keypath": "ascii_composer/switch_key/Control_L",
+      "type": "enum",
+      "options": [
+        {
+          "value": "inline_ascii",
+          "title": "临时西文"
+        },
+        {
+          "value": "commit_text",
+          "title": "上屏文字并切西文"
+        },
+        {
+          "value": "commit_code",
+          "title": "上屏输入码并切西文"
+        },
+        {
+          "value": "clear",
+          "title": "清空输入并切西文"
+        },
+        {
+          "value": "noop",
+          "title": "不处理"
+        }
+      ],
+      "default": "noop",
+      "doc": "#ascii_composer"
+    },
+    {
+      "id": "ascii_composer.control_r",
+      "group": "switching",
+      "title": "右 Control 键行为",
+      "description": "按下右 Control 时的动作（通常 noop）。",
+      "file": "default",
+      "keypath": "ascii_composer/switch_key/Control_R",
+      "type": "enum",
+      "options": [
+        {
+          "value": "inline_ascii",
+          "title": "临时西文"
+        },
+        {
+          "value": "commit_text",
+          "title": "上屏文字并切西文"
+        },
+        {
+          "value": "commit_code",
+          "title": "上屏输入码并切西文"
+        },
+        {
+          "value": "clear",
+          "title": "清空输入并切西文"
+        },
+        {
+          "value": "noop",
+          "title": "不处理"
+        }
+      ],
+      "default": "noop",
+      "doc": "#ascii_composer"
+    },
+    {
+      "id": "keys.paging_minus_equal",
+      "group": "keys",
+      "title": "用 - = 翻页",
+      "description": "有候选时按 - 上翻、= 下翻（虎码方案默认开启）。",
+      "file": "schema",
+      "keypath": "key_binder/bindings",
+      "type": "bool",
+      "default": true,
+      "doc": "#key_binder",
+      "items": [
+        {
+          "when": "has_menu",
+          "accept": "minus",
+          "send": "Page_Up"
+        },
+        {
+          "when": "has_menu",
+          "accept": "equal",
+          "send": "Page_Down"
+        }
+      ]
+    },
+    {
+      "id": "keys.paging_comma_period",
+      "group": "keys",
+      "title": "用 , . 翻页",
+      "description": "有候选时按 , 上翻、. 下翻；与虎码自带的 - = 翻页并存。",
+      "file": "schema",
+      "keypath": "key_binder/bindings",
+      "type": "bool",
+      "default": false,
+      "doc": "#key_binder",
+      "items": [
+        {
+          "when": "paging",
+          "accept": "comma",
+          "send": "Page_Up"
+        },
+        {
+          "when": "has_menu",
+          "accept": "period",
+          "send": "Page_Down"
+        }
+      ]
+    },
+    {
+      "id": "appearance.color_scheme",
+      "group": "appearance",
+      "title": "配色方案（浅色模式）",
+      "description": "浅色外观使用的配色方案名，对应 preset_color_schemes 中的键。",
+      "file": "frontend",
+      "keypath": "style/color_scheme",
+      "type": "string",
+      "default": "native",
+      "doc": "#style"
+    },
+    {
+      "id": "appearance.color_scheme_dark",
+      "group": "appearance",
+      "title": "配色方案（深色模式）",
+      "description": "深色外观使用的配色方案名；留空则深浅色共用 color_scheme。",
+      "file": "frontend",
+      "keypath": "style/color_scheme_dark",
+      "type": "string",
+      "default": "",
+      "doc": "#style"
+    },
+    {
+      "id": "appearance.candidate_list_layout",
+      "group": "appearance",
+      "title": "候选排列方式",
+      "description": "stacked 竖排列表 / linear 横排一行。",
+      "file": "frontend",
+      "keypath": "style/hufu/candidate_list_layout",
+      "type": "enum",
+      "options": [
+        {
+          "value": "stacked",
+          "title": "竖排"
+        },
+        {
+          "value": "linear",
+          "title": "横排"
+        }
+      ],
+      "default": "stacked",
+      "doc": "#style"
+    },
+    {
+      "id": "appearance.inline_preedit",
+      "group": "appearance",
+      "title": "内联预编辑",
+      "description": "输入码直接显示在 App 光标处而非候选窗内。",
+      "file": "frontend",
+      "keypath": "style/hufu/inline_preedit",
+      "type": "bool",
+      "default": true,
+      "doc": "#style"
+    },
+    {
+      "id": "appearance.inline_candidate",
+      "group": "appearance",
+      "title": "首选候选内联预上屏",
+      "description": "把第一候选直接内联显示在编辑区（类似系统输入法）。",
+      "file": "frontend",
+      "keypath": "style/hufu/inline_candidate",
+      "type": "bool",
+      "default": false,
+      "doc": "#style"
+    },
+    {
+      "id": "appearance.corner_radius",
+      "group": "appearance",
+      "title": "候选窗圆角",
+      "description": "候选窗四角圆角半径（点）。优先于配色方案自带的圆角，设为 0 即直角。",
+      "file": "frontend",
+      "keypath": "style/hufu/corner_radius",
+      "type": "double",
+      "min": 0,
+      "max": 20,
+      "default": 10,
+      "doc": "#style"
+    },
+    {
+      "id": "appearance.hilited_corner_radius",
+      "group": "appearance",
+      "title": "高亮候选圆角",
+      "description": "高亮候选背景块的圆角半径。优先于配色方案自带的圆角。",
+      "file": "frontend",
+      "keypath": "style/hufu/hilited_corner_radius",
+      "type": "double",
+      "min": 0,
+      "max": 20,
+      "default": 6,
+      "doc": "#style"
+    },
+    {
+      "id": "appearance.max_width",
+      "group": "appearance",
+      "title": "候选窗最大宽度",
+      "description": "只在出现长候选（长短语、地址）时起作用：超过这个宽度自动换行，单个候选过长以省略号截断（上屏的仍是完整内容）。普通候选一页始终排成一行。",
+      "file": "frontend",
+      "keypath": "style/hufu/max_width",
+      "type": "enum",
+      "options": [
+        {
+          "value": 480,
+          "title": "紧凑（480）"
+        },
+        {
+          "value": 640,
+          "title": "标准（640）"
+        },
+        {
+          "value": 800,
+          "title": "宽（800）"
+        },
+        {
+          "value": 0,
+          "title": "仅受屏幕限制"
+        }
+      ],
+      "default": 640,
+      "doc": "#style"
+    },
+    {
+      "id": "appearance.border_height",
+      "group": "appearance",
+      "title": "边框高度",
+      "description": "候选窗上下边框高度，负值为向内收缩。",
+      "file": "frontend",
+      "keypath": "style/hufu/border_height",
+      "type": "double",
+      "default": -2,
+      "doc": "#style",
+      "min": 0,
+      "max": 20
+    },
+    {
+      "id": "appearance.border_width",
+      "group": "appearance",
+      "title": "边框宽度",
+      "description": "候选窗左右边框宽度，负值为向内收缩。",
+      "file": "frontend",
+      "keypath": "style/hufu/border_width",
+      "type": "double",
+      "default": -2,
+      "doc": "#style",
+      "min": 0,
+      "max": 20
+    },
+    {
+      "id": "appearance.line_spacing",
+      "group": "appearance",
+      "title": "候选行距",
+      "description": "相邻候选行之间的间距（点）。",
+      "file": "frontend",
+      "keypath": "style/hufu/line_spacing",
+      "type": "double",
+      "min": 0,
+      "default": 5,
+      "doc": "#style",
+      "max": 20
+    },
+    {
+      "id": "appearance.spacing",
+      "group": "appearance",
+      "title": "候选间距",
+      "description": "横排模式下相邻候选之间的间距（点）。",
+      "file": "frontend",
+      "keypath": "style/hufu/spacing",
+      "type": "double",
+      "min": 0,
+      "default": 8,
+      "doc": "#style",
+      "max": 30
+    },
+    {
+      "id": "appearance.base_offset",
+      "group": "appearance",
+      "title": "文字基线偏移",
+      "description": "微调候选文字垂直位置（点），用于字体垂直居中修正。",
+      "file": "frontend",
+      "keypath": "style/hufu/base_offset",
+      "type": "double",
+      "default": 0,
+      "doc": "#style",
+      "min": -10,
+      "max": 10
+    },
+    {
+      "id": "appearance.alpha",
+      "group": "appearance",
+      "title": "整体不透明度",
+      "description": "候选窗整体不透明度（0–1）。",
+      "file": "frontend",
+      "keypath": "style/hufu/alpha",
+      "type": "double",
+      "min": 0,
+      "max": 1,
+      "default": 1,
+      "doc": "#style"
+    },
+    {
+      "id": "appearance.translucency",
+      "group": "appearance",
+      "title": "半透明毛玻璃",
+      "description": "候选窗使用半透明材质。",
+      "file": "frontend",
+      "keypath": "style/hufu/translucency",
+      "type": "bool",
+      "default": false,
+      "doc": "#style"
+    },
+    {
+      "id": "appearance.font_face",
+      "group": "appearance",
+      "title": "候选字体",
+      "description": "候选文字体名（PostScript 名称），留空用系统默认。",
+      "file": "frontend",
+      "keypath": "style/hufu/font_face",
+      "type": "font",
+      "default": "Avenir",
+      "doc": "#style"
+    },
+    {
+      "id": "appearance.font_point",
+      "group": "appearance",
+      "title": "候选字号",
+      "description": "候选文字的大小。",
+      "file": "frontend",
+      "keypath": "style/hufu/font_point",
+      "type": "double",
+      "default": 16,
+      "min": 12,
+      "max": 40,
+      "doc": "#style",
+      "options": [
+        {
+          "value": 14,
+          "title": "小"
+        },
+        {
+          "value": 16,
+          "title": "标准"
+        },
+        {
+          "value": 18,
+          "title": "大"
+        },
+        {
+          "value": 21,
+          "title": "较大"
+        },
+        {
+          "value": 24,
+          "title": "特大"
+        }
+      ]
+    },
+    {
+      "id": "appearance.label_font_face",
+      "group": "appearance",
+      "title": "序号字体",
+      "description": "候选序号标签的字体，留空跟随候选字体。",
+      "file": "frontend",
+      "keypath": "style/hufu/label_font_face",
+      "type": "font",
+      "default": "",
+      "doc": "#style"
+    },
+    {
+      "id": "appearance.label_font_point",
+      "group": "appearance",
+      "title": "序号字号",
+      "description": "候选序号的大小。",
+      "file": "frontend",
+      "keypath": "style/hufu/label_font_point",
+      "type": "double",
+      "default": 12,
+      "min": 8,
+      "max": 32,
+      "doc": "#style",
+      "options": [
+        {
+          "value": 10,
+          "title": "小"
+        },
+        {
+          "value": 12,
+          "title": "标准"
+        },
+        {
+          "value": 14,
+          "title": "大"
+        },
+        {
+          "value": 16,
+          "title": "较大"
+        },
+        {
+          "value": 18,
+          "title": "特大"
+        }
+      ]
+    },
+    {
+      "id": "appearance.comment_font_face",
+      "group": "appearance",
+      "title": "注释字体",
+      "description": "候选注释（拼写提示等）的字体，留空跟随候选字体。",
+      "file": "frontend",
+      "keypath": "style/hufu/comment_font_face",
+      "type": "font",
+      "default": "",
+      "doc": "#style"
+    },
+    {
+      "id": "appearance.comment_font_point",
+      "group": "appearance",
+      "title": "注释字号",
+      "description": "候选注释（拼音提示等）的大小。",
+      "file": "frontend",
+      "keypath": "style/hufu/comment_font_point",
+      "type": "double",
+      "default": 12,
+      "min": 8,
+      "max": 32,
+      "doc": "#style",
+      "options": [
+        {
+          "value": 10,
+          "title": "小"
+        },
+        {
+          "value": 12,
+          "title": "标准"
+        },
+        {
+          "value": 14,
+          "title": "大"
+        },
+        {
+          "value": 16,
+          "title": "较大"
+        },
+        {
+          "value": 18,
+          "title": "特大"
+        }
+      ]
+    },
+    {
+      "id": "appearance.candidate_format",
+      "group": "appearance",
+      "title": "候选格式串",
+      "description": "候选显示模板，如 \"%c　%@\"（%c=候选，%@=注释）；旧式 [label] 占位符已废弃。",
+      "file": "frontend",
+      "keypath": "style/hufu/candidate_format",
+      "type": "enum",
+      "default": "[label]. [candidate] [comment]",
+      "doc": "#style",
+      "options": [
+        {
+          "value": "[label] [candidate] [comment]",
+          "title": "1 候选 注释"
+        },
+        {
+          "value": "[label]. [candidate] [comment]",
+          "title": "1. 候选 注释"
+        },
+        {
+          "value": "[label] [candidate]",
+          "title": "1 候选（隐藏注释）"
+        },
+        {
+          "value": "[candidate] [comment]",
+          "title": "候选 注释（隐藏序号）"
+        }
+      ]
+    },
+    {
+      "id": "appearance.custom.back_color",
+      "group": "appearance",
+      "title": "自定义配色：窗口背景",
+      "description": "写入 preset_color_schemes/hufu_custom。颜色为 Squirrel 0xAABBGGRR（BGR 顺序）格式。",
+      "file": "frontend",
+      "keypath": "preset_color_schemes/hufu_custom/back_color",
+      "type": "color",
+      "default": "0xFFFFFF",
+      "doc": "#preset_color_schemes"
+    },
+    {
+      "id": "appearance.custom.border_color",
+      "group": "appearance",
+      "title": "自定义配色：边框",
+      "description": "0xAABBGGRR 格式。",
+      "file": "frontend",
+      "keypath": "preset_color_schemes/hufu_custom/border_color",
+      "type": "color",
+      "default": "0x000000",
+      "doc": "#preset_color_schemes"
+    },
+    {
+      "id": "appearance.custom.text_color",
+      "group": "appearance",
+      "title": "自定义配色：预编辑文字",
+      "description": "内联输入码文字颜色，0xAABBGGRR 格式。",
+      "file": "frontend",
+      "keypath": "preset_color_schemes/hufu_custom/text_color",
+      "type": "color",
+      "default": "0x000000",
+      "doc": "#preset_color_schemes"
+    },
+    {
+      "id": "appearance.custom.candidate_text_color",
+      "group": "appearance",
+      "title": "自定义配色：候选文字",
+      "description": "0xAABBGGRR 格式。",
+      "file": "frontend",
+      "keypath": "preset_color_schemes/hufu_custom/candidate_text_color",
+      "type": "color",
+      "default": "0x000000",
+      "doc": "#preset_color_schemes"
+    },
+    {
+      "id": "appearance.custom.label_color",
+      "group": "appearance",
+      "title": "自定义配色：候选序号",
+      "description": "0xAABBGGRR 格式。",
+      "file": "frontend",
+      "keypath": "preset_color_schemes/hufu_custom/label_color",
+      "type": "color",
+      "default": "0x808080",
+      "doc": "#preset_color_schemes"
+    },
+    {
+      "id": "appearance.custom.comment_text_color",
+      "group": "appearance",
+      "title": "自定义配色：注释文字",
+      "description": "0xAABBGGRR 格式。",
+      "file": "frontend",
+      "keypath": "preset_color_schemes/hufu_custom/comment_text_color",
+      "type": "color",
+      "default": "0x808080",
+      "doc": "#preset_color_schemes"
+    },
+    {
+      "id": "appearance.custom.hilited_candidate_back_color",
+      "group": "appearance",
+      "title": "自定义配色：高亮候选背景",
+      "description": "0xAABBGGRR 格式。",
+      "file": "frontend",
+      "keypath": "preset_color_schemes/hufu_custom/hilited_candidate_back_color",
+      "type": "color",
+      "default": "0xE3E3E3",
+      "doc": "#preset_color_schemes"
+    },
+    {
+      "id": "appearance.custom.hilited_candidate_text_color",
+      "group": "appearance",
+      "title": "自定义配色：高亮候选文字",
+      "description": "0xAABBGGRR 格式。",
+      "file": "frontend",
+      "keypath": "preset_color_schemes/hufu_custom/hilited_candidate_text_color",
+      "type": "color",
+      "default": "0x000000",
+      "doc": "#preset_color_schemes"
+    },
+    {
+      "id": "appearance.custom.hilited_candidate_label_color",
+      "group": "appearance",
+      "title": "自定义配色：高亮候选序号",
+      "description": "0xAABBGGRR 格式。",
+      "file": "frontend",
+      "keypath": "preset_color_schemes/hufu_custom/hilited_candidate_label_color",
+      "type": "color",
+      "default": "0x808080",
+      "doc": "#preset_color_schemes"
+    },
+    {
+      "id": "appearance.custom.hilited_comment_text_color",
+      "group": "appearance",
+      "title": "自定义配色：高亮候选注释",
+      "description": "0xAABBGGRR 格式。",
+      "file": "frontend",
+      "keypath": "preset_color_schemes/hufu_custom/hilited_comment_text_color",
+      "type": "color",
+      "default": "0x808080",
+      "doc": "#preset_color_schemes"
+    },
+    {
+      "id": "punctuator.digit_separators",
+      "group": "advanced",
+      "title": "数字内标点分隔符",
+      "description": "数字中间出现这些符号时不转换为中文标点（如输入 3.14 直接得 3.14）。",
+      "file": "default",
+      "keypath": "punctuator/digit_separators",
+      "type": "enum",
+      "default": ",.:",
+      "doc": "#punctuator",
+      "options": [
+        {
+          "value": ",.:",
+          "title": "数字间英文标点 , . :"
+        },
+        {
+          "value": "",
+          "title": "关闭"
+        }
+      ]
+    },
+    {
+      "id": "menu.alternative_select_keys",
+      "group": "advanced",
+      "title": "第二组选词键",
+      "description": "除数字键外的备用选词键序列（逐字符）。",
+      "file": "default",
+      "keypath": "menu/alternative_select_keys",
+      "type": "enum",
+      "default": "ASDFGHJKL",
+      "doc": "#menu",
+      "options": [
+        {
+          "value": "",
+          "title": "不使用"
+        },
+        {
+          "value": "ASDFGHJKL",
+          "title": "ASDFGHJKL（主键盘中排）"
+        },
+        {
+          "value": "asdfghjkl",
+          "title": "asdfghjkl"
+        },
+        {
+          "value": "qwertyuio",
+          "title": "qwertyuio"
+        }
+      ]
+    },
+    {
+      "id": "recognizer.punct_prefix",
+      "group": "advanced",
+      "title": "符号模式前缀（/ 模式）",
+      "description": "触发虎码符号表的输入模式正则。方案默认以 / 开头，如 /fh 查符号。",
+      "file": "schema",
+      "keypath": "recognizer/patterns/punct",
+      "type": "string",
+      "default": "^/([0-9]0?|[A-Za-z]+)$",
+      "doc": "#recognizer"
+    },
+    {
+      "id": "advanced.chord_duration",
+      "group": "advanced",
+      "title": "和弦按键时长",
+      "description": "判定组合键（和弦）的时间窗口（秒）。",
+      "file": "frontend",
+      "keypath": "chord_duration",
+      "type": "double",
+      "min": 0,
+      "max": 1,
+      "default": 0.1,
+      "doc": "#style"
+    },
+    {
+      "id": "advanced.app_options",
+      "group": "advanced",
+      "title": "应用级选项",
+      "description": "按 App 覆盖行为，每项格式 bundleId:ascii_mode=true,vim_mode=true（可用键 ascii_mode/ascii_punct/inline/no_inline/vim_mode）。",
+      "file": "frontend",
+      "keypath": "app_options",
+      "type": "custom",
+      "default": [
+        "com.apple.Terminal:ascii_mode=true,no_inline=true",
+        "com.microsoft.VSCode:ascii_mode=true,vim_mode=true"
+      ],
+      "doc": "#app_options"
+    }
+  ],
+  "appSettings": [
+    {
+      "id": "ai.extraJSON",
+      "title": "自定义请求体",
+      "type": "string",
+      "default": "",
+      "storage": "hufu/features.json",
+      "key": "aiExtraJSON",
+      "doc": "docs/rime-config-reference.md#ai-助手hufu-应用设置"
+    }
+  ]
+}

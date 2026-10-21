@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "scope": "The single native plugin (librime-lua) in the observed librime 1.17.0 prebuilt engine, as bundled by Hufu. librime-octagram and librime-predict are excluded from the bundle; see scripts/fetch-librime.sh.",
+  "engineVersion": "1.17.0",
+  "engineCommitPrefix": "33e7814",
+  "engineArchive": "rime-33e7814-macOS-universal.tar.bz2",
+  "engineArchiveSha256": "11d8dc663c6ec06d5ccb6111ba664a9e7b631b703ac6acd07cffbac664021850",
+  "binaryHashScope": "Observed Vendor files before Hufu re-signing; final installer hashes must be measured separately.",
+  "components": [
+    {
+      "component": "librime-lua",
+      "repository": "https://github.com/hchunhui/librime-lua",
+      "sourceCommit": "ec52e48ea18f11af37717a01c337f853215cf70b",
+      "sourceUrl": "https://github.com/hchunhui/librime-lua/tree/ec52e48ea18f11af37717a01c337f853215cf70b",
+      "licenseFamily": "BSD-3-Clause",
+      "upstreamLicenseUrl": "https://raw.githubusercontent.com/hchunhui/librime-lua/ec52e48ea18f11af37717a01c337f853215cf70b/LICENSE",
+      "licenseFile": "licenses/native-plugins/librime-lua.LICENSE.txt",
+      "licenseSha256": "c6bd4f58b13ae9d45c5e53adddeea5049114a25862797c6c6f64920431eea249",
+      "licenseGitBlobSha1": "3be95a67fc6bd90d7c769acdf897b3901605cf00",
+      "observedVendorBinary": "Vendor/librime/lib/rime-plugins/librime-lua.dylib",
+      "observedVendorBinarySha256": "9e5086f73b90481530bb2aa08a615044c90242eee4b98eef12fcdd1a1c391e68",
+      "bundlePath": "Contents/Frameworks/rime-plugins/librime-lua.dylib",
+      "correspondingSourcePackaged": false,
+      "transitiveLicenseAuditPassed": false
+    }
+  ],
+  "completeLicensePackagingAuditPassed": false,
+  "completeCorrespondingSourceAuditPassed": false
+}

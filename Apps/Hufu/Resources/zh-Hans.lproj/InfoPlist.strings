@@ -1,0 +1,4 @@
+"dev.yufan.hufu.inputmethod.hans" = "虎符输入法";
+"dev.yufan.hufu.inputmethod" = "虎符输入法";
+CFBundleName = "虎符输入法";
+CFBundleDisplayName = "虎符输入法";

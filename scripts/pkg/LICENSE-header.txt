@@ -1,0 +1,13 @@
+虎符输入法（Hufu）许可说明 · License notice
+
+Hufu 原创代码由 syhily 以 MIT 许可发布。本安装包还包含以下第三方组件，各自保留原许可：
+
+  · librime 1.17 引擎与 librime-lua 插件 —— BSD-3-Clause（OpenCC 数据 —— Apache-2.0）
+  · 虎码官方词库与方案（虎码秃版 2026.08.15）—— 官方免费发布；其余组件见 THIRD_PARTY_NOTICES.md
+
+本安装包不含 GPL 组件；全部组件均为宽松许可或官方免费发布数据。
+安装后完整的许可文本与第三方声明位于 Hufu.app/Contents/Resources/LicenseMaterials。
+
+Hufu's original code is released by syhily under the MIT License. This installer also contains
+third-party components under their own permissive licenses (BSD-3-Clause, Apache-2.0, OFL)
+and the official Tiger-Code word tables (free release). No GPL components are bundled.

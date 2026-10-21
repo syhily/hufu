@@ -1,0 +1,19 @@
+#!/bin/bash
+# Register, enable and select Hufu for the user who ran the installer. Text Input
+# Sources is per user, so this must run as that user, not as root.
+login_user="$(/usr/bin/stat -f%Su /dev/console)"
+app="/Library/Input Methods/Hufu.app"
+# Fail the install visibly if the payload did not land here, rather than report success
+# for an input method the system cannot find.
+if [[ ! -x "$app/Contents/MacOS/Hufu" ]]; then
+  echo "Hufu: $app is missing after install" >&2
+  exit 1
+fi
+if [[ -n "$login_user" && "$login_user" != "root" ]]; then
+  /usr/bin/sudo -u "$login_user" "$app/Contents/MacOS/Hufu" --install || true
+  # An upgrade replaces the bundle, but the old IMK process may still be alive.
+  # Stop only this user's instance; imklaunchagent starts the installed version
+  # on the next input. Never manually launch the input method as an ordinary app.
+  /usr/bin/sudo -u "$login_user" /usr/bin/pkill -x Hufu || true
+fi
+exit 0

@@ -1,0 +1,3 @@
+# Hufu defaults for 虎码 (tigress). Applied before imported and generated
+# layers, so anything here can be overridden from Hufu Settings.
+patch: {}

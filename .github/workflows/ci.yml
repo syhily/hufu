@@ -1,0 +1,70 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: macos-26
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+
+      - name: Check changelog
+        run: python3 -m unittest discover -s scripts/tests -p 'test_changelog.py' -v
+
+      - name: Set up build (Xcode, XcodeGen, librime, dictionaries)
+        uses: ./.github/actions/setup-build
+
+      - name: Build package and stage plugins
+        run: |
+          swift build --package-path Packages/HufuKit
+          bash scripts/stage-plugins.sh
+
+      - name: Test package
+        run: swift test --package-path Packages/HufuKit --no-parallel  # RimeEngine.shared is process-wide
+
+      - name: Build release CLI and stage plugins
+        run: |
+          swift build --package-path Packages/HufuKit -c release --product hufu
+          # Release products have their own librime copy and need plugins beside it.
+          bash scripts/stage-plugins.sh
+
+      - name: Enforce benchmark latency
+        run: |
+          "$(swift build --package-path Packages/HufuKit -c release --show-bin-path)/hufu" bench \
+            --user-dir "$RUNNER_TEMP/hufu-bench" \
+            --shared-dir build/SharedSupport \
+            --schema tigress --keys tuja --iterations 2000 --assert-p99-ms 5
+
+      - name: Check dictionary metadata
+        run: python3 scripts/dictionary-metadata.py --shared-dir build/SharedSupport --check
+
+      - name: Generate Xcode project
+        run: xcodegen generate
+
+      - name: Build unsigned app
+        run: xcodebuild -project Hufu.xcodeproj -scheme Hufu -configuration Release -derivedDataPath build/DerivedData CODE_SIGNING_ALLOWED=NO build
+
+      - name: Archive unsigned app
+        run: ditto -c -k --keepParent build/DerivedData/Build/Products/Release/Hufu.app Hufu-unsigned.zip
+
+      - name: Upload unsigned app
+        uses: actions/upload-artifact@v4
+        with:
+          name: Hufu-unsigned
+          path: Hufu-unsigned.zip
+          if-no-files-found: error
+          retention-days: 7

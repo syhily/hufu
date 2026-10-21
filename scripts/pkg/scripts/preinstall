@@ -1,0 +1,4 @@
+#!/bin/bash
+# Stop a running Hufu so the bundle can be replaced.
+/usr/bin/pkill -f "/Library/Input Methods/Hufu.app/Contents/MacOS/Hufu" 2>/dev/null || true
+exit 0
