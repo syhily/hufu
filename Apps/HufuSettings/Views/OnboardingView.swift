@@ -215,7 +215,7 @@ struct OnboardingView: View {
         if let setting = model.setting("menu.page_size"), case let .int(value)? = model.value(setting) { current.pageSize = value }
         if let setting = model.setting("appearance.candidate_list_layout"), case let .string(value)? = model.value(setting) { current.layout = value }
         let features = model.features
-        current.traditional = features.traditional
+        current.traditional = features.scriptMode.usesTraditionalConversion
         current.aiActions = features.aiPolish
         current.stats = features.usageStats
         current.importSquirrel = model.squirrelDirExists && !model.hasImported
@@ -236,7 +236,10 @@ struct OnboardingView: View {
         }
         let wanted = choices
         model.updateFeatures {
-            $0.traditional = wanted.traditional
+            // 简/繁 is the first two of the four 简繁模式; 只打繁体 and 只打简体 stay put.
+            if $0.scriptMode.usesTraditionalConversion != wanted.traditional {
+                $0.scriptMode = wanted.traditional ? .tradOutput : .mixed
+            }
             $0.aiPolish = wanted.aiActions
             $0.usageStats = wanted.stats
         }

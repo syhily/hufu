@@ -20,6 +20,8 @@ final class InputEngine {
     let usage = UsageRecorder()
     /// hufu/features.json, reloaded when Settings posts `HufuFeatures.changedNotification`.
     private(set) var features = HufuFeatures()
+    /// 只打繁体 / 只打简体 tables (≈12k characters), read once and kept for the process.
+    private(set) lazy var scriptFilter = ScriptFilter.load(sharedDataDir: paths.sharedDataDir)
     /// Chinese/English punctuation shared by all apps, following ⌃⇧3 wherever it is
     /// pressed. Nil until the first session: it then starts from librime's remembered
     /// state when `switcher/save_options` lists ascii_punct, else from the setting.
@@ -157,17 +159,20 @@ final class InputEngine {
     }
 
     private func reloadFeatures() {
-        let wasTraditional = features.traditional, wasAsciiPunct = features.asciiPunct
+        let wasMode = features.scriptMode, wasAsciiPunct = features.asciiPunct
         let wasConvenience = (features.dateTimeCandidates, features.calculatorCandidates, features.numeralsCandidates)
         features = HufuFeatures.load(paths)
-        if features.traditional != wasTraditional { activeController?.applyScriptOption() }
+        if features.scriptMode != wasMode {
+            activeController?.applyScriptOption()
+            activeController?.refreshPanel()
+        }
         if features.asciiPunct != wasAsciiPunct, asciiPunct != nil {
             asciiPunct = features.asciiPunct
             activeController?.applyPunctOption()
         }
         if wasConvenience != (features.dateTimeCandidates, features.calculatorCandidates, features.numeralsCandidates) {
             // 便利功能: the panel shows the frontend's own candidates for `/time`, `=1+2`…
-            activeController?.refreshSpecialCandidates()
+            activeController?.refreshPanel()
         }
         usage.isEnabled = features.usageStats
         if !features.aiPolish { activeController?.cancelPolish() }

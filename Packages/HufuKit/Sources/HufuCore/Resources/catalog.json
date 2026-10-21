@@ -86,17 +86,6 @@
       "doc": "#translators-常用参数"
     },
     {
-      "id": "switches.simplification",
-      "group": "general",
-      "title": "繁体输出默认开启（部署时）",
-      "description": "对应虎码 simplification 开关的 reset；运行时以「默认输出」为准，打字时 ⌃O 可临时切换。",
-      "file": "schema",
-      "keypath": "switches/@name=simplification/reset",
-      "type": "bool",
-      "default": false,
-      "doc": "#simplification"
-    },
-    {
       "id": "switches.emoji_cn",
       "group": "general",
       "title": "Emoji 注解默认开启",

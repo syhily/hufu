@@ -21,6 +21,31 @@ struct UsageStatsTests {
         #expect(try decoder.decode(HufuFeatures.self, from: JSONEncoder().encode(features)).asciiPunct == true)
     }
 
+    /// 简繁模式 arrived after the first release: the old `traditional` bool maps onto it,
+    /// and an unknown value falls back to 混打 instead of losing the whole file.
+    @Test func scriptModeDecodesFromBothSpellings() throws {
+        let decoder = JSONDecoder()
+        let defaults = try decoder.decode(HufuFeatures.self, from: Data("{}".utf8))
+        #expect(defaults.scriptMode == .mixed && defaults.tradVariant == "st_tu")
+
+        #expect(try decoder.decode(HufuFeatures.self, from: Data(#"{"traditional":true}"#.utf8)).scriptMode == .tradOutput)
+        #expect(try decoder.decode(HufuFeatures.self, from: Data(#"{"traditional":false}"#.utf8)).scriptMode == .mixed)
+        // The new key wins over the legacy one.
+        #expect(try decoder.decode(HufuFeatures.self, from: Data(#"{"traditional":true,"scriptMode":"simpOnly"}"#.utf8)).scriptMode == .simpOnly)
+        #expect(try decoder.decode(HufuFeatures.self, from: Data(#"{"scriptMode":"fromTheFuture"}"#.utf8)).scriptMode == .mixed)
+        #expect(try decoder.decode(HufuFeatures.self, from: Data(#"{"tradVariant":"s2hk"}"#.utf8)).tradVariant == "s2hk")
+
+        for mode in ScriptMode.allCases {
+            var features = HufuFeatures()
+            features.scriptMode = mode
+            features.tradVariant = "s2twp"
+            let decoded = try decoder.decode(HufuFeatures.self, from: JSONEncoder().encode(features))
+            #expect(decoded.scriptMode == mode && decoded.tradVariant == "s2twp")
+        }
+        // The raw values are the ones features.json carries.
+        #expect(ScriptMode.allCases.map(\.rawValue) == ["mixed", "tradOutput", "tradOnly", "simpOnly"])
+    }
+
     /// 便利功能 arrived after the first release: an old file turns all three on.
     @Test func convenienceSwitchesDefaultOn() throws {
         let defaults = HufuFeatures()

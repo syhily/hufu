@@ -14,6 +14,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ### Added
 
+- Four Simplified/Traditional modes: mixed (default), type Simplified get Traditional, Traditional only (candidates that still carry a simplified glyph are dropped) and Simplified only (candidates outside 《通用规范汉字表》 are dropped), with Tiger-Code `st_tu`, Taiwan, Hong Kong or generic standards, under Settings › 输入习惯 › 简繁.
 - Time, date, weekday and lunar calendar lookup: `/time`, `/date`, `/week` and `/cdate`, plus Tiger-Code homophone triggers.
 - An `=expression` calculator that returns the result inline.
 - `/number` uppercase amounts, now implemented natively in the front end.

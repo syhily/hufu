@@ -143,32 +143,93 @@ private struct PunctuationSection: View {
     }
 }
 
-/// 简体 / 繁体: the default output, the Traditional standard, and how to switch or convert.
+/// 简繁四模式, and the OpenCC standard that 打简出繁 / 只打繁体 convert with.
 private struct ScriptSection: View {
     @Environment(SettingsModel.self) private var model
+
+    /// The four standards the product offers; the catalog setting also lists s2tw.
+    private static let variants = [
+        ("st_tu.json", "虎码标准"),
+        ("s2twp.json", "台湾正体"),
+        ("s2hk.json", "香港繁体"),
+        ("s2t.json", "通用繁体"),
+    ]
 
     var body: some View {
         Section {
             LabeledContent {
-                Picker("", selection: Binding(get: { model.features.traditional }, set: { value in model.updateFeatures { $0.traditional = value } })) {
-                    Text("简体").tag(false)
-                    Text("繁体").tag(true)
+                Picker("", selection: Binding(
+                    get: { model.features.scriptMode },
+                    set: { mode in model.updateFeatures { $0.scriptMode = mode } }
+                )) {
+                    Text("繁简混打").tag(ScriptMode.mixed)
+                    Text("打简出繁").tag(ScriptMode.tradOutput)
+                    Text("只打繁体").tag(ScriptMode.tradOnly)
+                    Text("只打简体").tag(ScriptMode.simpOnly)
                 }
-                .pickerStyle(.segmented)
                 .labelsHidden()
                 .fixedSize()
-                .padding(.trailing, 28) // lines up with catalog rows (their reset-button slot)
             } label: {
                 VStack(alignment: .leading, spacing: 3) {
-                    Text("默认输出")
-                    Text("打字时按 ⌃O 临时切换。已经打出的文字：选中或刚打完后按 ⌃⌥P，选「简繁转换」，在本机转换，不经过 AI。")
+                    Text("简繁模式")
+                    Text(explanation).font(.caption).foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+            }
+            .padding(.trailing, 28) // lines up with catalog rows (their reset-button slot)
+
+            LabeledContent {
+                Picker("", selection: variant) {
+                    ForEach(Self.variants, id: \.0) { value, title in Text(title).tag(value) }
+                }
+                .labelsHidden()
+                .fixedSize()
+            } label: {
+                VStack(alignment: .leading, spacing: 3) {
+                    Text("繁体标准")
+                    Text("转换用的 OpenCC 字表，改完需要重新部署；对繁简混打和只打简体没有影响。")
                         .font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
                 }
             }
-            if let setting = model.setting("simplification.opencc_config") { SettingRow(setting: setting) }
+            .padding(.trailing, 28)
+            .disabled(!model.features.scriptMode.usesTraditionalConversion)
         } header: {
-            Text("简繁体")
+            Text("简繁")
+        } footer: {
+            Text("打字时 ⌃O 或 ⌃⇧4 临时切换：繁简混打 ↔ 打简出繁，只打简体 ↔ 只打繁体；下次启动回到这里的设置。已经打出的文字：选中或刚打完后按 ⌃⌥P，选「简繁转换」，在本机转换，不经过 AI。")
         }
+    }
+
+    private var explanation: LocalizedStringKey {
+        switch model.features.scriptMode {
+        case .mixed: "简体优先，同一编码下词库里的繁体字形也能选。"
+        case .tradOutput: "用简体编码打字，候选直接是繁体。"
+        case .tradOnly: "只出繁体；转换后仍带简体字形的候选会被过滤。"
+        case .simpOnly: "只出《通用规范汉字表》里的简体字，繁体字形和表外生僻字不显示。"
+        }
+    }
+
+    /// The standard is the schema's `simplification/opencc_config`: writing it goes
+    /// through the catalog's deploy flow. features.json keeps the choice as a fallback
+    /// for files edited by hand.
+    private var variant: Binding<String> {
+        Binding(
+            get: {
+                if let setting = model.setting("simplification.opencc_config"),
+                   case let .string(value)? = model.value(setting),
+                   Self.variants.contains(where: { $0.0 == value }) {
+                    return value
+                }
+                let stored = model.features.tradVariant + ".json"
+                return Self.variants.contains(where: { $0.0 == stored }) ? stored : "st_tu.json"
+            },
+            set: { value in
+                if let setting = model.setting("simplification.opencc_config") {
+                    model.set(.string(value), for: setting)
+                }
+                model.updateFeatures { $0.tradVariant = String(value.dropLast(".json".count)) }
+            }
+        )
     }
 }
 

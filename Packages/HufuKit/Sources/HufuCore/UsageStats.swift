@@ -28,9 +28,12 @@ public struct HufuFeatures: Sendable, Codable, Equatable {
     public var draftLayer = false
     /// Seconds of inactivity before a draft is committed automatically (0 = never).
     public var draftAutoCommit = 0
-    /// Output Traditional Chinese by default (tigress's `simplification` switch,
-    /// applied to every new session; ⌃O still toggles it for the moment).
-    public var traditional = false
+    /// 简繁模式: 混打 / 打简出繁 / 只打繁体 / 只打简体. Replaces the old `traditional`
+    /// bool; older features.json files are read through it.
+    public var scriptMode = ScriptMode.mixed
+    /// 繁体标准: `st_tu` / `s2twp` / `s2hk` / `s2t`. The schema's
+    /// `simplification/opencc_config` is what actually converts; this records the choice.
+    public var tradVariant = "st_tu"
     /// English punctuation by default (librime's `ascii_punct` switch). The state is
     /// shared by all apps: ⌃⇧3 in one app switches the others too (#10).
     public var asciiPunct = false
@@ -71,15 +74,23 @@ public struct HufuFeatures: Sendable, Codable, Equatable {
         aiActions = try container.decodeIfPresent([AIAction].self, forKey: .aiActions) ?? defaults.aiActions
         draftLayer = try container.decodeIfPresent(Bool.self, forKey: .draftLayer) ?? defaults.draftLayer
         draftAutoCommit = try container.decodeIfPresent(Int.self, forKey: .draftAutoCommit) ?? defaults.draftAutoCommit
-        traditional = try container.decodeIfPresent(Bool.self, forKey: .traditional) ?? defaults.traditional
         asciiPunct = try container.decodeIfPresent(Bool.self, forKey: .asciiPunct) ?? defaults.asciiPunct
+        // `traditional` is the pre-简繁模式 spelling: true meant 打简出繁.
+        let legacy = try decoder.container(keyedBy: LegacyKeys.self)
+        let wasTraditional = try legacy.decodeIfPresent(Bool.self, forKey: .traditional) == true
+        // An unknown value (a file from a newer build) falls back instead of failing the
+        // whole decode and losing every other setting.
+        let storedMode = (try? container.decodeIfPresent(ScriptMode.self, forKey: .scriptMode)) ?? nil
+        scriptMode = storedMode ?? (wasTraditional ? .tradOutput : defaults.scriptMode)
+        tradVariant = try container.decodeIfPresent(String.self, forKey: .tradVariant) ?? defaults.tradVariant
         dateTimeCandidates = try container.decodeIfPresent(Bool.self, forKey: .dateTimeCandidates) ?? defaults.dateTimeCandidates
         calculatorCandidates = try container.decodeIfPresent(Bool.self, forKey: .calculatorCandidates) ?? defaults.calculatorCandidates
         numeralsCandidates = try container.decodeIfPresent(Bool.self, forKey: .numeralsCandidates) ?? defaults.numeralsCandidates
     }
 
-    public static let changedNotification = Notification.Name("dev.yufan.hufu.features")
+    private enum LegacyKeys: String, CodingKey { case traditional }
 
+    public static let changedNotification = Notification.Name("dev.yufan.hufu.features")
     static func url(_ paths: HufuPaths) -> URL { paths.hufuDir.appendingPathComponent("features.json") }
 
     public static func load(_ paths: HufuPaths) -> HufuFeatures {

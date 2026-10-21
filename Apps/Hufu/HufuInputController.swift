@@ -43,6 +43,12 @@ final class HufuInputController: IMKInputController {
     private var specialInput = ""
     private var specialPage = 0
     private var specialPageSize = 5
+    /// 只打繁体 / 只打简体: rime indices of the candidates the panel shows, in display
+    /// order (displayIndex → rimeIndex); empty unless `scriptFiltered`.
+    private var scriptKept: [Int] = []
+    private var scriptFiltered = false
+    /// Display position of the highlighted candidate while filtering.
+    private var scriptHighlight = 0
 
     private var engine: InputEngine { InputEngine.shared }
     private var textClient: (any IMKTextInput)? { client() as? any IMKTextInput }
@@ -90,10 +96,11 @@ final class HufuInputController: IMKInputController {
         if session.option("ascii_mode") != desired { session.setOption("ascii_mode", desired) }
     }
 
-    /// 简体 / 繁体 output as chosen in Settings (⌃O toggles it until the next session).
+    /// 简繁模式: 打简出繁 / 只打繁体 want librime's `simplification` conversion. ⌃O and
+    /// ⌃⇧4 still flip the option for the moment (see `ScriptMode.resolved`).
     func applyScriptOption() {
         guard let session = liveSession else { return }
-        let traditional = engine.features.traditional
+        let traditional = engine.features.scriptMode.usesTraditionalConversion
         if session.option("simplification") != traditional { session.setOption("simplification", traditional) }
     }
 
@@ -279,6 +286,9 @@ final class HufuInputController: IMKInputController {
             // Frontend candidates (`/time`, `/1234.56`, `=1+2`): these keys act on our
             // list — librime has no candidate to select for them.
             if handleSpecialKey(event) { return true }
+            // Filtered candidates (只打繁体 / 只打简体): pick what the panel shows, not
+            // what sits at that position on rime's page.
+            if handleScriptKey(event) { return true }
             guard let (keysym, mask) = RimeKey.translate(
                 keyCode: event.keyCode,
                 charactersIgnoringModifiers: event.charactersIgnoringModifiers,
@@ -520,6 +530,7 @@ final class HufuInputController: IMKInputController {
         let context = session.context()
         isComposing = context.isComposing
         updateSpecialCandidates(for: context.input, pageSize: context.pageSize)
+        updateScriptFilter(candidates: context.candidates, session: session)
         let theme = engine.panel.theme
         let inline = appOptions.inline ?? theme.inlinePreedit
 
@@ -591,6 +602,17 @@ final class HufuInputController: IMKInputController {
             highlightedIndex = 0
             pageNumber = specialPage
             isLastPage = specialPage >= specialPageCount - 1
+        } else if scriptFiltered {
+            // 只打繁体 / 只打简体 drop candidates: the panel shows the kept ones
+            // renumbered 1..n, and `select` maps a display index back to rime's.
+            candidates = scriptKept.enumerated().map { display, rime in
+                let candidate = context.candidates[rime]
+                return PanelState.Candidate(label: "\(display + 1)", text: candidate.text, comment: candidate.comment)
+            }
+            highlightedIndex = scriptKept.firstIndex(of: context.highlightedIndex) ?? 0
+            scriptHighlight = highlightedIndex
+            pageNumber = context.pageNumber
+            isLastPage = context.isLastPage
         } else {
             candidates = context.candidates.enumerated().map { index, candidate in
                 PanelState.Candidate(label: context.labels[safe: index] ?? "\(index + 1)", text: candidate.text, comment: candidate.comment)
@@ -625,7 +647,16 @@ final class HufuInputController: IMKInputController {
             return
         }
         guard let session = liveSession else { return }
-        session.selectCandidate(onCurrentPage: index)
+        let rimeIndex: Int
+        if scriptFiltered {
+            // The panel renumbered what survived the filter: map back before asking
+            // librime, whose page still holds the dropped candidates.
+            guard index >= 0, index < scriptKept.count else { return }
+            rimeIndex = scriptKept[index]
+        } else {
+            rimeIndex = index
+        }
+        session.selectCandidate(onCurrentPage: rimeIndex)
         sync(client: textClient)
     }
 
@@ -676,10 +707,20 @@ final class HufuInputController: IMKInputController {
                                     numerals: features.numeralsCandidates)
     }
 
-    /// A 便利功能 switch changed: rebuild the panel now, not on the next key.
-    func refreshSpecialCandidates() {
+    /// A features switch changed (便利功能, 简繁模式): rebuild the panel now, not on the
+    /// next key.
+    func refreshPanel() {
         guard isComposing else { return }
         sync(client: textClient)
+    }
+
+    /// Applies the 简繁 filter to this page of candidates. The mode actually in force
+    /// comes from the session's `simplification` option, so ⌃O / ⌃⇧4 (混打 ↔ 打简出繁,
+    /// 只打简体 ↔ 只打繁体) is reflected immediately.
+    private func updateScriptFilter(candidates: [RimeCandidate], session: RimeSession) {
+        let mode = engine.features.scriptMode.resolved(traditional: session.option("simplification"))
+        scriptFiltered = mode.filters && !candidates.isEmpty
+        scriptKept = scriptFiltered ? engine.scriptFilter.keep(candidates.map(\.text), mode: mode) : []
     }
 
     /// Puts one of the frontend's candidates into the app. librime only held the raw
@@ -713,6 +754,31 @@ final class HufuInputController: IMKInputController {
             page(backward: backward)
         }
         return true
+    }
+
+    /// Keys while filtered candidates are up: digits and the schema's 次选 / 三选 (`;`
+    /// `'`) pick the displayed candidate, space takes the displayed highlight. Both are
+    /// mapped through `select`, so librime never selects a candidate the panel hid.
+    private func handleScriptKey(_ event: NSEvent) -> Bool {
+        guard scriptFiltered,
+              event.modifierFlags.intersection([.command, .control, .option]).isEmpty,
+              let typed = event.charactersIgnoringModifiers, typed.count == 1,
+              let character = typed.first else { return false }
+        switch character {
+        case "1"..."9", ";", "'", " ":
+            // Nothing survived the filter on this page: swallow the key rather than let
+            // librime commit a candidate the panel never showed.
+            guard !scriptKept.isEmpty else { return true }
+            switch character {
+            case ";": select(1)
+            case "'": select(2)
+            case " ": select(scriptHighlight)
+            default: select((character.wholeNumberValue ?? 1) - 1)
+            }
+            return true
+        default:
+            return false
+        }
     }
 
     /// Cursor rectangle in screen coordinates.

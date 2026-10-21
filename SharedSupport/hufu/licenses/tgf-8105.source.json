@@ -1,0 +1,11 @@
+{
+  "file": "SharedSupport/hufu/tgf-8105.txt",
+  "sha256": "d307c7ceddbbdffe3fc97c81d330ae46816f84eff1de7c9d435f6afe2d74f6f0",
+  "characters": 8105,
+  "standard": "《通用规范汉字表》（中华人民共和国教育部、国家语言文字工作委员会，2013-06-05 颁布）",
+  "source": "https://github.com/iDvel/The-Table-of-General-Standard-Chinese-Characters",
+  "sourceFile": "1-8105纯汉字（按顺序排列）.txt",
+  "sourceCommit": "76c8512",
+  "sourceDate": "2022-09-17",
+  "note": "字表内容为国家标准文件的数据整理，属公共数据；用于「只打简体」模式的候选字符集过滤。"
+}

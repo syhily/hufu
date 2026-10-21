@@ -35,7 +35,8 @@ Hufu is a native macOS frontend for Tiger-Code (虎码). It embeds [librime](htt
 
 - **Tiger-Code only** — the schema list contains one entry, `tigress`. The official 秃版 2026.08.15 data comes from the `dicts/huma` submodule ([hufu-scheme](https://github.com/syhily/hufu-scheme)), trimmed there to single characters and phrases of up to four characters.
 - **The bundled table** — 117,662 single-character entries, 125,655 phrases and 3,134 short-code phrases: 246,451 raw records in total, counted recursively per source file and not deduplicated.
-- **The official schema's helpers** — `` ` `` Pinyin reverse lookup (`PY_c`), `'` temporary English (`easy_english`), component breakdown hints (`chaifen`), Pinyin annotations, emoji annotations, and Simplified/Traditional conversion (`st_tu.json` by default).
+- **The official schema's helpers** — `` ` `` Pinyin reverse lookup (`PY_c`), `'` temporary English (`easy_english`), component breakdown hints (`chaifen`), Pinyin annotations and emoji annotations.
+- **Four script modes** — mixed Simplified/Traditional (default), type Simplified get Traditional, Traditional only, Simplified only; the Traditional standard can be Tiger-Code `st_tu`, Taiwan, Hong Kong or generic.
 - **Native candidate window** — AppKit and Core Text, with a one-row or vertical-list layout, light/dark schemes, and adjustable fonts, radii and spacing. Themes can be imported through `hufu-ime://` links.
 - **Visual settings** — Overview, AI Assistant, Usage Statistics, Typing, Chinese/English, Shortcuts, Appearance, Apps, Vocabulary, Custom Phrases, Snippets, Sync & Backup, Advanced and About.
 - **Optional AI** — Apple's on-device Foundation Models (macOS 26) or an OpenAI-compatible endpoint. ⌃⌥P runs translation, polishing and custom actions; the assistant can also change settings in natural language and extract vocabulary from an article (you supply the Tiger-Code codes).
@@ -102,12 +103,12 @@ The project is generated from `project.yml`; `.xcodeproj` is not committed. Deve
 | Tab | Clear the current code |
 | `` ` `` | Pinyin reverse lookup (`PY_c`) |
 | Leading `'` | Temporary English (`easy_english`); Return or Space commits |
-| ⌃O | Toggle Simplified/Traditional |
+| ⌃O | Toggle Simplified/Traditional for the session (mixed ↔ Traditional output) |
 | ⌃H | Toggle full / common character set |
 | ⌃P | Toggle Pinyin annotations |
 | ⌃I | Toggle emoji annotations |
 | ⌃J | Toggle component breakdown hints |
-| ⌃⇧3 / ⌃⇧4 | Chinese/English punctuation / Simplified-Traditional |
+| ⌃⇧3 / ⌃⇧4 | Chinese/English punctuation / Simplified-Traditional (same as ⌃O) |
 | F4 or Control + \` | Schema menu (toggle switches) |
 
 These bindings come from the official Tiger-Code schema and the bundled `default.yaml`. Adjust them in **Settings › Shortcuts** or **Settings › Advanced**.
@@ -117,7 +118,7 @@ Settings pages:
 - **Overview** — input-method status, deployment status, import, diagnostic export.
 - **AI Assistant** — on-device or bring-your-own endpoint, AI actions, draft layer, settings assistant, vocabulary extraction.
 - **Usage Statistics** — daily characters, hours and apps, pinning frequent words.
-- **Typing** — candidate count, Simplified/Traditional, Tiger-Code switches, punctuation.
+- **Typing** — candidate count, the four script modes and Traditional standard, Tiger-Code switches, punctuation.
 - **Chinese/English** — Caps Lock and Shift behaviour, per-app state.
 - **Shortcuts** — hold-to-open key, schema menu, paging and selection keys.
 - **Appearance** — themes and colour schemes, fonts, candidate layout, radii and spacing; accepts `hufu-ime://` theme links.

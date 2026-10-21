@@ -156,8 +156,8 @@ switches:
 
 规则：`name` 与 `options`（多选一）二选一——`name` 是二态开关，`options` 是多选（如明月拼音的 `zh_hans/zh_hant/zh_hant_tw`）；`reset` 是部署后的初始状态索引；`states`/`abbrev` 决定菜单显示；`switcher/save_options` 列出的开关会被记忆（见 switcher 节）。opencc 类开关（simplification、emoji_cn）由 `simplifier@xxx` 的 `option_name` 关联消费。
 
-Hufu 可视化：已收录（常用开关默认值做成 bool）。
-catalog: switches.emoji_cn, switches.simplification, switches.full_shape, switches.ascii_punct, switches.chaifen, switches.pinyin, switches.extended_char
+Hufu 可视化：已收录（常用开关默认值做成 bool）。`simplification` 不单独暴露：它的运行时状态由「输入习惯 › 简繁模式」决定（见 filters 节）。
+catalog: switches.emoji_cn, switches.full_shape, switches.ascii_punct, switches.chaifen, switches.pinyin, switches.extended_char
 
 ## engine 总览
 
@@ -279,14 +279,28 @@ catalog: translator.enable_completion
 对候选流做转换/排序/过滤，按列表顺序执行：
 
 - **simplifier@xxx**：OpenCC 简繁/emoji 转换。`simplifier@emoji_cn`（option_name: emoji_cn，opencc_config: emoji.json，inherit_comment: false）把候选经 emoji 映射多一份；`simplifier@simplification`（option_name: simplification，opencc_config: st_tu.json（默认），可选 s2t/s2hk/s2tw/s2twp，tips: none，tags 限定作用段）实现繁体输出。
-  catalog: simplification.opencc_config（设置 › 输入习惯 › 繁体标准）。「默认输出」简体/繁体不写配置：Hufu 在每个新会话上设置 `simplification` 开关（`hufu/features.json` 的 `traditional`）。
+  catalog: simplification.opencc_config（设置 › 输入习惯 › 繁体标准）。
+
 - **uniquifier**：去除完全相同的候选（一般放在 filters 最后）。
 - **charset_filter**（librime 内置，需配合 extended_charset 开关）：过滤字符集外汉字。
 - **single_char_filter**：只留单字候选。
 - **lua_filter@\*…**：RIME 生态中常见的 Lua 滤镜（corrector、autocap_filter、v_filter、pin_cand_filter、long_word_filter、reduce_english_filter、search@radical_pinyin 等），需要 librime-lua；Hufu 不捆绑该插件，也不会挂载这些滤镜。
 
-Hufu 可视化：emoji 与简繁走开关；上述常见 Lua 滤镜不可用。
-catalog: switches.emoji_cn, switches.simplification
+### Hufu 的简繁四模式
+
+`simplification` 开关由 Hufu 在每个新会话上按「输入习惯 › 简繁模式」（`hufu/features.json` 的 `scriptMode`）设置，`opencc_config` 决定转换用哪套字表（`tradVariant` 记录选择）。
+
+| 模式 | `scriptMode` | simplification | 前端还做什么 |
+|---|---|---|---|
+| 繁简混打 | `mixed` | 关 | 什么都不做：简体优先，同码的繁体字排在后面 |
+| 打简出繁 | `tradOutput` | 开 | 不做过滤 |
+| 只打繁体 | `tradOnly` | 开 | 丢弃转换后仍含 `opencc/STCharacters_Tu.txt` 键（有繁体对应的简体字）的候选 |
+| 只打简体 | `simpOnly` | 关 | 丢弃含《通用规范汉字表》8105 字以外汉字的候选 |
+
+候选过滤在输入法前端完成（`SpecialInput` 的便利候选不参与），保留 displayIndex → rimeIndex 映射，数字键 / `;` / `'` / 空格 / 点击都按映射选词。⌃O 与 ⌃⇧4 仍只切换 `simplification` 开关：运行时在「混打 ↔ 打简出繁」或「只打简体 ↔ 只打繁体」之间临时换档，不改存下的模式。
+
+Hufu 可视化：emoji 走开关，简繁走「简繁模式」（见上）；上述常见 Lua 滤镜不可用。
+catalog: switches.emoji_cn
 
 ## speller 与拼写运算 algebra
 
@@ -643,8 +657,8 @@ Hufu 不捆绑 librime-lua，因此 `lua_processor@*` / `lua_translator@*` / `lu
 
 三类前端候选各有开关（`hufu/features.json` 的 `dateTimeCandidates`、`calculatorCandidates`、`numeralsCandidates`，默认开），在 设置 › 输入习惯 › 便利功能 里调整；改动即时通知输入法，不需要重新部署。关闭后这些编码交回方案，不再注入候选。
 
-Hufu 可视化：高级 YAML（开关由 switches 组暴露 emoji_cn/simplification 等即可）。
-catalog: switches.emoji_cn, switches.simplification
+Hufu 可视化：高级 YAML（开关由 switches 组暴露 emoji_cn 等即可）。
+catalog: switches.emoji_cn
 
 ## catalog.json 字段说明与收录总表
 
