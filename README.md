@@ -55,7 +55,7 @@ Hufu 是虎码的 macOS 输入法前端。它把 [librime](https://github.com/ri
    shasum -a 256 -c SHA256SUMS.txt --ignore-missing
    ```
 
-2. 阅读该版本的签名与公证状态，再按 Release 说明安装。正式签名由 Apple 开发者团队 `PX694P4CGY`（syhily）的 Developer ID 证书完成。
+2. 阅读该版本的签名与公证状态，再按 Release 说明安装。配置好 Developer ID 凭据前，发布产物为 ad-hoc 签名的预览版（首次打开需在「系统设置 › 隐私与安全性」放行）。
 3. 打开 **系统设置 › 键盘 › 输入法 › 编辑…**，点 **+**，在「简体中文」中添加 **虎符输入法**。首次安装后若列表里没有，注销并重新登录一次。
 
 目前没有 Homebrew cask，请从 Releases 安装。

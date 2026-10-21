@@ -57,8 +57,8 @@ bash scripts/release.sh v0.1.0   # → dist/release/Hufu-0.1.0.{pkg,zip}、SHA25
 
 创建方法：
 
-1. **证书**：由 syhily（Team `PX694P4CGY`）的 Account Holder 创建两张 Developer ID 证书（Apple 说明：https://developer.apple.com/help/account/certificates/create-developer-id-certificates）。
-   在「钥匙串访问」中选中证书（连同私钥），右键导出为 `.p12` 并设置密码。工作流只接受该团队名下**有效**的身份，
+1. **证书**：用你的 Apple 开发者账号（Account Holder）创建两张 Developer ID 证书（Apple 说明：https://developer.apple.com/help/account/certificates/create-developer-id-certificates）。
+   在「钥匙串访问」中选中证书（连同私钥），右键导出为 `.p12` 并设置密码。工作流只接受**有效**的身份，
    已过期或已吊销的证书会被拒绝（用吊销证书签名的程序会被 macOS 当作恶意软件移入废纸篓）。
 2. **公证 API Key**：App Store Connect › 用户和访问 › 集成 › App Store Connect API › 团队密钥，新建一个 Developer 角色的密钥，
    记下 Key ID 和页面顶部的 Issuer ID；`.p8` 只能下载一次。
@@ -103,7 +103,7 @@ shasum -a 256 -c SHA256SUMS.txt --ignore-missing
 正式签名版还可以检查签名和公证：
 
 ```bash
-pkgutil --check-signature Hufu-<version>.pkg     # 应显示 Developer ID Installer: syhily (PX694P4CGY)
+pkgutil --check-signature Hufu-<version>.pkg     # 应显示 Developer ID Installer: <你的团队名> (<你的 Team ID>)
 spctl --assess --type install --verbose=2 Hufu-<version>.pkg
 xcrun stapler validate Hufu-<version>.pkg
 ```

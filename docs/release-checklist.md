@@ -52,7 +52,7 @@ HUFU_BENCH_DIR="$(mktemp -d "${TMPDIR:-/tmp}/hufu-bench.XXXXXX")"
 
 ## 签名与公证
 
-- [ ] 发布团队为 syhily（`PX694P4CGY`）；按 [发布流程](releasing.md) 核对证书、账号角色与公证凭据。Apple Development 构建不能用于正式分发。
+- [ ] 发布使用你自己的 Apple 开发者团队；按 [发布流程](releasing.md) 核对证书、账号角色与公证凭据。Apple Development 构建不能用于正式分发。
 - [ ] 正式签名使用有效、未吊销的 **Developer ID Application** 与 **Developer ID Installer** 证书，启用 Hardened Runtime 与可信时间戳。**切勿使用已吊销证书**：macOS 会将其签名的应用判为恶意软件并移入废纸篓。
 - [ ] `install-dev.sh` 默认 ad-hoc 签名且不要求时间戳，不能替代正式发布签名。
 - [ ] 配置 7 个发布 secret 后，Release 工作流会导入一次性钥匙串，签名并公证 `Hufu.app` 与 `.pkg`，最后删除临时钥匙串与 `.p8`。缺少任一项时工作流报错；完全没有 secret 时才构建未签名预览版。

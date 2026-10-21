@@ -18,12 +18,13 @@ settings:
     DEAD_CODE_STRIPPING: YES
     ENABLE_HARDENED_RUNTIME: YES
     CODE_SIGN_STYLE: Automatic
-    DEVELOPMENT_TEAM: PX694P4CGY
     CODE_SIGN_IDENTITY: "-"
     INFOPLIST_KEY_NSHumanReadableCopyright: "© 2026 syhily · MIT License"
   configs:
     Debug:
-      CODE_SIGN_IDENTITY: Apple Development
+      # No developer account is required: local builds sign ad-hoc. Set your own
+      # DEVELOPMENT_TEAM / Apple Development identity here once you have one.
+      CODE_SIGN_IDENTITY: "-"
 packages:
   HufuKit:
     path: Packages/HufuKit

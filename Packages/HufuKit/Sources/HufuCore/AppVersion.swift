@@ -28,18 +28,16 @@ public struct AppVersion: Comparable, Sendable, CustomStringConvertible {
 
     public var description: String { build.map { "\(string) (\($0))" } ?? string }
 
-    /// Team that signs release builds; ad-hoc development builds have no team.
-    public static let signingTeamID = "PX694P4CGY"
-
-    /// Whether this copy was signed by Hufu's team (a release), not an ad-hoc development
-    /// build.
+    /// Whether this copy carries a real Developer ID signature (any team), as opposed
+    /// to an ad-hoc development build which has no team identifier.
     public static func isDistributionBuild(_ bundle: Bundle = .main) -> Bool {
         var code: SecStaticCode?
         guard SecStaticCodeCreateWithPath(bundle.bundleURL as CFURL, [], &code) == errSecSuccess, let code else { return false }
         var info: CFDictionary?
         guard SecCodeCopySigningInformation(code, SecCSFlags(rawValue: kSecCSSigningInformation), &info) == errSecSuccess,
               let dictionary = info as? [String: Any] else { return false }
-        return dictionary[kSecCodeInfoTeamIdentifier as String] as? String == signingTeamID
+        let team = dictionary[kSecCodeInfoTeamIdentifier as String] as? String
+        return team?.isEmpty == false
     }
 
     public static func < (lhs: AppVersion, rhs: AppVersion) -> Bool {

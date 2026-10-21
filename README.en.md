@@ -55,7 +55,7 @@ Requires **macOS 15 or later** (Apple Intelligence on-device AI needs macOS 26).
    shasum -a 256 -c SHA256SUMS.txt --ignore-missing
    ```
 
-2. Read that release's signing and notarization status, then follow its installation notes. Official builds are signed with a Developer ID certificate from Apple team `PX694P4CGY` (syhily).
+2. Read that release's signing and notarization status, then follow its installation notes. Until Developer ID credentials are configured, releases are ad-hoc signed preview builds (allow them once under System Settings › Privacy & Security).
 3. Open **System Settings › Keyboard › Input Sources › Edit…**, click **+** and add **Hufu** under Chinese, Simplified. If it does not appear after the first install, log out and back in.
 
 There is no Homebrew cask yet; install from Releases.

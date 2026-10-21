@@ -30,7 +30,6 @@ jobs:
       status: ${{ steps.artefacts.outputs.status }}
       prerelease: ${{ steps.artefacts.outputs.prerelease }}
     env:
-      TEAM_ID: PX694P4CGY
     steps:
       - uses: actions/checkout@v4
         with:
@@ -116,12 +115,14 @@ jobs:
 
           # -v lists only valid identities: expired or revoked certificates are excluded,
           # which matters because macOS treats code signed with a revoked certificate as malware.
+          # The throwaway keychain contains only what we just imported, so the first
+          # Developer ID identity of each kind is ours — no team filter needed.
           app_id="$(security find-identity -v -p codesigning "$KEYCHAIN" \
-            | awk -v t="($TEAM_ID)" '/"Developer ID Application: / && index($0, t) {print $2; exit}')"
+            | awk '/"Developer ID Application: / {print $2; exit}')"
           installer_id="$(security find-identity -v -p basic "$KEYCHAIN" \
-            | awk -v t="($TEAM_ID)" '/"Developer ID Installer: / && index($0, t) {print $2; exit}')"
-          [[ -n "$app_id" ]] || { echo "::error::No valid 'Developer ID Application' identity for team $TEAM_ID"; exit 1; }
-          [[ -n "$installer_id" ]] || { echo "::error::No valid 'Developer ID Installer' identity for team $TEAM_ID"; exit 1; }
+            | awk '/"Developer ID Installer: / {print $2; exit}')"
+          [[ -n "$app_id" ]] || { echo "::error::No valid 'Developer ID Application' identity imported"; exit 1; }
+          [[ -n "$installer_id" ]] || { echo "::error::No valid 'Developer ID Installer' identity imported"; exit 1; }
 
           printf '%s' "$APPLE_NOTARY_KEY_P8_BASE64" | base64 --decode > "$SECRETS_DIR/AuthKey.p8"
           chmod 600 "$SECRETS_DIR/AuthKey.p8"
