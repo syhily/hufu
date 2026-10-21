@@ -29,7 +29,6 @@ jobs:
       version: ${{ steps.version.outputs.version }}
       status: ${{ steps.artefacts.outputs.status }}
       prerelease: ${{ steps.artefacts.outputs.prerelease }}
-    env:
     steps:
       - uses: actions/checkout@v7
         with:
