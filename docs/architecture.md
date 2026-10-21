@@ -5,7 +5,7 @@
 Hufu 是 librime 的一个新前端：输入法本体用 InputMethodKit + AppKit 实现，配置管理用 SwiftUI 实现，
 两者之间只通过**文件**和**分布式通知**交互。只内置虎码方案（`tigress`）；方案、词库与补丁格式仍遵循 RIME。
 虎码官方数据通过 `dicts/huma` git submodule（[hufu-scheme](https://github.com/syhily/hufu-scheme)）引入，
-构建时由 `scripts/stage-huma.sh` 过滤词表，并用 `scripts/patch-huma-schema.py` 对暂存副本打产品补丁。
+方案定制（词表裁剪、schema 调整）全部在方案仓库完成；构建时 `scripts/stage-huma.sh` 组装并预编译 librime 二进制产物。
 
 ```mermaid
 flowchart LR

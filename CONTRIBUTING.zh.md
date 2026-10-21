@@ -24,7 +24,7 @@ xcodegen generate
 xcodebuild -project Hufu.xcodeproj -scheme Hufu -configuration Debug -derivedDataPath build/DerivedData build
 ```
 
-脚本校验固定的 SHA-256，并组装 librime 与 `build/SharedSupport`。`stage-huma.sh` 从 `dicts/huma` submodule 过滤虎码词表，并用 `patch-huma-schema.py` 打上本地方案调整；它也会调用插件暂存，因此首次运行前需创建 `.build`。每次构建新的 SwiftPM 配置后运行 `stage-plugins.sh`，让 `librime-lua` 位于该配置的 librime 副本旁。`Hufu` scheme 构建两个 App，其构建后脚本嵌入 Lua 插件与 SharedSupport。
+脚本校验固定的 SHA-256，并组装 librime 与 `build/SharedSupport`。`stage-huma.sh` 直接采用 `dicts/huma` submodule 的虎码词表与方案（方案定制都在方案仓库完成），并预编译 librime 二进制产物；它也会调用插件暂存，因此首次运行前需创建 `.build`。每次构建新的 SwiftPM 配置后运行 `stage-plugins.sh`，让 `librime-lua` 位于该配置的 librime 副本旁。`Hufu` scheme 构建两个 App，其构建后脚本嵌入 Lua 插件与 SharedSupport。
 
 为当前用户构建并安装：
 
@@ -49,7 +49,7 @@ bash scripts/install-dev.sh
 
 **禁止把 GPL 源码复制、翻译、移植或改写进 Hufu 的 MIT 源码树，包括 Squirrel 代码。** Hufu 不是 Squirrel 的 fork；这条要求也适用于基于此类代码生成的 AI 补丁。应独立实现，并使用兼容且注明来源的依赖。
 
-`dicts/huma` 是指向 [hufu-scheme](https://github.com/syhily/hufu-scheme) 的 git submodule，镜像虎码官方包（虎码秃版 2026.08.15，官方免费发布），随 App 的 `Contents/SharedSupport/` 分发；须保留上游版本、来源与许可声明。不要直接修改 submodule：修正应反馈给虎码官方，本地补充请放在 `huma_custom`（设置 › 自定义短语），产品侧的方案调整写在 `scripts/patch-huma-schema.py`（每次构建对暂存副本生效）。不得把 GPL 实现代码引入 Hufu 的 MIT 源码。新增依赖或数据集时，在 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) 记录上游 URL、版本／commit、许可证及声明。来源或授权不明确时，先核实再引入，不能因仓库公开就视为 MIT。
+`dicts/huma` 是指向 [hufu-scheme](https://github.com/syhily/hufu-scheme) 的 git submodule，虎码官方包的定制裁剪版（虎码秃版 2026.08.15，官方免费发布），随 App 的 `Contents/SharedSupport/` 分发；须保留上游版本、来源与许可声明。不要直接修改 submodule：修正应反馈给虎码官方，本地补充请放在 `huma_custom`（设置 › 自定义短语），产品侧的方案调整直接提交到方案仓库。不得把 GPL 实现代码引入 Hufu 的 MIT 源码。新增依赖或数据集时，在 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) 记录上游 URL、版本／commit、许可证及声明。来源或授权不明确时，先核实再引入，不能因仓库公开就视为 MIT。
 
 原创代码贡献采用 MIT。不要粘贴未获授权的第三方词库内容；内置词表是官方发布物，不是社区词库投稿渠道。
 

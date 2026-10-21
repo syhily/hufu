@@ -5,22 +5,16 @@ on:
     paths:
       - 'dicts/huma'
       - '.gitmodules'
-      - 'scripts/filter-huma-dict.py'
-      - 'scripts/patch-huma-schema.py'
       - 'scripts/stage-huma.sh'
       - 'scripts/dictionary-metadata.py'
-      - 'SharedSupport/huma_custom.dict.yaml'
       - 'SharedSupport/hufu/**'
       - 'SharedSupport/hufu.yaml'
   pull_request:
     paths:
       - 'dicts/huma'
       - '.gitmodules'
-      - 'scripts/filter-huma-dict.py'
-      - 'scripts/patch-huma-schema.py'
       - 'scripts/stage-huma.sh'
       - 'scripts/dictionary-metadata.py'
-      - 'SharedSupport/huma_custom.dict.yaml'
       - 'SharedSupport/hufu/**'
       - 'SharedSupport/hufu.yaml'
 

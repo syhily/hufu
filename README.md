@@ -33,7 +33,7 @@ Hufu 是虎码的 macOS 输入法前端。它把 [librime](https://github.com/ri
 
 ## 特性
 
-- **只做虎码**：方案列表只有虎码（schema id `tigress`）。官方秃版 2026.08.15 通过 `dicts/huma` submodule 引入（镜像自 [hufu-scheme](https://github.com/syhily/hufu-scheme)），词表由 `scripts/filter-huma-dict.py` 过滤为单字与四字及以下词组。
+- **只做虎码**：方案列表只有虎码（schema id `tigress`）。官方秃版 2026.08.15 通过 `dicts/huma` submodule 引入（[hufu-scheme](https://github.com/syhily/hufu-scheme)），词表在方案仓库裁剪为单字与四字及以下词组。
 - **内置码表**：单字 117,662 条、词组 125,655 条、简码词 3,134 条，共 246,451 条原始记录（按来源文件递归统计，未去重）。
 - **保留官方方案能力**：`` ` `` 拼音反查（PY_c）、`'` 临时英文（easy_english）、拆分提示（chaifen）、拼音注解、emoji 注解、简繁切换（默认 `st_tu.json`）、全字集 / 常用字开关（默认仅常用字）。
 - **原生候选窗**：AppKit + Core Text 自绘，候选可横排一行或竖排列表，支持亮暗配色、字体字号与圆角间距调整；主题可用 `hufu-ime://` 链接导入。
@@ -74,7 +74,7 @@ bash scripts/build-app.sh        # → build/Release/Hufu.app
 bash scripts/install-dev.sh      # 安装到 ~/Library/Input Methods 并注册
 ```
 
-已经 clone 过仓库的话，先初始化方案数据：`git submodule update --init`。`dicts/huma` 是指向 [hufu-scheme](https://github.com/syhily/hufu-scheme) 的 submodule（虎码官方秃版 2026.08.15 的镜像），固定到某个 commit；不要直接修改 submodule 内容，产品的本地调整由 `scripts/patch-huma-schema.py` 在暂存时完成。
+已经 clone 过仓库的话，先初始化方案数据：`git submodule update --init`。`dicts/huma` 是指向 [hufu-scheme](https://github.com/syhily/hufu-scheme) 的 submodule（虎码官方秃版 2026.08.15 的定制裁剪版），固定到某个 commit；方案内容（词表裁剪、schema 调整）全部在方案仓库维护，本仓库不直接修改 submodule 内容。
 
 `stage-huma.sh` 默认保留四字及以下词组，可用环境变量调整：
 

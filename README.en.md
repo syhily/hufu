@@ -33,7 +33,7 @@ Hufu is a native macOS frontend for Tiger-Code (虎码). It embeds [librime](htt
 
 ## Features
 
-- **Tiger-Code only** — the schema list contains one entry, `tigress`. The official 秃版 2026.08.15 data comes from the `dicts/huma` submodule (a mirror of [hufu-scheme](https://github.com/syhily/hufu-scheme)), filtered by `scripts/filter-huma-dict.py` to single characters and phrases of up to four characters.
+- **Tiger-Code only** — the schema list contains one entry, `tigress`. The official 秃版 2026.08.15 data comes from the `dicts/huma` submodule ([hufu-scheme](https://github.com/syhily/hufu-scheme)), trimmed there to single characters and phrases of up to four characters.
 - **The bundled table** — 117,662 single-character entries, 125,655 phrases and 3,134 short-code phrases: 246,451 raw records in total, counted recursively per source file and not deduplicated.
 - **The official schema's helpers** — `` ` `` Pinyin reverse lookup (`PY_c`), `'` temporary English (`easy_english`), component breakdown hints (`chaifen`), Pinyin annotations, emoji annotations, Simplified/Traditional conversion (`st_tu.json` by default), and the full/common character-set toggle (common characters by default).
 - **Native candidate window** — AppKit and Core Text, with a one-row or vertical-list layout, light/dark schemes, and adjustable fonts, radii and spacing. Themes can be imported through `hufu-ime://` links.
@@ -74,7 +74,7 @@ bash scripts/build-app.sh        # → build/Release/Hufu.app
 bash scripts/install-dev.sh      # install into ~/Library/Input Methods and register
 ```
 
-If the repository is already cloned, initialise the schema data first: `git submodule update --init`. `dicts/huma` is a submodule pinned to [hufu-scheme](https://github.com/syhily/hufu-scheme), a mirror of the official 秃版 2026.08.15 package. Do not edit the submodule in place; product adjustments are applied at staging time by `scripts/patch-huma-schema.py`.
+If the repository is already cloned, initialise the schema data first: `git submodule update --init`. `dicts/huma` is a submodule pinned to [hufu-scheme](https://github.com/syhily/hufu-scheme), the customised mirror of the official 秃版 2026.08.15 package. Schema content (table trimming, schema adjustments) is maintained in that repository; do not edit the submodule in place.
 
 `stage-huma.sh` keeps phrases of up to four characters by default; override it with:
 
