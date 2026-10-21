@@ -29,8 +29,16 @@ xcodebuild -project Hufu.xcodeproj -scheme Hufu -configuration "$CONFIG" -derive
 BUILT="$DERIVED/Build/Products/$CONFIG"
 
 echo "==> building CLI (universal: arm64 + x86_64)"
-swift build --package-path Packages/HufuKit -c release --product hufu --arch arm64 --arch x86_64 >/dev/null
-CLI_DIR="$(swift build --package-path Packages/HufuKit -c release --arch arm64 --arch x86_64 --show-bin-path)"
+# Per-arch builds + lipo: SwiftPM's multi-arch mode misresolves the CRime
+# xcframework's universal slice for the non-native arch (library not found).
+swift build --package-path Packages/HufuKit -c release --product hufu --arch x86_64 >/dev/null
+swift build --package-path Packages/HufuKit -c release --product hufu --arch arm64 >/dev/null
+CLI_X64="$(swift build --package-path Packages/HufuKit -c release --arch x86_64 --show-bin-path)"
+CLI_ARM="$(swift build --package-path Packages/HufuKit -c release --arch arm64 --show-bin-path)"
+CLI_DIR="$ROOT/build/cli-universal"
+rm -rf "$CLI_DIR" && mkdir -p "$CLI_DIR"
+lipo -create "$CLI_X64/hufu" "$CLI_ARM/hufu" -output "$CLI_DIR/hufu"
+ditto "$CLI_ARM/HufuKit_HufuCore.bundle" "$CLI_DIR/HufuKit_HufuCore.bundle"
 lipo -info "$CLI_DIR/hufu" | grep -q "x86_64 arm64" || { echo "error: CLI is not a universal binary" >&2; exit 1; }
 
 rm -rf "$OUT" && mkdir -p "$OUT"
