@@ -22,8 +22,7 @@ let package = Package(
         .package(url: "https://github.com/apple/swift-argument-parser.git", from: "1.6.0"),
     ],
     targets: [
-        // librime 1.17, statically linked from the pinned xcframework assembled
-        // by scripts/fetch-librime.sh.
+        // librime 1.17, statically linked from source built by scripts/build-librime.sh.
         .binaryTarget(name: "CRime", path: "Frameworks/CRime.xcframework"),
 
         // Thin, typed Swift wrapper over the librime C API.

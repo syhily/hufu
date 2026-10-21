@@ -15,6 +15,7 @@ class LicenseMaterialsTests(unittest.TestCase):
         self.source, self.app = self.root / "source", self.root / "Hufu.app"
         for path in ["LICENSE", "THIRD_PARTY_NOTICES.md", "docs/release-checklist.md"]:
             self.write(self.source / path, path.encode())
+        self.write(self.source / "licenses/example.LICENSE.txt", b"third-party license")
 
     def tearDown(self):
         self.temporary.cleanup()
@@ -28,6 +29,7 @@ class LicenseMaterialsTests(unittest.TestCase):
         destination = self.app / "Contents/Resources/LicenseMaterials"
         for path in ["LICENSE", "THIRD_PARTY_NOTICES.md", "docs/release-checklist.md"]:
             self.assertEqual((destination / path).read_bytes(), (self.source / path).read_bytes())
+        self.assertEqual((destination / "licenses/example.LICENSE.txt").read_bytes(), b"third-party license")
         self.assertEqual(receipt["schemaVersion"], 2)
         self.assertFalse(receipt["nativePluginsBundled"])
         self.assertIn("no native librime plugins", (destination / "README.txt").read_text())

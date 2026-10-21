@@ -23,10 +23,13 @@ def sha256(data):
 def embed(source_root, app):
     source_root, app = Path(source_root).resolve(), Path(app).resolve()
     payload = {path: (source_root / path).read_bytes() for path in PAYLOAD}
+    for path in sorted((source_root / "licenses").glob("*.txt")):
+        payload[str(path.relative_to(source_root))] = path.read_bytes()
     payload["README.txt"] = (
         "Hufu license materials\n"
         "LICENSE applies to Hufu original code; dependencies retain their licenses.\n"
-        "Hufu bundles no native librime plugins.\n"
+        "licenses/ contains the full license texts of the statically linked libraries.\n"
+        "Hufu builds no native librime plugins.\n"
         "This bundle is not approved for public distribution by this embedding step.\n"
     ).encode("utf-8")
     receipt = {"schemaVersion": 2, "scope": "license materials",

@@ -11,10 +11,12 @@ DerivedData/
 xcuserdata/
 *.xcuserstate
 
-# Vendored binaries — fetched by scripts/fetch-*.sh, pinned by *.lock
+# Vendored sources and build outputs — source submodules tracked, build products ignored
 Vendor/*
 !Vendor/*.lock
 !Vendor/README.md
+!Vendor/src
+!Vendor/src/**
 
 # Local artifacts
 .ui-acceptance/
@@ -27,5 +29,5 @@ __pycache__/
 *.pyc
 dist/
 
-# SwiftPM binary target assembled by scripts/fetch-librime.sh
+# SwiftPM binary target assembled by scripts/build-librime.sh
 Packages/HufuKit/Frameworks/

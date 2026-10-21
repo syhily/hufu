@@ -63,19 +63,19 @@ Hufu 是虎码的 macOS 输入法前端。它把 [librime](https://github.com/ri
 
 ## 从源码构建
 
-需要 macOS 15+（开发用）、Xcode 26+、[XcodeGen](https://github.com/yonaskolb/XcodeGen)（`brew install xcodegen`）和 Python 3。
+需要 macOS 15+（开发用）、Xcode 26+、CMake 3.22+、[XcodeGen](https://github.com/yonaskolb/XcodeGen)（`brew install xcodegen`）和 Python 3。
 
 ```bash
 git clone --recurse-submodules https://github.com/syhily/hufu.git
 cd hufu
 
-bash scripts/fetch-librime.sh    # 下载并校验 librime 1.17.0，组装静态 CRime.xcframework
+bash scripts/build-librime.sh    # 从 Vendor/src 源码编译静态 librime，组装 CRime.xcframework
 bash scripts/stage-huma.sh       # 过滤虎码词表，组装 build/SharedSupport
 bash scripts/build-app.sh        # → build/Release/Hufu.app
 bash scripts/install-dev.sh      # 安装到 ~/Library/Input Methods 并注册
 ```
 
-已经 clone 过仓库的话，先初始化方案数据：`git submodule update --init`。`dicts/huma` 是指向 [hufu-scheme](https://github.com/syhily/hufu-scheme) 的 submodule（虎码官方秃版 2026.08.15 的定制裁剪版），固定到某个 commit；方案内容（词表裁剪、schema 调整）全部在方案仓库维护，本仓库不直接修改 submodule 内容。
+已经 clone 过仓库的话，先初始化源码 submodule：`git submodule update --init --recursive`。`dicts/huma` 是指向 [hufu-scheme](https://github.com/syhily/hufu-scheme) 的 submodule（虎码官方秃版 2026.08.15 的定制裁剪版），`Vendor/src/` 是 librime 与依赖源码，均固定到某个 commit；方案内容（词表裁剪、schema 调整）全部在方案仓库维护，本仓库不直接修改 submodule 内容。
 
 `stage-huma.sh` 默认保留四字及以下词组，可用环境变量调整：
 
@@ -86,7 +86,7 @@ HUFU_MAX_PHRASE_LEN=4 bash scripts/stage-huma.sh
 也可以生成 Xcode 工程后手动构建：
 
 ```bash
-bash scripts/fetch-librime.sh && bash scripts/stage-huma.sh
+bash scripts/build-librime.sh && bash scripts/stage-huma.sh
 xcodegen generate
 open Hufu.xcodeproj
 ```
@@ -143,7 +143,7 @@ open Hufu.xcodeproj
 | 路径 | 内容 |
 | --- | --- |
 | `~/Library/Hufu/Rime/` | librime 工作区：编译产物、用户词频、`hufu/imported`（手写补丁）、`hufu/generated`（设置写入层） |
-| `~/Library/Logs/Hufu/` | librime 日志，默认 WARNING 级别，不记录输入内容 |
+| `~/Library/Logs/Hufu/` | 诊断日志目录；librime 自身日志已关闭（`ENABLE_LOGGING=OFF`），不记录输入内容 |
 
 设置 App 不链接 librime，只读写配置层，并通过分布式通知请输入法应用改动（无需用户操作）。配置由三层合成：Hufu 默认值 → 手写补丁 → 设置修改。详见[架构说明](docs/architecture.md)与[决策记录](docs/decisions/)。
 
@@ -156,7 +156,7 @@ open Hufu.xcodeproj
 ## 开发
 
 ```bash
-bash scripts/fetch-librime.sh && bash scripts/stage-huma.sh
+bash scripts/build-librime.sh && bash scripts/stage-huma.sh
 swift build --package-path Packages/HufuKit
 swift test --package-path Packages/HufuKit
 xcodegen generate && open Hufu.xcodeproj
@@ -183,12 +183,12 @@ Hufu 原创代码采用 [MIT](LICENSE) 许可，版权归 syhily 所有。项目
 
 安装包还包含：
 
-- **librime 1.17.0**：BSD-3-Clause；静态链接自 [ghostflyby/librime-xcframework](https://github.com/ghostflyby/librime-xcframework) 的 `1.17.0-pack.10.0.0`（sha256 固定）。安装包不包含可动态加载的 librime 原生插件。
-- **OpenCC 数据**：Apache-2.0。
+- **librime 1.17.0 及其依赖**：由 `Vendor/src` 固定源码构建并静态链接——librime/leveldb（BSD-3-Clause）、marisa-trie（BSD-2-Clause）、yaml-cpp（MIT）、Boost（BSL-1.0）、OpenCC（Apache-2.0）。安装包不包含可动态加载的 librime 原生插件。
+- **OpenCC 数据**：Apache-2.0，由同一份 OpenCC 源码构建。
 - **虎码官方词库与方案**（虎码秃版 2026.08.15）：由虎码官方在 [tiger-code.com](https://www.tiger-code.com) 免费发布，经 [hufu-scheme](https://github.com/syhily/hufu-scheme) submodule（`dicts/huma`）引入。
 - **Noto Sans SC**：SIL Open Font License 1.1，用于图标与品牌图形的字形轮廓。
 
-发行包只包含 MIT / BSD / Apache / OFL 许可的组件与官方免费发布的数据，不含 GPL 组件，且不包含任何可动态加载的原生插件。第三方组件的完整清单见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)，发布核对项见[发布清单](docs/release-checklist.md)。
+发行包只包含 MIT / BSD / Apache / OFL / BSL 许可的组件与官方免费发布的数据，不含 GPL 组件，且不包含任何可动态加载的原生插件。第三方组件的完整清单见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)，发布核对项见[发布清单](docs/release-checklist.md)。
 
 <p align="center"><sub>由 <a href="https://github.com/syhily">syhily</a> 发布与维护 · Hufu 与虎符输入法为 syhily 的产品名称</sub></p>
 

@@ -1,3 +1,18 @@
 [submodule "dicts/huma"]
 	path = dicts/huma
 	url = https://github.com/syhily/hufu-scheme
+[submodule "Vendor/src/librime"]
+	path = Vendor/src/librime
+	url = https://github.com/rime/librime.git
+[submodule "Vendor/src/leveldb"]
+	path = Vendor/src/leveldb
+	url = https://github.com/google/leveldb.git
+[submodule "Vendor/src/marisa-trie"]
+	path = Vendor/src/marisa-trie
+	url = https://github.com/s-yata/marisa-trie.git
+[submodule "Vendor/src/opencc"]
+	path = Vendor/src/opencc
+	url = https://github.com/BYVoid/OpenCC.git
+[submodule "Vendor/src/yaml-cpp"]
+	path = Vendor/src/yaml-cpp
+	url = https://github.com/jbeder/yaml-cpp.git

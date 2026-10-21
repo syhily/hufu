@@ -3,8 +3,8 @@ import Testing
 @testable import RimeKit
 
 /// 繁简转换（st_tu）回归：开关打开时 `rk` 出「對」，关闭时出「对」。
-/// 夹具用产品自带的 st_tu.json + STCharacters_Tu.txt（仓库内文件）与 librime
-/// 预编译的 STPhrases.ocd2，不依赖 build/SharedSupport。
+/// 夹具用产品自带的 st_tu.json + STCharacters_Tu.txt（仓库内文件）与
+/// build-librime.sh 生成的 STPhrases.ocd2，不依赖 build/SharedSupport。
 @MainActor
 @Suite(.serialized)
 struct TraditionalConversionTests {
@@ -15,7 +15,7 @@ struct TraditionalConversionTests {
 
     private static func makeWorkspace() throws -> (shared: URL, user: URL)? {
         let fm = FileManager.default
-        let stockOCD2 = repoRoot.appendingPathComponent("Vendor/librime/share/opencc/STPhrases.ocd2")
+        let stockOCD2 = repoRoot.appendingPathComponent("build/rime/share/opencc/STPhrases.ocd2")
         let stTu = repoRoot.appendingPathComponent("SharedSupport/opencc/st_tu.json")
         let stTuTable = repoRoot.appendingPathComponent("SharedSupport/opencc/STCharacters_Tu.txt")
         guard fm.fileExists(atPath: stockOCD2.path), fm.fileExists(atPath: stTu.path) else { return nil }

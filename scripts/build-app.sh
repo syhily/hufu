@@ -15,7 +15,7 @@ OUT="$ROOT/build/Release"
 IDENTITY="${HUFU_SIGN_IDENTITY:--}"
 
 cd "$ROOT"
-[[ -d Packages/HufuKit/Frameworks/CRime.xcframework ]] || bash scripts/fetch-librime.sh
+bash scripts/build-librime.sh
 [[ -f build/SharedSupport/default.yaml ]] || bash scripts/stage-huma.sh
 # Hufu's own data changes more often than the dictionaries: always refresh it.
 ditto SharedSupport build/SharedSupport

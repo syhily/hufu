@@ -1,5 +1,5 @@
 name: Set up Hufu build
-description: Latest stable Xcode, XcodeGen, cached vendor downloads, pinned librime and Tiger-Code dictionaries.
+description: Latest stable Xcode, XcodeGen, cached in-tree librime build and Tiger-Code dictionaries.
 
 runs:
   using: composite
@@ -13,15 +13,24 @@ runs:
       shell: bash
       run: brew install xcodegen
 
-    - name: Cache vendor downloads
+    - name: Record librime pins
+      shell: bash
+      run: |
+        mkdir -p build
+        git ls-tree HEAD Vendor/src > build/librime-submodules.txt
+        shasum -a 256 scripts/build-librime.sh >> build/librime-submodules.txt
+
+    - name: Cache in-tree librime
       uses: actions/cache@v6
       with:
-        path: Vendor/.cache
-        key: ${{ runner.os }}-${{ runner.arch }}-vendor-${{ hashFiles('Vendor/librime.lock') }}
+        path: |
+          build/rime
+          Packages/HufuKit/Frameworks/CRime.xcframework
+        key: ${{ runner.os }}-${{ runner.arch }}-rime-${{ hashFiles('build/librime-submodules.txt') }}
 
-    - name: Fetch librime
+    - name: Build librime from source
       shell: bash
-      run: bash scripts/fetch-librime.sh
+      run: bash scripts/build-librime.sh
 
     - name: Stage Tiger-Code dictionaries
       shell: bash

@@ -35,7 +35,7 @@ hufu diagnostics --output /tmp/Hufu-diagnostics.zip
 ```
 
 报告包括版本/build、分发签名状态、macOS 与芯片、安装位置、最近选用方案 id、配置各层文件名与大小、
-librime 版本，以及每类日志最新的文件（librime 各级别 2 个、其他 1 个，总共最多 8 个）各自的最后 500 行（每文件最多读取末尾 1 MiB）。
+librime 版本，以及日志目录中每类日志最新的文件（若存在；librime 各级别 2 个、其他 1 个，总共最多 8 个）各自的最后 500 行（每文件最多读取末尾 1 MiB）。
 不会复制输入内容、userdb、常用语、输入统计、用户 YAML 原文或 credentials.json；API Key 与 baseURL 仅标记配置状态。
 日志再经过密钥、Bearer 凭据和 URL 路径/查询脱敏，不跟随用户文件的符号链接。
 

@@ -5,6 +5,9 @@ on:
     paths:
       - 'dicts/huma'
       - '.gitmodules'
+      - 'Vendor/librime.lock'
+      - 'Vendor/src/**'
+      - 'scripts/build-librime.sh'
       - 'scripts/stage-huma.sh'
       - 'scripts/dictionary-metadata.py'
       - 'SharedSupport/hufu/**'
@@ -13,6 +16,9 @@ on:
     paths:
       - 'dicts/huma'
       - '.gitmodules'
+      - 'Vendor/librime.lock'
+      - 'Vendor/src/**'
+      - 'scripts/build-librime.sh'
       - 'scripts/stage-huma.sh'
       - 'scripts/dictionary-metadata.py'
       - 'SharedSupport/hufu/**'
@@ -30,13 +36,25 @@ jobs:
         with:
           submodules: true
 
-      - name: Fetch librime (OpenCC data)
-        run: bash scripts/fetch-librime.sh
+      - name: Record librime pins
+        run: |
+          mkdir -p build
+          git ls-tree HEAD Vendor/src > build/librime-submodules.txt
+          shasum -a 256 scripts/build-librime.sh >> build/librime-submodules.txt
+
+      - name: Cache OpenCC data build
+        uses: actions/cache@v6
+        with:
+          path: build/rime
+          key: ${{ runner.os }}-${{ runner.arch }}-opencc-${{ hashFiles('build/librime-submodules.txt') }}
+
+      - name: Build OpenCC data
+        run: bash scripts/build-librime.sh opencc-data
 
       - name: Assemble dictionaries
-        run: |
-          mkdir -p Packages/HufuKit/.build
-          bash scripts/stage-huma.sh
+        env:
+          HUFU_SKIP_PREBUILD: 1
+        run: bash scripts/stage-huma.sh
 
       - name: Check dictionary metadata
         run: python3 scripts/dictionary-metadata.py --shared-dir build/SharedSupport --check

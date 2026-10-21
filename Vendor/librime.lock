@@ -1,8 +1,13 @@
-# librime prebuilt pin — see docs/decisions/0001-librime-prebuilt-engine.md
+# librime source build manifest — see docs/decisions/0006-in-tree-librime-build.md
+# Submodules live under Vendor/src; the script verifies every checkout against these pins.
 LIBRIME_VERSION=1.17.0
-LIBRIME_COMMIT=33e7814
-# Static macOS xcframework from ghostflyby/librime-xcframework (same 1.17.0 upstream).
-RIME_PACK_TAG=1.17.0-pack.10.0.0
-11d8dc663c6ec06d5ccb6111ba664a9e7b631b703ac6acd07cffbac664021850  rime-33e7814-macOS-universal.tar.bz2
-dfe6047e87be271963d7466bd1a6e3d9e660c30e5e73e4bb94e8782c0a6ac8df  rime-deps-33e7814-macOS-universal.tar.bz2
-9e9923112ee9cee9bb53c25b41e51a2d7ea2ab3d91f34c7c99682224a23718ac  librime-static.xcframework.zip
+LIBRIME_COMMIT=33e78140250125871856cdc5b42ddc6a5fcd3cd4
+LEVELDB_COMMIT=99b3c03b3284f5886f9ef9a4ef703d57373e61be
+MARISA_COMMIT=3e87d53b78e15f2f43783d5e376561a8c9722051
+OPENCC_COMMIT=556ed22496d650bd0b13b6c163be9814637970ae
+YAML_CPP_COMMIT=2f86d13775d119edbb69af52e5f566fd65c6953b
+BOOST_VERSION=1.89.0
+BOOST_SHA256=9de758db755e8330a01d995b0a24d09798048400ac25c03fc5ea9be364b13c93
+
+# Upstream tags: librime 1.17.0, leveldb 1.23, marisa-trie v0.3.1, OpenCC ver.1.1.9,
+# yaml-cpp 0.8.0-74-g2f86d13 (the commit librime 1.17.0 pins), Boost 1.89.0.

@@ -12,17 +12,17 @@ Use macOS 26+, Xcode 26+ with command-line tools selected, and XcodeGen (`brew i
 
 ## Build and install
 
-Fork the repository and create a focused branch from the current default branch. Clone with `--recurse-submodules` (or run `git submodule update --init` once) so the `dicts/huma` Tiger-Code submodule is present. Run from the repository root:
+Fork the repository and create a focused branch from the current default branch. Clone with `--recurse-submodules` (or run `git submodule update --init --recursive` once) so `dicts/huma` and the `Vendor/src` sources are present. CMake 3.22+ and Python 3 are required. Run from the repository root:
 
 ```bash
-bash scripts/fetch-librime.sh
+bash scripts/build-librime.sh
 bash scripts/stage-huma.sh
 swift build --package-path Packages/HufuKit
 xcodegen generate
 xcodebuild -project Hufu.xcodeproj -scheme Hufu -configuration Debug -derivedDataPath build/DerivedData build
 ```
 
-The scripts verify pinned SHA-256 digests and assemble librime and `build/SharedSupport`. `stage-huma.sh` copies the Tiger-Code tables from the `dicts/huma` submodule (schema customisation lives upstream in the scheme repo) and prebuilds librime's binaries. Hufu ships no separately loaded librime plugins; the app and CLI link the static engine. The `Hufu` scheme builds both apps; its post-build script embeds SharedSupport and license materials.
+`build-librime.sh` verifies every submodule against `Vendor/librime.lock`, builds one static universal librime and its dependencies into `build/rime/`, and regenerates `CRime.xcframework`. `stage-huma.sh` copies the Tiger-Code tables from the `dicts/huma` submodule (schema customisation lives upstream in the scheme repo) and prebuilds librime's binaries. Hufu ships no separately loaded librime plugins; the app and CLI link the static engine. The `Hufu` scheme builds both apps; its post-build script embeds SharedSupport and license materials.
 
 To build and install for the current user:
 
