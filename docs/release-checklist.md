@@ -9,9 +9,9 @@
 - [ ] 记录 `xcodebuild -version`、`swift --version`、macOS 版本与 CPU 架构。CI 在 `macos-26` 上选择最新稳定 Xcode；发布前核对实际版本。
 - [ ] 发布提交的 CI 全绿：CHANGELOG 格式检查、SwiftPM 构建与测试、Release CLI、p99 门禁、词库元数据检查、Xcode Release 构建与 artifact 上传。
 - [ ] 执行 `python3 -m unittest discover -s scripts/tests -v`，确认 CHANGELOG、词库元数据与许可材料测试全部通过。
-- [ ] 核对 `Vendor/librime.lock`、`dicts/huma` submodule 的来源与固定 commit（应为 [hufu-scheme](https://github.com/syhily/hufu-scheme) 的预期修订）；确认 `scripts/fetch-librime.sh` 只组装 `librime-lua`。
-- [ ] **确认无 GPL 组件**：`Contents/Frameworks/rime-plugins/` 只应包含 `librime-lua.dylib`。`scripts/embed-license-materials.py` 会拒绝清单外的插件、哈希不符的许可或二进制；manifest 只登记 librime-lua。
-- [ ] 解包最终安装包，核对 `Contents/Resources/LicenseMaterials/` 的 receipt、librime-lua 许可、原始 manifest 与第三方声明。注意 receipt 仍把“完整许可审计”和“完整对应源码审计”标为 false；这是尚未完成传递依赖审计的如实记录，不是 GPL 义务。
+- [ ] 核对 `Vendor/librime.lock`、`dicts/huma` submodule 的来源与固定 commit（应为 [hufu-scheme](https://github.com/syhily/hufu-scheme) 的预期修订）；确认 `scripts/fetch-librime.sh` 只组装 `librime.1.dylib`、OpenCC 数据、CLI 与头文件，不复制任何插件。
+- [ ] **确认无原生插件随包**：`Hufu.app/Contents/Frameworks/` 只应有 `librime.1.dylib`，不存在 `rime-plugins/` 目录。
+- [ ] 解包最终安装包，核对 `Contents/Resources/LicenseMaterials/` 的 `packaging-receipt.json`、Hufu MIT 许可与第三方声明；receipt 应标明 `nativePluginsBundled: false`。
 - [ ] 核对安装器许可页与发布说明中的许可段落：`scripts/pkg/LICENSE-header.txt`、`scripts/package.sh` 的许可拼接、`scripts/release.sh` 生成的 `RELEASE_NOTES.md` 都应只描述 MIT / BSD / Apache / OFL 与虎码官方免费数据，不应再引用已删除的 octagram 许可文件或声称整体按 GPL 分发。
 
 ## 本地安装与输入实测
@@ -22,12 +22,11 @@
 bash scripts/fetch-librime.sh
 bash scripts/stage-huma.sh
 swift build --package-path Packages/HufuKit
-bash scripts/stage-plugins.sh
 swift test --package-path Packages/HufuKit
 bash scripts/install-dev.sh
 ```
 
-- [ ] 在系统设置启用 Hufu，必要时注销并重新登录；运行 `"$HOME/Library/Input Methods/Hufu.app/Contents/Helpers/hufu" doctor`，检查插件、方案与路径。
+- [ ] 在系统设置启用 Hufu，必要时注销并重新登录；运行 `"$HOME/Library/Input Methods/Hufu.app/Contents/Helpers/hufu" doctor`，检查方案与路径（不应列出任何原生插件）。
 - [ ] 在 **TextEdit、Safari、VS Code、微信** 中实测虎码连续输入、候选翻页与选择、空格 / 回车上屏、退格、标点、中英切换、焦点切换与应用重启，记录应用版本。
 - [ ] 验证设置 App 各页面能打开，修改配置后自动重新部署生效；确认已有用户配置与词频未被意外覆盖。
 - [ ] 验证自定义短语：在设置中添加一条带虎码编码的短语，重新部署后能打出。
@@ -40,7 +39,6 @@ bash scripts/install-dev.sh
 
 ```bash
 swift build --package-path Packages/HufuKit -c release --product hufu
-bash scripts/stage-plugins.sh
 HUFU_BENCH_DIR="$(mktemp -d "${TMPDIR:-/tmp}/hufu-bench.XXXXXX")"
 "$(swift build --package-path Packages/HufuKit -c release --show-bin-path)/hufu" bench \
   --user-dir "$HUFU_BENCH_DIR" --shared-dir build/SharedSupport \

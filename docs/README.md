@@ -16,8 +16,8 @@ Hufu is an open-source macOS input method built on RIME, with Tiger-Code as its 
 | 了解实现和取舍 / Architecture and decisions | [架构](architecture.md) · [决策记录](decisions/) |
 | 构建与发布 / Build and release | [发布流程](releasing.md) · [发布清单](release-checklist.md) |
 | 查看更新 / Changes | [CHANGELOG](../CHANGELOG.md) · [GitHub Releases](https://github.com/syhily/hufu/releases) |
-| 核对源码与分发许可 / Source and distribution licenses | [原创代码 MIT](../LICENSE) · [第三方声明](../THIRD_PARTY_NOTICES.md) · [插件许可审查](native-plugin-license-audit.md) · [分发验证记录](license-packaging-verification.md) |
+| 核对源码与分发许可 / Source and distribution licenses | [原创代码 MIT](../LICENSE) · [第三方声明](../THIRD_PARTY_NOTICES.md) · [发布清单](release-checklist.md) |
 
-Hufu 原创代码采用 MIT 许可。安装包只带 `librime-lua` 一个原生插件，第三方组件为 MIT / BSD / Apache / OFL 许可，并包含虎码官方免费发布的词库与方案；发行包不含 GPL 组件。问题反馈使用虚构输入，不上传个人词频、完整输入记录或凭据。
+Hufu 原创代码采用 MIT 许可。安装包不包含任何原生 librime 插件，第三方组件为 MIT / BSD / Apache / OFL 许可，并包含虎码官方免费发布的词库与方案；发行包不含 GPL 组件。问题反馈使用虚构输入，不上传个人词频、完整输入记录或凭据。
 
-Hufu's original code is MIT-licensed. The installer bundles a single native plugin, librime-lua; third-party components use MIT/BSD/Apache/OFL licences, and the Tiger-Code dictionary and schemas are officially free releases. The distribution contains no GPL components. Use synthetic input in reports and keep personal word frequencies, input history and credentials private.
+Hufu's original code is MIT-licensed. The installer bundles no native librime plugins; third-party components use MIT/BSD/Apache/OFL licences, and the Tiger-Code dictionary and schemas are officially free releases. The distribution contains no GPL components. Use synthetic input in reports and keep personal word frequencies, input history and credentials private.

@@ -16,15 +16,13 @@ Fork the repository and create a focused branch from the current default branch.
 
 ```bash
 bash scripts/fetch-librime.sh
-mkdir -p Packages/HufuKit/.build
 bash scripts/stage-huma.sh
 swift build --package-path Packages/HufuKit
-bash scripts/stage-plugins.sh
 xcodegen generate
 xcodebuild -project Hufu.xcodeproj -scheme Hufu -configuration Debug -derivedDataPath build/DerivedData build
 ```
 
-The scripts verify pinned SHA-256 digests and assemble librime and `build/SharedSupport`. `stage-huma.sh` copies the Tiger-Code tables from the `dicts/huma` submodule (schema customisation lives upstream in the scheme repo) and prebuilds librime's binaries; it also invokes plugin staging, so create `.build` first. Run `stage-plugins.sh` after each new SwiftPM build configuration so librime-lua is placed beside that configuration's librime copy. The `Hufu` scheme builds both apps; its post-build script embeds the Lua plugin and SharedSupport.
+The scripts verify pinned SHA-256 digests and assemble librime and `build/SharedSupport`. `stage-huma.sh` copies the Tiger-Code tables from the `dicts/huma` submodule (schema customisation lives upstream in the scheme repo) and prebuilds librime's binaries. Hufu bundles no librime native plugins. The `Hufu` scheme builds both apps; its post-build script embeds librime and SharedSupport.
 
 To build and install for the current user:
 
@@ -42,7 +40,7 @@ Do not commit downloaded binaries, generated projects, build output, or local in
 - Enable Swift strict concurrency. Keep technical identifiers and commit messages in English; update both language versions of paired documents.
 - Preserve `~/Library/Rime` during import. Write Hufu data only to its independent directory; test `__patch` layer precedence and dry-run validation with temporary fixtures.
 - AI is optional, manually invoked, and defaults to Apple's on-device model. AI only receives the text of an action the user explicitly runs (input-layer draft, selection, or text just committed); never typed codes, candidate lists, the user-frequency database, or statistics; no telemetry. Preview configuration diffs before applying. Provider keys live in the owner-only file `~/Library/Application Support/Hufu/credentials.json` (tests use `HUFU_CREDENTIALS_FILE`), never repository files or test logs. See [privacy notes](docs/privacy.md).
-- Keep third-party schemas, dictionaries and Lua scripts separate from application source, with provenance, license notices and deterministic staging.
+- Keep third-party schemas, dictionaries and data files separate from application source, with provenance, license notices and deterministic staging.
 
 ## Licensing: no copied GPL source
 
@@ -64,11 +62,10 @@ swiftlint lint --config .swiftlint.yml
 
 Use Swift Testing for new behavior and regression cases. Test deployment/patch precedence, malformed YAML, read-only import (source contents and timestamps unchanged), download checksum failures, upgrade/uninstall boundaries, and AI consent/data isolation when touching those areas. Tests must use disposable directories and synthetic text, not personal RIME files or live cloud credentials. Bound retries and batch work.
 
-For input-path changes, build the Release CLI, stage its plugins, and benchmark in a temporary user directory:
+For input-path changes, build the Release CLI and benchmark in a temporary user directory:
 
 ```bash
 swift build --package-path Packages/HufuKit -c release --product hufu
-bash scripts/stage-plugins.sh
 HUFU_BENCH_DIR="$(mktemp -d -t hufu-bench)"
 "$(swift build --package-path Packages/HufuKit -c release --show-bin-path)/hufu" bench \
   --user-dir "$HUFU_BENCH_DIR" --shared-dir build/SharedSupport \
@@ -85,7 +82,7 @@ bash scripts/ui-shots.sh
 
 Screenshots are saved to `.ui-acceptance/<date>/` in light and dark modes. Also check normal and narrow window widths, keyboard navigation, clipping, and candidate placement. If using the installer’s Release build, run `APP="$PWD/build/DerivedData/Build/Products/Release/Hufu Settings.app" bash scripts/ui-shots.sh`.
 
-[CI](.github/workflows/ci.yml) fetches dependencies, stages plugins, runs package tests and the Release benchmark, validates dictionaries, and builds and archives an unsigned app. SwiftLint and screenshots are local checks. The privacy acceptance check from [docs/privacy.md](docs/privacy.md) must return no matches (it is a separate local check, not a step in the current workflow):
+[CI](.github/workflows/ci.yml) fetches dependencies, runs package tests and the Release benchmark, validates dictionaries, and builds and archives an unsigned app. SwiftLint and screenshots are local checks. The privacy acceptance check from [docs/privacy.md](docs/privacy.md) must return no matches (it is a separate local check, not a step in the current workflow):
 
 ```bash
 ! grep -rlE 'composing|preedit|userdb' Packages/HufuKit/Sources/HufuAI

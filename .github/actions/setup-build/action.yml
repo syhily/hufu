@@ -26,7 +26,4 @@ runs:
     - name: Stage Tiger-Code dictionaries
       shell: bash
       run: |
-        # stage-huma also filters the word table and stages plugins; find needs this
-        # directory on a clean checkout.
-        mkdir -p Packages/HufuKit/.build
         bash scripts/stage-huma.sh

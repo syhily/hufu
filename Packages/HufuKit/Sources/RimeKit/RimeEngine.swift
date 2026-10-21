@@ -129,7 +129,8 @@ public final class RimeEngine {
         return URL(fileURLWithPath: String(cString: name)).resolvingSymlinksInPath()
     }
 
-    /// Plugin dylibs librime will pick up (lua, octagram, predict…).
+    /// Plugin dylibs librime would pick up. Hufu bundles no native plugins, so this
+    /// is normally empty; a missing `rime-plugins` directory is not an error.
     public var availablePlugins: [String] {
         guard let dir = libraryURL?.deletingLastPathComponent().appendingPathComponent("rime-plugins") else { return [] }
         let names = (try? FileManager.default.contentsOfDirectory(atPath: dir.path)) ?? []

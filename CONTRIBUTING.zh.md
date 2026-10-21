@@ -16,15 +16,13 @@ Fork 仓库，从当前默认分支创建聚焦本次改动的分支。clone 时
 
 ```bash
 bash scripts/fetch-librime.sh
-mkdir -p Packages/HufuKit/.build
 bash scripts/stage-huma.sh
 swift build --package-path Packages/HufuKit
-bash scripts/stage-plugins.sh
 xcodegen generate
 xcodebuild -project Hufu.xcodeproj -scheme Hufu -configuration Debug -derivedDataPath build/DerivedData build
 ```
 
-脚本校验固定的 SHA-256，并组装 librime 与 `build/SharedSupport`。`stage-huma.sh` 直接采用 `dicts/huma` submodule 的虎码词表与方案（方案定制都在方案仓库完成），并预编译 librime 二进制产物；它也会调用插件暂存，因此首次运行前需创建 `.build`。每次构建新的 SwiftPM 配置后运行 `stage-plugins.sh`，让 `librime-lua` 位于该配置的 librime 副本旁。`Hufu` scheme 构建两个 App，其构建后脚本嵌入 Lua 插件与 SharedSupport。
+脚本校验固定的 SHA-256，并组装 librime 与 `build/SharedSupport`。`stage-huma.sh` 直接采用 `dicts/huma` submodule 的虎码词表与方案（方案定制都在方案仓库完成），并预编译 librime 二进制产物。Hufu 不捆绑任何 librime 原生插件。`Hufu` scheme 构建两个 App，其构建后脚本嵌入 librime 与 SharedSupport。
 
 为当前用户构建并安装：
 
@@ -42,7 +40,7 @@ bash scripts/install-dev.sh
 - 启用 Swift strict concurrency。技术标识符和提交说明使用英文；有中英对等版本的文档同步更新。
 - 导入时保护 `~/Library/Rime`，Hufu 数据仅写入独立目录；用临时样本测试 `__patch` 分层优先级和 dry-run 校验。
 - AI 可选、由用户手动触发，默认使用 Apple 端侧模型。AI 只接收用户主动执行动作的那段文字（输入图层草稿、选区或刚上屏的字），编码串、候选列表、用户词频与统计一律不交给 AI；无遥测。应用配置修改前预览 diff。服务商 key 存在仅本人可读写的 `~/Library/Application Support/Hufu/credentials.json`（测试用 `HUFU_CREDENTIALS_FILE` 指向临时文件），不能进入仓库文件或测试日志。详见[隐私说明](docs/privacy.md)。
-- 第三方方案、词表与 Lua 脚本与原创源码分开存放，保留来源、许可声明，并由脚本确定性地组装。
+- 第三方方案、词表与数据文件与原创源码分开存放，保留来源、许可声明，并由脚本确定性地组装。
 - 词库下载与应用源码分离，固定来源版本，执行 SHA-256 校验并保留上游许可声明。
 
 ## 许可证红线：禁止复制 GPL 源码
@@ -65,11 +63,10 @@ swiftlint lint --config .swiftlint.yml
 
 新行为与回归用例使用 Swift Testing。涉及相应模块时，覆盖部署／补丁优先级、非法 YAML、只读导入（源文件内容与时间戳不变）、下载校验失败、升级／卸载边界、AI 授权与数据隔离。测试使用临时目录和合成文本，不接触个人 RIME 文件或真实云端凭据。重试和批处理必须有次数上限。
 
-修改输入路径时，构建 Release CLI、暂存对应插件，并使用临时用户目录运行基准：
+修改输入路径时，构建 Release CLI，并使用临时用户目录运行基准：
 
 ```bash
 swift build --package-path Packages/HufuKit -c release --product hufu
-bash scripts/stage-plugins.sh
 HUFU_BENCH_DIR="$(mktemp -d -t hufu-bench)"
 "$(swift build --package-path Packages/HufuKit -c release --show-bin-path)/hufu" bench \
   --user-dir "$HUFU_BENCH_DIR" --shared-dir build/SharedSupport \
@@ -86,7 +83,7 @@ bash scripts/ui-shots.sh
 
 亮色与暗色截图保存到 `.ui-acceptance/<日期>/`。还需检查正常与窄窗口宽度、键盘操作、截断和候选窗定位。使用安装脚本的 Release 产物时，运行 `APP="$PWD/build/DerivedData/Build/Products/Release/Hufu Settings.app" bash scripts/ui-shots.sh`。
 
-[CI](.github/workflows/ci.yml) 下载依赖、暂存插件、运行包测试与 Release 基准、校验词库，并构建、归档未签名 App。SwiftLint 与截图属于本地检查。[docs/privacy.md](docs/privacy.md) 中的隐私验收要求以下命令无匹配结果（这是独立的本地检查，不是当前工作流中的步骤）：
+[CI](.github/workflows/ci.yml) 下载依赖、运行包测试与 Release 基准、校验词库，并构建、归档未签名 App。SwiftLint 与截图属于本地检查。[docs/privacy.md](docs/privacy.md) 中的隐私验收要求以下命令无匹配结果（这是独立的本地检查，不是当前工作流中的步骤）：
 
 ```bash
 ! grep -rlE 'composing|preedit|userdb' Packages/HufuKit/Sources/HufuAI

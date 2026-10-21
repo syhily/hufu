@@ -96,7 +96,7 @@ targets:
         outputFiles: ["$(DERIVED_FILE_DIR)/HufuInfo.plist"]
         basedOnDependencyAnalysis: false
     postBuildScripts:
-      - name: Embed librime plugins and SharedSupport
+      - name: Embed librime and SharedSupport
         script: bash "$SRCROOT/scripts/embed-runtime.sh"
         basedOnDependencyAnalysis: false
   Hufu Settings:

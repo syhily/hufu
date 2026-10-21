@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 # Downloads the pinned librime prebuilt release, verifies sha256 and
-# assembles Vendor/CRime.xcframework + Vendor/librime/{lib,plugins,share}.
+# assembles Vendor/CRime.xcframework + Vendor/librime/{lib,bin,share}.
+# Hufu bundles no librime native plugins: only librime.1.dylib, OpenCC data,
+# the CLI binaries and headers are copied.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
@@ -29,6 +31,7 @@ echo "==> verifying sha256"
 (cd "$CACHE" && grep -E '^[0-9a-f]{64}  ' "$LOCK" | shasum -a 256 -c -)
 
 if [[ -f "$OUT/.stamp" && "$(cat "$OUT/.stamp")" == "$LIBRIME_COMMIT" && -d "$XCF" ]]; then
+  rm -rf "$OUT/lib/rime-plugins"
   echo "==> librime $LIBRIME_VERSION ($LIBRIME_COMMIT) already assembled"
   exit 0
 fi
@@ -41,10 +44,6 @@ tar -xjf "$CACHE/$ENGINE" -C "$STAGE"
 tar -xjf "$CACHE/$DEPS" -C "$STAGE"
 
 cp -L "$STAGE/dist/lib/librime.1.dylib" "$OUT/lib/"
-# Hufu keeps only librime-lua (the Tiger-Code schema's lua filters need it); octagram
-# (GPL-3.0) and predict are dropped, keeping the bundle BSD/MIT/Apache only.
-mkdir -p "$OUT/lib/rime-plugins"
-cp "$STAGE/dist/lib/rime-plugins/librime-lua.dylib" "$OUT/lib/rime-plugins/"
 cp -RL "$STAGE/share/opencc" "$OUT/share/opencc"
 cp -R "$STAGE/dist/bin" "$OUT/bin"
 cp "$STAGE/version-info.txt" "$OUT/version-info.txt"

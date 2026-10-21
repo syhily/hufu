@@ -28,22 +28,19 @@ jobs:
       - name: Set up build (Xcode, XcodeGen, librime, dictionaries)
         uses: ./.github/actions/setup-build
 
-      - name: Build package and stage plugins
+      - name: Build package
         run: |
           swift build --package-path Packages/HufuKit
-          bash scripts/stage-plugins.sh
 
       - name: Test package
         run: swift test --package-path Packages/HufuKit --no-parallel  # RimeEngine.shared is process-wide
 
-      - name: Build release CLI (universal) and stage plugins
+      - name: Build release CLI (universal)
         run: |
           # Per-arch builds + lipo: SwiftPM's multi-arch mode misresolves the CRime
           # xcframework's universal slice for the non-native arch.
           swift build --package-path Packages/HufuKit -c release --product hufu --arch x86_64
           swift build --package-path Packages/HufuKit -c release --product hufu --arch arm64
-          # Release products have their own librime copy and need plugins beside it.
-          bash scripts/stage-plugins.sh
           CLI_X64="$(swift build --package-path Packages/HufuKit -c release --arch x86_64 --show-bin-path)"
           CLI_ARM="$(swift build --package-path Packages/HufuKit -c release --arch arm64 --show-bin-path)"
           lipo -create "$CLI_X64/hufu" "$CLI_ARM/hufu" -output "$RUNNER_TEMP/hufu-universal"

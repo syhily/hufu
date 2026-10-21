@@ -12,6 +12,16 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ## [Unreleased]
 
+### Added
+
+- Time, date, weekday and lunar calendar lookup: `/time`, `/date`, `/week` and `/cdate`, plus Tiger-Code homophone triggers.
+- An `=expression` calculator that returns the result inline.
+- `/number` uppercase amounts, now implemented natively in the front end.
+
+### Removed
+
+- The librime-lua native plugin, along with the exe-URL launcher, the Unicode hint filter and the common/full character-set toggle that depended on it.
+
 ## [0.1.0] - 2026-10-21
 
 > First public release · Derived from AIME 0.1.10 · See the release notes for signing and notarization status

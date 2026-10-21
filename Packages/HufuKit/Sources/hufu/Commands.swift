@@ -103,7 +103,7 @@ struct Bench: AsyncParsableCommand {
 }
 
 struct Doctor: AsyncParsableCommand {
-    static let configuration = CommandConfiguration(abstract: "Check installation, directories and plugins.")
+    static let configuration = CommandConfiguration(abstract: "Check installation and directories.")
 
     @OptionGroup var workspace: WorkspaceOptions
 
@@ -121,7 +121,7 @@ struct Doctor: AsyncParsableCommand {
         print("input source: \(InputSourceRegistrar.status())")
 
         let plugins = PluginLocator.plugins()
-        print("plugins: \(plugins.isEmpty ? "none found" : plugins.joined(separator: " "))")
+        print("plugins: \(plugins.isEmpty ? "无" : plugins.joined(separator: " "))")
 
         let store = SettingsStore(paths: paths)
         let schemas = store.enabledSchemas()

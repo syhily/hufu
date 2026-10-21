@@ -4,7 +4,7 @@
 >
 > 本文件保留 RIME 通用配置知识；其中拼音示例仅作引擎参考，Hufu 当前只内置虎码（tigress）。
 > 在线词库订阅、方案包、整句语言模型、模糊音设置与更新通道已随功能裁剪移除。
-> 事实来源：本机 `~/Library/Rime/` 真实用户配置、Squirrel 1.1.2 自带 `SharedSupport/` 配置、Rime 官方 Wiki（Configuration / CustomizationGuide / RimeWithSchemata / SpellingAlgebra）、LEOYoon-Tsaw《Rime_description》、librime-lua Wiki。
+> 事实来源：本机 `~/Library/Rime/` 真实用户配置、Squirrel 1.1.2 自带 `SharedSupport/` 配置、Rime 官方 Wiki（Configuration / CustomizationGuide / RimeWithSchemata / SpellingAlgebra）、LEOYoon-Tsaw《Rime_description》。
 > 每节末尾用 `catalog: <id>` 标注本文件与 `config/catalog.json` 的交叉引用；「Hufu 可视化」标注该项是否已被可视化目录收录。
 >
 > **现状（2026-10）**：设置 App 已移除原始 YAML 补丁编辑界面，也不再支持方案定制（增删 / 自制方案、方案补丁编辑）。下文标为「高级 YAML」的项表示**界面不提供**，仅供了解 RIME 配置；需要调整时直接编辑用户目录文件（自行承担风险），或以代码现状为准。
@@ -194,7 +194,9 @@ engine:
     - uniquifier
 ```
 
-语法要点：`@名字` 挂载具名组件（配置写在顶层同名节点，如 `table_translator@custom_phrase` 读 `custom_phrase:` 节点）；lua 组件用 `lua_xxx@*脚本名`，`*` 表示全局命名空间（所有方案共享，虎码脚本），`@脚本名@名字空间` 可带独立配置。顺序敏感：processors 中越靠后优先级越低；filters 中越靠前越先看到候选。
+语法要点：`@名字` 挂载具名组件（配置写在顶层同名节点，如 `table_translator@custom_phrase` 读 `custom_phrase:` 节点）；lua 组件用 `lua_xxx@*脚本名`，`*` 表示全局命名空间（所有方案共享），`@脚本名@名字空间` 可带独立配置。顺序敏感：processors 中越靠后优先级越低；filters 中越靠前越先看到候选。
+
+注意：Hufu 不捆绑 librime-lua，上面流水线中的 `lua_*` 组件只是 RIME 生态示例，内置虎码方案不使用。
 
 Hufu 可视化：高级 YAML（流水线结构不开放编辑；翻译器参数见下两节）。
 catalog: —（见 translators 节的 translator.enable_completion）
@@ -242,7 +244,7 @@ catalog: recognizer.punct_prefix
 - **punct_translator**：标点/符号候选，读 `punctuator` 配置与 symbols 表。
 - **echo_translator**：把输入原样回显为候选（常配 recognizer 的 email/url tag，让网址可直接上屏）。
 - **history_translator**：最近上屏内容重复输入。
-- **lua_translator@\*…**：Lua 脚本翻译器；虎码方案挂载 number_translator、calculator_translator、shijian2_translator 等。
+- **lua_translator@\*…**：Lua 脚本翻译器（需 librime-lua）。Hufu 不捆绑该插件；时间、日期、星期、农历与计算器由前端原生实现，不再挂载 Lua 翻译器。
 
 Hufu 可视化：编码提示已收录；其余翻译器参数走高级 YAML。
 catalog: translator.enable_completion
@@ -281,9 +283,9 @@ catalog: translator.enable_completion
 - **uniquifier**：去除完全相同的候选（一般放在 filters 最后）。
 - **charset_filter**（librime 内置，需配合 extended_charset 开关）：过滤字符集外汉字。
 - **single_char_filter**：只留单字候选。
-- **lua_filter@\*…**：RIME 生态中常见的 Lua 滤镜（corrector、autocap_filter、v_filter、pin_cand_filter、long_word_filter、reduce_english_filter、search@radical_pinyin 等）；Hufu 只随虎码方案挂载其自带的 Lua 滤镜，不内置这些额外滤镜。
+- **lua_filter@\*…**：RIME 生态中常见的 Lua 滤镜（corrector、autocap_filter、v_filter、pin_cand_filter、long_word_filter、reduce_english_filter、search@radical_pinyin 等），需要 librime-lua；Hufu 不捆绑该插件，也不会挂载这些滤镜。
 
-Hufu 可视化：emoji 与简繁走开关；上述常见 Lua 滤镜不属于内置虎码方案。
+Hufu 可视化：emoji 与简繁走开关；上述常见 Lua 滤镜不可用。
 catalog: switches.emoji_cn, switches.simplification
 
 ## speller 与拼写运算 algebra
@@ -461,7 +463,7 @@ tigress.schema.yaml（方案级，先 `import_preset: default` 再补充）：
 recognizer:
   import_preset: default
   patterns:
-    punct: "^/([0-9]0?|[A-Za-z]+)$"         # 符号前缀
+    punct: "^/([0-9]+(\\.[0-9]*)?|[A-Za-z]+)$"   # 符号前缀（数字串也要整串接住，前端才能给大写数字）
     reverse_lookup: "^`[a-z]*'?$"           # 拼音反查
     easy_english: "^'[A-Z|a-z]*`?$"         # 英文
     expression: "^=.*$"                     # 表达式
@@ -625,21 +627,19 @@ app_options:
 Hufu 可视化：已收录（设置 › 应用，按应用默认中英文）。
 catalog: advanced.app_options
 
-## Lua 扩展机制与虎码常用脚本
+## Lua 扩展与虎码常用脚本
 
-librime-lua 允许在 engine 中以 `lua_processor@*name` / `lua_translator@*name` / `lua_filter@*name` / `lua_segmentor@*name` 挂载 `lua/name.lua`；`*` 前缀表示全局命名空间，方案间共享。脚本内可用完整 RIME API（Candidate、Preedit、CommitHistory 等）。
+Hufu 不捆绑 librime-lua，因此 `lua_processor@*` / `lua_translator@*` / `lua_filter@*` / `lua_segmentor@*` 都不会被加载；`dicts/huma` 也已移除 `lua/` 与 `rime.lua`。原先由虎码 Lua 脚本提供的便利功能改由前端原生实现：
 
-虎码 `dicts/huma/lua/`（submodule [hufu-scheme](https://github.com/syhily/hufu-scheme)）脚本一览（挂载情况以 `tigress.schema.yaml` 为准）：
-
-| 脚本 | 挂载 | 功能 |
+| 原脚本 | 功能 | 现在的实现 |
 |---|---|---|
-| calculator_translator.lua | lua_translator | 简易计算器 |
-| number.lua | lua_translator | 数字/金额大写 |
-| shijian2.lua | lua_translator | 日期时间与星期 |
-| exe.lua | lua_processor | exe 启动器 |
-| core2022_filter.lua | lua_filter | 自定义字集过滤 |
-| charset_comment_filter.lua | lua_filter | Unicode 分区提示 |
-| unicode_display.lua | lua_filter | Unicode 编码显示 |
+| calculator_translator.lua | 简易计算器 | `=表达式` 计算器 |
+| number.lua | 数字/金额大写 | `/数字` 大写金额（前端原生） |
+| shijian2.lua | 日期时间与星期 | `/time`、`/date`、`/week`、`/cdate` 与虎码谐音触发词 |
+| exe.lua | exe 网址启动 | 已移除 |
+| core2022_filter.lua | 自定义字集过滤 | 已移除，常用字 / 全字集开关不再提供 |
+| charset_comment_filter.lua | Unicode 分区提示 | 已移除 |
+| unicode_display.lua | Unicode 编码显示 | 已移除 |
 
 Hufu 可视化：高级 YAML（开关由 switches 组暴露 emoji_cn/simplification 等即可）。
 catalog: switches.emoji_cn, switches.simplification

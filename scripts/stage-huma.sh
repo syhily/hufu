@@ -4,6 +4,7 @@
 #   * OpenCC data from the pinned librime release
 #   * Hufu's own files from SharedSupport/ (default.yaml, frontend config, hufu/…)
 # Fully reproducible: every input is a pinned git submodule or pinned via fetch-librime.sh.
+# Hufu bundles no librime native plugins; the scheme no longer ships Lua scripts.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
@@ -25,7 +26,7 @@ mkdir -p "$OUT/opencc"
 # OpenCC stock tables first; the Tiger-Code package then overlays its own
 # (hu_cf/st_tu/pinyin/emoji) on top.
 cp -n "$ROOT/Vendor/librime/share/opencc/"* "$OUT/opencc/" 2>/dev/null || true
-# Tiger-Code package: schemas, dicts, lua/, opencc/, symbols.yaml, rime.lua,
+# Tiger-Code package: schemas, dicts, opencc/, symbols.yaml and
 # huma_custom.dict.yaml. Everything Hufu does not ship is excluded here, above all
 # *.custom.yaml: librime treats those as patches and they would rewrite schema_list.
 rsync -a \
@@ -35,7 +36,6 @@ rsync -a \
   --exclude 'tigress.extended.dict.yaml' \
   --exclude '*.custom.yaml' \
   --exclude 'README.md' \
-  --exclude 'lua/dz_ci_filter.lua' \
   --exclude '.git*' \
   "$SRC/" "$OUT/"
 
@@ -65,5 +65,4 @@ mv "$PREBUILD_USER/build" "$OUT/build"
 rm -rf "$PREBUILD_USER"
 
 /usr/bin/python3 "$ROOT/scripts/dictionary-metadata.py" --shared-dir "$OUT"
-bash "$ROOT/scripts/stage-plugins.sh" >/dev/null
 echo "==> done: $(du -sh "$OUT" | cut -f1) in $OUT"

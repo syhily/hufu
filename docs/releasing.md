@@ -37,8 +37,8 @@ bash scripts/release.sh v0.1.0   # → dist/release/Hufu-0.1.0.{pkg,zip}、SHA25
 | `SHA256SUMS.txt` | 上面两个文件的 SHA-256 |
 | `RELEASE_NOTES.md` | `CHANGELOG.md` 的对应版本段 + 签名状态 + 校验值；写入 Release 正文，不作为附件 |
 
-许可材料由构建脚本嵌入 `Hufu.app/Contents/Resources/LicenseMaterials/`（见 [license-packaging-verification.md](license-packaging-verification.md)）。
-当前安装包只带 `librime-lua` 一个原生插件，不含 GPL 组件；发布说明与安装器许可页应只描述 MIT / BSD / Apache / OFL 与虎码官方免费数据。
+许可材料由构建脚本嵌入 `Hufu.app/Contents/Resources/LicenseMaterials/`（见 [发布清单](release-checklist.md)）。
+安装包不包含任何原生 librime 插件，也不含 GPL 组件；发布说明与安装器许可页应只描述 MIT / BSD / Apache / OFL 与虎码官方免费数据。
 
 ## 3. 签名用的 secrets
 

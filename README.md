@@ -35,7 +35,7 @@ Hufu 是虎码的 macOS 输入法前端。它把 [librime](https://github.com/ri
 
 - **只做虎码**：方案列表只有虎码（schema id `tigress`）。官方秃版 2026.08.15 通过 `dicts/huma` submodule 引入（[hufu-scheme](https://github.com/syhily/hufu-scheme)），词表在方案仓库裁剪为单字与四字及以下词组。
 - **内置码表**：单字 117,662 条、词组 125,655 条、简码词 3,134 条，共 246,451 条原始记录（按来源文件递归统计，未去重）。
-- **保留官方方案能力**：`` ` `` 拼音反查（PY_c）、`'` 临时英文（easy_english）、拆分提示（chaifen）、拼音注解、emoji 注解、简繁切换（默认 `st_tu.json`）、全字集 / 常用字开关（默认仅常用字）。
+- **保留官方方案能力**：`` ` `` 拼音反查（PY_c）、`'` 临时英文（easy_english）、拆分提示（chaifen）、拼音注解、emoji 注解、简繁切换（默认 `st_tu.json`）。
 - **原生候选窗**：AppKit + Core Text 自绘，候选可横排一行或竖排列表，支持亮暗配色、字体字号与圆角间距调整；主题可用 `hufu-ime://` 链接导入。
 - **可视化设置**：概览、AI 助手、输入统计、输入习惯、中英切换、快捷键、外观、应用、词库、自定义短语、常用语、同步与备份、高级、关于。
 - **AI 助手（可选）**：Apple 端侧模型（Foundation Models，macOS 26）或 OpenAI 兼容接口；⌃⌥P 触发翻译、润色与自定义动作；支持自然语言改配置、从文章中提取词汇（编码需手工补虎码）。
@@ -43,7 +43,7 @@ Hufu 是虎码的 macOS 输入法前端。它把 [librime](https://github.com/ri
 - **常用语与统计**：分类保存手机号、地址等常用内容；输入统计只存本机，可关闭、可清空。
 - **同步与备份**：通过 RIME 同步目录在多台 Mac 间合并词频；Hufu 不运营同步服务器。也可导出 / 恢复本地备份文件。
 - **从其他输入法导入**：可只读导入鼠须管、小狼毫、fcitx 的 RIME 词库、自定义短语、配色与词频快照；方案与方案补丁不导入，拼音码表需要自行改成虎码编码。
-- **许可干净**：安装包只包含 librime-lua 一个原生插件（BSD-3-Clause），不含 GPL 组件。
+- **许可干净**：安装包不包含任何原生插件，也不含 GPL 组件。
 
 ## 安装
 
@@ -174,7 +174,7 @@ swift build --package-path Packages/HufuKit -c release --product hufu
 
 ## 致谢
 
-[RIME / librime](https://github.com/rime/librime) · [鼠须管](https://github.com/rime/squirrel) · [librime-lua](https://github.com/hchunhui/librime-lua) · [OpenCC](https://github.com/BYVoid/OpenCC) · [Yams](https://github.com/jpsim/Yams) · [swift-argument-parser](https://github.com/apple/swift-argument-parser) · [虎码官网](https://www.tiger-code.com)
+[RIME / librime](https://github.com/rime/librime) · [鼠须管](https://github.com/rime/squirrel) · [OpenCC](https://github.com/BYVoid/OpenCC) · [Yams](https://github.com/jpsim/Yams) · [swift-argument-parser](https://github.com/apple/swift-argument-parser) · [虎码官网](https://www.tiger-code.com)
 
 ## 许可与归属
 
@@ -182,13 +182,12 @@ Hufu 原创代码采用 [MIT](LICENSE) 许可，版权归 syhily 所有。项目
 
 安装包还包含：
 
-- **librime 1.17.0**：BSD-3-Clause。
-- **librime-lua**：BSD-3-Clause；安装包不含其他 librime 原生插件。
+- **librime 1.17.0**：BSD-3-Clause；安装包不包含任何 librime 原生插件。
 - **OpenCC 数据**：Apache-2.0。
 - **虎码官方词库与方案**（虎码秃版 2026.08.15）：由虎码官方在 [tiger-code.com](https://www.tiger-code.com) 免费发布，经 [hufu-scheme](https://github.com/syhily/hufu-scheme) submodule（`dicts/huma`）引入。
 - **Noto Sans SC**：SIL Open Font License 1.1，用于图标与品牌图形的字形轮廓。
 
-发行包只包含 MIT / BSD / Apache / OFL 许可的组件与官方免费发布的数据，不含 GPL 组件。第三方组件的完整清单见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)，原生插件核对见[插件许可审计](docs/native-plugin-license-audit.md)。
+发行包只包含 MIT / BSD / Apache / OFL 许可的组件与官方免费发布的数据，不含 GPL 组件，且不包含任何原生插件。第三方组件的完整清单见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)，发布核对项见[发布清单](docs/release-checklist.md)。
 
 <p align="center"><sub>由 <a href="https://github.com/syhily">syhily</a> 发布与维护 · Hufu 与虎符输入法为 syhily 的产品名称</sub></p>
 

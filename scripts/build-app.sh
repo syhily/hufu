@@ -3,7 +3,7 @@
 #   Contents/MacOS/Hufu                      input method
 #   Contents/Helpers/hufu                    CLI (+ its resource bundle)
 #   Contents/Applications/Hufu Settings.app  settings
-#   Contents/Frameworks/librime + rime-plugins, Contents/SharedSupport
+#   Contents/Frameworks/librime.1.dylib, Contents/SharedSupport
 # Used by install-dev.sh and package.sh. Signs ad-hoc unless HUFU_SIGN_IDENTITY is set.
 set -euo pipefail
 
@@ -72,7 +72,7 @@ sign() {
   [[ "${HUFU_REQUIRE_TIMESTAMP:-0}" == 1 ]] && { echo "timestamp service unavailable" >&2; return 1; }
   codesign --force --options runtime --timestamp=none --sign "$IDENTITY" "$@"
 }
-for lib in "$APP"/Contents/Frameworks/librime.1.dylib "$APP"/Contents/Frameworks/rime-plugins/*.dylib; do sign "$lib"; done
+sign "$APP/Contents/Frameworks/librime.1.dylib"
 sign "$APP/Contents/Helpers/HufuKit_HufuCore.bundle"
 sign --entitlements Apps/Hufu/Hufu.entitlements "$APP/Contents/Helpers/hufu"
 sign --entitlements Apps/HufuSettings/HufuSettings.entitlements "$APP/Contents/Applications/Hufu Settings.app"

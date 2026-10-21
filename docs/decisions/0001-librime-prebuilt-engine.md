@@ -10,9 +10,9 @@ Hufu 的目标用户已经拥有 RIME 格式的方案、词库、lua 扩展和�
 
 - 不自研引擎，使用 librime。钉定官方 **1.17.0（commit 33e7814）macOS universal 预编译包**，
   `Vendor/librime.lock` 记录 sha256，`scripts/fetch-librime.sh` 下载校验后组装为
-  SwiftPM `binaryTarget`（`CRime.xcframework`）与 `rime-plugins/`（只含 lua）。
+  SwiftPM `binaryTarget`（`CRime.xcframework`）；Hufu 不组装或分发任何 librime 插件目录。
 - Swift 侧通过 `rime_get_api_stdbool()` 调用，封装在 RimeKit，所有调用限定在主 actor。
-- 插件由 librime 从 `librime.1.dylib` 同级的 `rime-plugins/` 目录加载，与鼠须管布局一致。
+- librime 历史上会从 `librime.1.dylib` 同级的 `rime-plugins/` 目录加载插件；Hufu 现已不捆绑任何原生插件。
 
 ## 备选
 
@@ -28,7 +28,7 @@ Hufu 的目标用户已经拥有 RIME 格式的方案、词库、lua 扩展和�
 - 预编译包的 dylib 需要用 App 的身份重签；启用 hardened runtime 时需
   `com.apple.security.cs.disable-library-validation`（dlopen 插件）。
 
-## 现状注记（2026-10-21）
+## 现状注记（2026-10-22）
 
-`scripts/fetch-librime.sh` 只复制 `librime-lua.dylib`；`librime-octagram`（GPL-3.0）与
-`librime-predict` 已排除，发行包不再包含 GPL 组件。决策的其余部分不变。
+`scripts/fetch-librime.sh` 只复制 `librime.1.dylib`、OpenCC 数据、CLI 与头文件，不复制任何
+`rime-plugins/` 内容；发行包不包含任何原生插件，也不含 GPL 组件。决策的其余部分不变。

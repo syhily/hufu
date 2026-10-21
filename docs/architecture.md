@@ -6,12 +6,13 @@ Hufu 是 librime 的一个新前端：输入法本体用 InputMethodKit + AppKit
 两者之间只通过**文件**和**分布式通知**交互。只内置虎码方案（`tigress`）；方案、词库与补丁格式仍遵循 RIME。
 虎码官方数据通过 `dicts/huma` git submodule（[hufu-scheme](https://github.com/syhily/hufu-scheme)）引入，
 方案定制（词表裁剪、schema 调整）全部在方案仓库完成；构建时 `scripts/stage-huma.sh` 组装并预编译 librime 二进制产物。
+安装包不捆绑任何 librime 插件：只随包分发 `librime.1.dylib`、OpenCC 数据与虎码方案/词库。
 
 ```mermaid
 flowchart LR
   subgraph IME["Hufu.app（输入法进程，常驻）"]
     C[HufuInputController<br/>IMKit] --> E[InputEngine]
-    E --> R[RimeKit<br/>librime 1.17 + lua]
+    E --> R[RimeKit<br/>librime 1.17]
     E --> P[CandidatePanel<br/>AppKit + Core Text]
   end
   subgraph Settings["Hufu Settings.app（按需启动）"]
@@ -49,7 +50,7 @@ flowchart LR
   MacOS/Hufu                      输入法进程
   Helpers/hufu                    CLI（不能放 MacOS/：文件系统大小写不敏感，会覆盖 Hufu）
   Applications/Hufu Settings.app  设置
-  Frameworks/librime.1.dylib + rime-plugins/
+  Frameworks/librime.1.dylib
   SharedSupport/                  只读数据：虎码官方词库与方案（来自 dicts/huma submodule，暂存时过滤并打补丁）、OpenCC、hufu.yaml、hufu/defaults
 
 ~/Library/Hufu/Rime/              用户目录（librime user_data_dir）
@@ -85,7 +86,7 @@ librime 的「工作区更新」只编译 `default.yaml` 和各方案；前端�
 
 ### 导入其他 RIME 配置
 
-`hufu import-squirrel --from <目录>`（或设置 App 概览页一键导入）只读源目录：复制词库、lua、
+`hufu import-squirrel --from <目录>`（或设置 App 概览页一键导入）只读源目录：复制词库、
 OpenCC、自定义短语、配色与词频快照（APFS 克隆，不额外占空间）；`squirrel.custom.yaml` 作为外观补丁
 映射为前端配置，其余 `*.custom.yaml`（`default` 与方案补丁）属于方案定制，跳过不导入；跳过 `build/`、
 `*.userdb`（源输入法正在使用的 LevelDB）、`installation.yaml`、`user.yaml`。导入器不限于鼠须管；

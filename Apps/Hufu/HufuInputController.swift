@@ -37,6 +37,12 @@ final class HufuInputController: IMKInputController {
     private var draftTimer: Task<Void, Never>?
     /// Page depth and symbol category last drawn, to pick the menu's transition direction.
     var menuShown: (depth: Int, category: Int) = (0, 0)
+    /// Candidates the frontend shows in place of librime's (`/time`, `/1234.56`, `=1+2`),
+    /// the input they were built from, and the page being shown.
+    private var specialCandidates: [SpecialInput.Candidate]?
+    private var specialInput = ""
+    private var specialPage = 0
+    private var specialPageSize = 5
 
     private var engine: InputEngine { InputEngine.shared }
     private var textClient: (any IMKTextInput)? { client() as? any IMKTextInput }
@@ -270,6 +276,9 @@ final class HufuInputController: IMKInputController {
                     break
                 }
             }
+            // Frontend candidates (`/time`, `/1234.56`, `=1+2`): these keys act on our
+            // list — librime has no candidate to select for them.
+            if handleSpecialKey(event) { return true }
             guard let (keysym, mask) = RimeKey.translate(
                 keyCode: event.keyCode,
                 charactersIgnoringModifiers: event.charactersIgnoringModifiers,
@@ -510,6 +519,7 @@ final class HufuInputController: IMKInputController {
 
         let context = session.context()
         isComposing = context.isComposing
+        updateSpecialCandidates(for: context.input, pageSize: context.pageSize)
         let theme = engine.panel.theme
         let inline = appOptions.inline ?? theme.inlinePreedit
 
@@ -568,15 +578,34 @@ final class HufuInputController: IMKInputController {
         let composition = context.composition
         let start = composition.utf16Offset(ofUTF8: composition.selectionStart)
         let end = composition.utf16Offset(ofUTF8: composition.selectionEnd)
+        let candidates: [PanelState.Candidate]
+        let highlightedIndex: Int
+        let pageNumber: Int
+        let isLastPage: Bool
+        if let injected = specialVisible {
+            // These inputs reach librime as punctuation or not at all, so its menu is
+            // replaced wholesale; labels stay 1..n for the page.
+            candidates = injected.enumerated().map { offset, candidate in
+                PanelState.Candidate(label: "\(offset + 1)", text: candidate.text, comment: candidate.comment)
+            }
+            highlightedIndex = 0
+            pageNumber = specialPage
+            isLastPage = specialPage >= specialPageCount - 1
+        } else {
+            candidates = context.candidates.enumerated().map { index, candidate in
+                PanelState.Candidate(label: context.labels[safe: index] ?? "\(index + 1)", text: candidate.text, comment: candidate.comment)
+            }
+            highlightedIndex = context.highlightedIndex
+            pageNumber = context.pageNumber
+            isLastPage = context.isLastPage
+        }
         let state = PanelState(
             preedit: composition.preedit,
             preeditSelection: NSRange(location: start, length: max(0, end - start)),
-            candidates: context.candidates.enumerated().map { index, candidate in
-                PanelState.Candidate(label: context.labels[safe: index] ?? "\(index + 1)", text: candidate.text, comment: candidate.comment)
-            },
-            highlightedIndex: context.highlightedIndex,
-            pageNumber: context.pageNumber,
-            isLastPage: context.isLastPage,
+            candidates: candidates,
+            highlightedIndex: highlightedIndex,
+            pageNumber: pageNumber,
+            isLastPage: isLastPage,
             showsMenuButton: engine.features.panelMenuButton
         )
         engine.panel.view.onMenu = { [weak self] in self?.openMenu(client: nil) }
@@ -587,15 +616,89 @@ final class HufuInputController: IMKInputController {
     }
 
     private func select(_ index: Int) {
+        if let visible = specialVisible {
+            // Never fall through to librime here: its menu only holds punctuation for
+            // these inputs, and selecting that would commit the raw `/…` instead.
+            if index >= 0, index < visible.count {
+                commitSpecialInput(visible[visible.startIndex + index].text)
+            }
+            return
+        }
         guard let session = liveSession else { return }
         session.selectCandidate(onCurrentPage: index)
         sync(client: textClient)
     }
 
     private func page(backward: Bool) {
+        if specialVisible != nil {
+            let pages = specialPageCount
+            guard pages > 1 else { return }
+            specialPage = min(max(0, specialPage + (backward ? -1 : 1)), pages - 1)
+            sync(client: textClient)
+            return
+        }
         guard let session = liveSession else { return }
         session.changePage(backward: backward)
         sync(client: textClient)
+    }
+
+    // MARK: - Frontend candidates (计算器 / 大写数字 / 时间日期)
+
+    /// The page of frontend candidates currently shown, if any.
+    private var specialVisible: ArraySlice<SpecialInput.Candidate>? {
+        guard let candidates = specialCandidates, !candidates.isEmpty else { return nil }
+        let start = min(specialPage * specialPageSize, candidates.count)
+        return candidates[start..<min(start + specialPageSize, candidates.count)]
+    }
+
+    private var specialPageCount: Int {
+        guard let candidates = specialCandidates, !candidates.isEmpty else { return 0 }
+        return (candidates.count + specialPageSize - 1) / specialPageSize
+    }
+
+    /// Rebuilds the frontend list for the current composition. The page survives until
+    /// the input changes; only the page keys move it.
+    private func updateSpecialCandidates(for input: String, pageSize: Int) {
+        if input != specialInput {
+            specialInput = input
+            specialPage = 0
+        }
+        specialPageSize = max(1, pageSize)
+        specialCandidates = input.isEmpty ? nil : SpecialInput.candidates(for: input)
+        if specialPage >= specialPageCount { specialPage = 0 }
+    }
+
+    /// Puts one of the frontend's candidates into the app. librime only held the raw
+    /// input, so its composition is dropped and `selectCandidate` is never called.
+    private func commitSpecialInput(_ text: String) {
+        specialCandidates = nil
+        specialInput = ""
+        specialPage = 0
+        insertMenuText(text, client: textClient)
+        lastCommitted = text
+        engine.usage.record(text, app: bundleID)
+        recentText.append(text)
+        sync(client: textClient)
+    }
+
+    /// Keys while the frontend's own candidates are up: digits and the schema's 次选 /
+    /// 三选 (`;` `'`) commit, `-` `=` page, space / Return take the highlighted one.
+    /// The rules live in `SpecialInput.action` so they are unit tested.
+    private func handleSpecialKey(_ event: NSEvent) -> Bool {
+        guard let visible = specialVisible, !visible.isEmpty,
+              event.modifierFlags.intersection([.command, .control, .option]).isEmpty,
+              let typed = event.charactersIgnoringModifiers, typed.count == 1,
+              let character = typed.first,
+              let action = SpecialInput.action(for: character, input: liveSession?.input ?? "",
+                                               pageCount: specialPageCount) else { return false }
+        switch action {
+        case .select(let index):
+            guard index < visible.count else { return true }
+            commitSpecialInput(visible[visible.startIndex + index].text)
+        case .page(let backward):
+            page(backward: backward)
+        }
+        return true
     }
 
     /// Cursor rectangle in screen coordinates.
