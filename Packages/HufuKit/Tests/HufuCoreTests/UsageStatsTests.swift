@@ -218,11 +218,16 @@ struct UsageStatsTests {
         recorder.isEnabled = true
         let words = ["智能体", "提示词", "你好", "世界", "氛围编程"]
         let clock = ContinuousClock()
-        let elapsed = clock.measure {
-            for index in 0..<20_000 { recorder.record(words[index % words.count], app: "com.apple.TextEdit") }
+        // Best-of-3: a loaded CI runner can double a single measurement.
+        var best = Duration.seconds(60)
+        for _ in 0..<3 {
+            let elapsed = clock.measure {
+                for index in 0..<20_000 { recorder.record(words[index % words.count], app: "com.apple.TextEdit") }
+            }
+            best = min(best, elapsed)
         }
-        #expect(elapsed < .milliseconds(200)) // < 10 µs per commit, even in debug builds
-        #expect(recorder.pending["智能体"] == 4000)
+        #expect(best < .milliseconds(200)) // < 10 µs per commit, even in debug builds
+        #expect(recorder.pending["智能体"] == 4000 * 3)
     }
 }
 
