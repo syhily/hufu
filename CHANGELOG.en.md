@@ -33,7 +33,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ### Changed
 
-- The project derives from AIME, was formerly named Huma, and is now Hufu (虎符输入法); the repository moved to github.com/syhily/hufu.
+- The project derives from AIME and is now Hufu (虎符输入法) at github.com/syhily/hufu.
 - The user directory is now `~/Library/Hufu/Rime`, independent of Squirrel's `~/Library/Rime`.
 - Tiger-Code is the default and only bundled schema; macOS 15+ is required; Apple Intelligence on-device AI needs macOS 26.
 - librime-lua is the only native plugin; the installer no longer contains GPL components.

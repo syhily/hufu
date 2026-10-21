@@ -25,7 +25,7 @@
   <img src="https://img.shields.io/badge/librime-1.17-B64032?style=flat-square" alt="librime 1.17">
 </p>
 
-Hufu 是虎码的 macOS 输入法前端。它把 [librime](https://github.com/rime/librime) 装进原生输入法进程，内置虎码官方码表，用一个设置 App 管理输入习惯；不提供方案切换，也不内置其他拼音或形码方案。项目派生自 AIME，曾用名 Huma，现名 Hufu（虎符输入法）。
+Hufu 是虎码的 macOS 输入法前端。它把 [librime](https://github.com/rime/librime) 装进原生输入法进程，内置虎码官方码表，用一个设置 App 管理输入习惯；不提供方案切换，也不内置其他拼音或形码方案。项目派生自 AIME。
 
 **产品定位：Hufu 不提供 Rime 常见的输入方案定制功能**——不支持增删或自制方案，也不提供方案补丁编辑界面；但开放自定义编码词库（`huma_custom`，在设置页维护）。
 

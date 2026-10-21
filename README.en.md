@@ -25,7 +25,7 @@
   <img src="https://img.shields.io/badge/librime-1.17-B64032?style=flat-square" alt="librime 1.17">
 </p>
 
-Hufu is a native macOS frontend for Tiger-Code (虎码). It embeds [librime](https://github.com/rime/librime) in the input-method process, ships the official Tiger-Code tables, and manages typing habits through a settings app. It does not switch between schemas and bundles no other Pinyin or shape-based input method. The project derives from AIME, was formerly named Huma, and is now Hufu (虎符输入法).
+Hufu is a native macOS frontend for Tiger-Code (虎码). It embeds [librime](https://github.com/rime/librime) in the input-method process, ships the official Tiger-Code tables, and manages typing habits through a settings app. It does not switch between schemas and bundles no other Pinyin or shape-based input method. The project derives from AIME.
 
 **Scope: Hufu does not offer Rime's usual schema customization.** You cannot add, remove or author schemas, and there is no schema-patch editor. What is open is the custom coded dictionary (`huma_custom`, maintained in Settings).
 

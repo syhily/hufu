@@ -32,7 +32,7 @@ Hufu 每个版本面向用户的变动都记在这里。English: [CHANGELOG.en.m
 
 ### 变更
 
-- 项目派生自 AIME，曾用名 Huma，现名 Hufu（虎符输入法），仓库迁移到 github.com/syhily/hufu。
+- 项目派生自 AIME，现名 Hufu（虎符输入法），仓库位于 github.com/syhily/hufu。
 - 用户目录改为 `~/Library/Hufu/Rime`，与鼠须管的 `~/Library/Rime` 相互独立。
 - 默认且仅内置虎码一个方案；系统要求 macOS 15+；Apple 端侧模型需 macOS 26。
 - 原生插件只保留 librime-lua；安装包不再包含 GPL 组件。
