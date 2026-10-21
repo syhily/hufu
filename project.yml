@@ -20,7 +20,7 @@ settings:
     CODE_SIGN_STYLE: Automatic
     DEVELOPMENT_TEAM: PX694P4CGY
     CODE_SIGN_IDENTITY: "-"
-    INFOPLIST_KEY_NSHumanReadableCopyright: "© 2026 syhily. 原创源码 MIT。"
+    INFOPLIST_KEY_NSHumanReadableCopyright: "© 2026 syhily · MIT License"
   configs:
     Debug:
       CODE_SIGN_IDENTITY: Apple Development
@@ -51,7 +51,7 @@ targets:
       properties:
         CFBundleDisplayName: Hufu
         CFBundleName: Hufu
-        NSHumanReadableCopyright: "© 2026 syhily. 原创源码 MIT。"
+        NSHumanReadableCopyright: "© 2026 syhily · MIT License"
         LSUIElement: true
         LSBackgroundOnly: false
         NSPrincipalClass: NSApplication
@@ -118,7 +118,7 @@ targets:
       properties:
         CFBundleDisplayName: Hufu Settings
         CFBundleName: Hufu Settings
-        NSHumanReadableCopyright: "© 2026 syhily. 原创源码 MIT。"
+        NSHumanReadableCopyright: "© 2026 syhily · MIT License"
         CFBundleShortVersionString: $(MARKETING_VERSION)
         CFBundleVersion: $(CURRENT_PROJECT_VERSION)
         LSApplicationCategoryType: public.app-category.productivity

@@ -146,7 +146,7 @@ struct AboutView: View {
                 .font(.headline)
                 .foregroundStyle(Theme.text)
                 .accessibilityAddTraits(.isHeader)
-            Text("Hufu 原创源码采用 MIT 协议。安装包包含 GPL-3.0 组件，整体按 GPL-3.0 分发；各依赖与词库遵循各自许可。")
+            Text("Hufu 原创源码采用 MIT 协议。安装包不包含 GPL 组件；虎码词库为官方免费发布，其余依赖各自保留原许可。")
                 .font(.callout)
                 .foregroundStyle(Theme.secondaryText)
                 .fixedSize(horizontal: false, vertical: true)

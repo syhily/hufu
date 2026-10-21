@@ -36,7 +36,7 @@ COPYFILE_DISABLE=1 pkgbuild --root "$STAGE/root" --install-location / \
 cat > "$STAGE/distribution.xml" <<XML
 <?xml version="1.0" encoding="utf-8"?>
 <installer-gui-script minSpecVersion="2">
-  <title>Hufu $VERSION</title>
+  <title>虎符输入法 Hufu $VERSION</title>
   <welcome file="welcome.html" mime-type="text/html"/>
   <license file="LICENSE"/>
   <conclusion file="conclusion.html" mime-type="text/html"/>

@@ -71,7 +71,7 @@
 	<key>LSUIElement</key>
 	<true/>
 	<key>NSHumanReadableCopyright</key>
-	<string>© 2026 syhily. 原创源码 MIT。</string>
+	<string>© 2026 syhily · MIT License</string>
 	<key>NSPrincipalClass</key>
 	<string>NSApplication</string>
 	<key>TICapsLockLanguageSwitchCapable</key>
