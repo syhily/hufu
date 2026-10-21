@@ -25,6 +25,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 - Theme and colour-scheme editing in Appearance, with `hufu-ime://theme` import links.
 - AI Assistant: Apple's on-device Foundation Models (macOS 26) or an OpenAI-compatible endpoint; ⌃⌥P runs translation, polishing and custom actions; natural-language settings changes and vocabulary extraction (codes are entered by hand).
 - Custom phrases: the `huma_custom` table is merged into the main Tiger-Code dictionary and applies on the next deployment.
+- The installer ships librime's prebuilt binaries: first deploy finishes in about a second, and later custom-phrase edits only recompile the Tiger-Code tables (2–3 s).
 - Snippets, optional usage statistics, frequency sync and local backup.
 - Read-only import from Squirrel, Weasel and fcitx RIME directories; imported Pinyin tables must be recoded to Tiger-Code.
 - The `hufu` CLI: deploy / bench / doctor / diagnostics / import-squirrel / get / set / sync / register.

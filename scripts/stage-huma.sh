@@ -64,6 +64,20 @@ fi
 echo "虎码官方秃版 ${HUFU_VERSION}（词组 ≤ $MAX_PHRASE_LEN 字）" > "$OUT/hufu/VERSION"
 # Diagnostic metadata for Settings, which intentionally does not link librime.
 sed -n 's/^LIBRIME_VERSION=//p' "$ROOT/Vendor/librime.lock" > "$OUT/hufu/LIBRIME_VERSION"
+
+# Prebuild librime's binary artifacts into SharedSupport/build (the traits'
+# prebuilt_data_dir): first deploy on a user machine copies these instead of
+# compiling every table. Later redeploys only rebuild what actually changed —
+# e.g. editing huma_custom recompiles just the tigress tables (~2.5 s).
+echo "==> prebuilding rime binaries into SharedSupport/build"
+PREBUILD_USER="$ROOT/build/prebuild-user"
+rm -rf "$PREBUILD_USER" && mkdir -p "$PREBUILD_USER"
+rm -rf "$OUT/build"
+DYLD_LIBRARY_PATH="$ROOT/Vendor/librime/lib" \
+  "$ROOT/Vendor/librime/bin/rime_deployer" --build "$PREBUILD_USER" "$OUT" >/dev/null
+mv "$PREBUILD_USER/build" "$OUT/build"
+rm -rf "$PREBUILD_USER"
+
 /usr/bin/python3 "$ROOT/scripts/dictionary-metadata.py" --shared-dir "$OUT"
 bash "$ROOT/scripts/stage-plugins.sh" >/dev/null
 echo "==> done: $(du -sh "$OUT" | cut -f1) in $OUT"

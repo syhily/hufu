@@ -24,6 +24,7 @@ Hufu 每个版本面向用户的变动都记在这里。English: [CHANGELOG.en.m
 - 外观页提供主题与配色编辑，支持 `hufu-ime://theme` 链接导入。
 - AI 助手：Apple 端侧模型（Foundation Models，macOS 26）或 OpenAI 兼容接口；⌃⌥P 触发翻译、润色与自定义动作；支持自然语言改配置与词汇提取（编码需手工补虎码）。
 - 自定义短语：`huma_custom` 表合并进虎码主词典，重新部署后生效。
+- 安装包内置 librime 预编译产物：首次部署约 1 秒完成；之后修改自定义短语只增量重编虎码表（约 2–3 秒）。
 - 常用语、可选输入统计、词频同步与本地备份。
 - 可只读导入鼠须管、小狼毫、fcitx 的 RIME 配置；导入的拼音码表需自行改为虎码编码。
 - 命令行 `hufu`：deploy / bench / doctor / diagnostics / import-squirrel / get / set / sync / register。
