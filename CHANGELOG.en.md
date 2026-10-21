@@ -19,6 +19,10 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 - `/number` uppercase amounts, now implemented natively in the front end.
 - All three can be turned off in Settings › 输入习惯 › 便利功能.
 
+### Changed
+
+- The simplified↔traditional table (st_tu) now ships with the installer's librime/OpenCC layer; the schema repo no longer bundles stock OpenCC tables. Conversion covers Tiger-Code's full charset, and traditional characters remain directly typable with their own codes when conversion is off.
+
 ### Removed
 
 - The librime-lua native plugin, along with the exe-URL launcher, the Unicode hint filter and the common/full character-set toggle that depended on it.

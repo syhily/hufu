@@ -51,7 +51,8 @@ flowchart LR
   Helpers/hufu                    CLI（不能放 MacOS/：文件系统大小写不敏感，会覆盖 Hufu）
   Applications/Hufu Settings.app  设置
   Frameworks/librime.1.dylib
-  SharedSupport/                  只读数据：虎码官方词库与方案（来自 dicts/huma submodule，暂存时过滤并打补丁）、OpenCC、hufu.yaml、hufu/defaults
+  SharedSupport/                  只读数据：虎码方案与词库（dicts/huma submodule 直接采用，定制在方案仓库完成）、
+                                  OpenCC（librime 库存 + 方案的拆分/拼音/emoji 表 + 产品层 st_tu 简繁表）、hufu.yaml、hufu/defaults、build/（预编译产物）
 
 ~/Library/Hufu/Rime/              用户目录（librime user_data_dir）
   default.custom.yaml …           由 Hufu 合成的补丁（勿手改）

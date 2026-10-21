@@ -278,7 +278,7 @@ catalog: translator.enable_completion
 
 对候选流做转换/排序/过滤，按列表顺序执行：
 
-- **simplifier@xxx**：OpenCC 简繁/emoji 转换。`simplifier@emoji_cn`（option_name: emoji_cn，opencc_config: emoji.json，inherit_comment: false）把候选经 emoji 映射多一份；`simplifier@simplification`（option_name: simplification，opencc_config: s2t.json，可选 s2hk/s2tw/s2twp，tips: none，tags 限定作用段）实现繁体输出。
+- **simplifier@xxx**：OpenCC 简繁/emoji 转换。`simplifier@emoji_cn`（option_name: emoji_cn，opencc_config: emoji.json，inherit_comment: false）把候选经 emoji 映射多一份；`simplifier@simplification`（option_name: simplification，opencc_config: st_tu.json（默认），可选 s2t/s2hk/s2tw/s2twp，tips: none，tags 限定作用段）实现繁体输出。
   catalog: simplification.opencc_config（设置 › 输入习惯 › 繁体标准）。「默认输出」简体/繁体不写配置：Hufu 在每个新会话上设置 `simplification` 开关（`hufu/features.json` 的 `traditional`）。
 - **uniquifier**：去除完全相同的候选（一般放在 filters 最后）。
 - **charset_filter**（librime 内置，需配合 extended_charset 开关）：过滤字符集外汉字。
