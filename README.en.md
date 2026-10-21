@@ -47,7 +47,7 @@ Hufu is a native macOS frontend for Tiger-Code (虎码). It embeds [librime](htt
 
 ## Install
 
-Requires **macOS 15 or later** (Apple Intelligence on-device AI needs macOS 26). The input method and settings app are universal (Apple silicon and Intel); the bundled `hufu` CLI follows the build machine's architecture (Apple silicon for CI artefacts).
+Requires **macOS 15 or later** (Apple Intelligence on-device AI needs macOS 26). The input method, settings app and the bundled `hufu` CLI are all universal builds (Apple silicon and Intel).
 
 1. Download the latest `Hufu-<version>.pkg` from [Releases](https://github.com/syhily/hufu/releases) and verify it against `SHA256SUMS.txt` on the same page:
 

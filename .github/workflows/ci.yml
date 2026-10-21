@@ -36,15 +36,16 @@ jobs:
       - name: Test package
         run: swift test --package-path Packages/HufuKit --no-parallel  # RimeEngine.shared is process-wide
 
-      - name: Build release CLI and stage plugins
+      - name: Build release CLI (universal) and stage plugins
         run: |
-          swift build --package-path Packages/HufuKit -c release --product hufu
+          swift build --package-path Packages/HufuKit -c release --product hufu --arch arm64 --arch x86_64
           # Release products have their own librime copy and need plugins beside it.
           bash scripts/stage-plugins.sh
+          lipo -info "$(swift build --package-path Packages/HufuKit -c release --arch arm64 --arch x86_64 --show-bin-path)/hufu" | grep "x86_64 arm64"
 
       - name: Enforce benchmark latency
         run: |
-          "$(swift build --package-path Packages/HufuKit -c release --show-bin-path)/hufu" bench \
+          "$(swift build --package-path Packages/HufuKit -c release --arch arm64 --arch x86_64 --show-bin-path)/hufu" bench \
             --user-dir "$RUNNER_TEMP/hufu-bench" \
             --shared-dir build/SharedSupport \
             --schema tigress --keys tuja --iterations 2000 --assert-p99-ms 5

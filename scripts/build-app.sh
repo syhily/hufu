@@ -28,9 +28,10 @@ xcodebuild -project Hufu.xcodeproj -scheme Hufu -configuration "$CONFIG" -derive
   CODE_SIGN_STYLE=Manual CODE_SIGN_IDENTITY="$IDENTITY" CODE_SIGN_INJECT_BASE_ENTITLEMENTS=NO build -quiet
 BUILT="$DERIVED/Build/Products/$CONFIG"
 
-echo "==> building CLI"
-swift build --package-path Packages/HufuKit -c release --product hufu >/dev/null
-CLI_DIR="$(swift build --package-path Packages/HufuKit -c release --show-bin-path)"
+echo "==> building CLI (universal: arm64 + x86_64)"
+swift build --package-path Packages/HufuKit -c release --product hufu --arch arm64 --arch x86_64 >/dev/null
+CLI_DIR="$(swift build --package-path Packages/HufuKit -c release --arch arm64 --arch x86_64 --show-bin-path)"
+lipo -info "$CLI_DIR/hufu" | grep -q "x86_64 arm64" || { echo "error: CLI is not a universal binary" >&2; exit 1; }
 
 rm -rf "$OUT" && mkdir -p "$OUT"
 APP="$OUT/Hufu.app"

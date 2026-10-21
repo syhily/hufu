@@ -47,7 +47,7 @@ Hufu 是虎码的 macOS 输入法前端。它把 [librime](https://github.com/ri
 
 ## 安装
 
-系统要求：**macOS 15 或更高版本**（Apple 端侧模型等 AI 功能需 macOS 26）。输入法 App 同时支持 Apple 芯片与 Intel；随包的 `hufu` 命令行工具架构跟随构建机（CI 产物为 Apple 芯片）。
+系统要求：**macOS 15 或更高版本**（Apple 端侧模型等 AI 功能需 macOS 26）。输入法 App 与随包的 `hufu` 命令行工具均为 universal 构建，同时支持 Apple 芯片与 Intel。
 
 1. 在 [Releases](https://github.com/syhily/hufu/releases) 下载最新的 `Hufu-<版本>.pkg`，并与同页的 `SHA256SUMS.txt` 核对：
 
