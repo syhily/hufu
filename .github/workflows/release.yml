@@ -31,7 +31,7 @@ jobs:
       prerelease: ${{ steps.artefacts.outputs.prerelease }}
     env:
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           submodules: true
 
@@ -173,7 +173,7 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload artefacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: Hufu-${{ steps.version.outputs.version }}
           path: |
@@ -204,7 +204,7 @@ jobs:
       contents: write
     steps:
       - name: Download artefacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: Hufu-${{ needs.build.outputs.version }}
           path: dist
