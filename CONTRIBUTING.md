@@ -22,7 +22,7 @@ xcodegen generate
 xcodebuild -project Hufu.xcodeproj -scheme Hufu -configuration Debug -derivedDataPath build/DerivedData build
 ```
 
-The scripts verify pinned SHA-256 digests and assemble librime and `build/SharedSupport`. `stage-huma.sh` copies the Tiger-Code tables from the `dicts/huma` submodule (schema customisation lives upstream in the scheme repo) and prebuilds librime's binaries. Hufu bundles no librime native plugins. The `Hufu` scheme builds both apps; its post-build script embeds librime and SharedSupport.
+The scripts verify pinned SHA-256 digests and assemble librime and `build/SharedSupport`. `stage-huma.sh` copies the Tiger-Code tables from the `dicts/huma` submodule (schema customisation lives upstream in the scheme repo) and prebuilds librime's binaries. Hufu ships no separately loaded librime plugins; the app and CLI link the static engine. The `Hufu` scheme builds both apps; its post-build script embeds SharedSupport and license materials.
 
 To build and install for the current user:
 

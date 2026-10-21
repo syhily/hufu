@@ -44,7 +44,7 @@ Hufu is a native macOS frontend for Tiger-Code (虎码). It embeds [librime](htt
 - **Snippets and statistics** — categorized snippets for phone numbers, addresses and more; optional usage statistics stay on this Mac and can be turned off or cleared.
 - **Sync and backup** — merge learned frequencies across Macs through a RIME sync folder; Hufu runs no sync server. A local backup file can be exported and restored.
 - **Import from other input methods** — read-only import of dictionaries, custom phrases, colour schemes and frequency snapshots from Squirrel, Weasel or fcitx RIME directories. Schemas and schema patches are not imported; Pinyin tables must be recoded to Tiger-Code before they can be used.
-- **Clean licensing** — no native plugins and no GPL components ship in the bundle.
+- **Clean licensing** — no separately loaded native plugins and no GPL components ship in the bundle.
 
 ## Install
 
@@ -69,7 +69,7 @@ You need macOS 15+, Xcode 26+, [XcodeGen](https://github.com/yonaskolb/XcodeGen)
 git clone --recurse-submodules https://github.com/syhily/hufu.git
 cd hufu
 
-bash scripts/fetch-librime.sh    # download and verify librime 1.17.0, assemble CRime.xcframework
+bash scripts/fetch-librime.sh    # download and verify librime 1.17.0, assemble the static CRime.xcframework
 bash scripts/stage-huma.sh       # filter the Tiger-Code table, assemble build/SharedSupport
 bash scripts/build-app.sh        # → build/Release/Hufu.app
 bash scripts/install-dev.sh      # install into ~/Library/Input Methods and register
@@ -183,12 +183,12 @@ Hufu's original code is released under the [MIT License](LICENSE), copyright © 
 
 The bundle also contains:
 
-- **librime 1.17.0** — BSD-3-Clause; no librime native plugin is bundled.
+- **librime 1.17.0** — BSD-3-Clause; statically linked from [ghostflyby/librime-xcframework](https://github.com/ghostflyby/librime-xcframework) `1.17.0-pack.10.0.0` (sha256 pinned). No separately loaded librime native plugin is bundled.
 - **OpenCC data** — Apache-2.0.
 - **Official Tiger-Code dictionary and schemas** (秃版 2026.08.15) — released free of charge by the Tiger-Code project at [tiger-code.com](https://www.tiger-code.com), brought in through the [hufu-scheme](https://github.com/syhily/hufu-scheme) submodule at `dicts/huma`.
 - **Noto Sans SC** — SIL Open Font License 1.1, used for the glyph outlines in the icon and brand artwork.
 
-The distribution contains only MIT/BSD/Apache/OFL components and officially free data; it contains no GPL components and no native plugins. See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) for the full inventory and the [release checklist](docs/release-checklist.md) for distribution checks.
+The distribution contains only MIT/BSD/Apache/OFL components and officially free data; it contains no GPL components and no separately loaded native plugins. See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) for the full inventory and the [release checklist](docs/release-checklist.md) for distribution checks.
 
 <p align="center"><sub>Published and maintained by <a href="https://github.com/syhily">syhily</a> · Hufu and 虎符输入法 are product names of syhily</sub></p>
 

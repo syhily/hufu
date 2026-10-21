@@ -1,6 +1,5 @@
 import Carbon
 import Foundation
-import RimeKit
 
 enum HufuIdentity {
     static let bundleID = "dev.yufan.hufu.inputmethod"
@@ -56,8 +55,4 @@ enum InputSourceRegistrar {
         }
         return ok
     }
-}
-
-enum PluginLocator {
-    @MainActor static func plugins() -> [String] { RimeEngine.shared.availablePlugins }
 }

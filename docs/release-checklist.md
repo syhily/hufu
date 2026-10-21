@@ -9,9 +9,9 @@
 - [ ] 记录 `xcodebuild -version`、`swift --version`、macOS 版本与 CPU 架构。CI 在 `macos-26` 上选择最新稳定 Xcode；发布前核对实际版本。
 - [ ] 发布提交的 CI 全绿：CHANGELOG 格式检查、SwiftPM 构建与测试、Release CLI、p99 门禁、词库元数据检查、Xcode Release 构建与 artifact 上传。
 - [ ] 执行 `python3 -m unittest discover -s scripts/tests -v`，确认 CHANGELOG、词库元数据与许可材料测试全部通过。
-- [ ] 核对 `Vendor/librime.lock`、`dicts/huma` submodule 的来源与固定 commit（应为 [hufu-scheme](https://github.com/syhily/hufu-scheme) 的预期修订）；确认 `scripts/fetch-librime.sh` 只组装 `librime.1.dylib`、OpenCC 数据、CLI 与头文件，不复制任何插件。
-- [ ] **确认无原生插件随包**：`Hufu.app/Contents/Frameworks/` 只应有 `librime.1.dylib`，不存在 `rime-plugins/` 目录。
-- [ ] 解包最终安装包，核对 `Contents/Resources/LicenseMaterials/` 的 `packaging-receipt.json`、Hufu MIT 许可与第三方声明；receipt 应标明 `nativePluginsBundled: false`。
+- [ ] 核对 `Vendor/librime.lock`、`dicts/huma` submodule 的来源与固定 commit（应为 [hufu-scheme](https://github.com/syhily/hufu-scheme) 的预期修订）；确认 `scripts/fetch-librime.sh` 用 ghostflyby 静态包组装 `CRime.xcframework`，官方预编译包只提供 `rime_deployer`、OpenCC 数据与暂存用动态库。
+- [ ] **确认产物自包含**：`Hufu.app/Contents/Frameworks/` 不存在（或为空），不存在 `rime-plugins/`；`otool -L` 检查 `Hufu.app/Contents/MacOS/Hufu` 与 `Contents/Helpers/hufu` 均不引用 `librime.1.dylib`。
+- [ ] 解包最终安装包，核对 `Contents/Resources/LicenseMaterials/` 的 `packaging-receipt.json`、Hufu MIT 许可与第三方声明；receipt 应标明 `nativePluginsBundled: false`，第三方声明应注明 librime 的静态来源与 sha256。
 - [ ] 核对安装器许可页与发布说明中的许可段落：`scripts/pkg/LICENSE-header.txt`、`scripts/package.sh` 的许可拼接、`scripts/release.sh` 生成的 `RELEASE_NOTES.md` 都应只描述 MIT / BSD / Apache / OFL 与虎码官方免费数据，不应再引用已删除的 octagram 许可文件或声称整体按 GPL 分发。
 
 ## 本地安装与输入实测

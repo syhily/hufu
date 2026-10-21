@@ -119,26 +119,6 @@ public final class RimeEngine {
         self.api = api
     }
 
-    /// Location of the loaded librime dylib. librime loads plugins from the
-    /// `rime-plugins` directory next to it.
-    public var libraryURL: URL? {
-        var info = Dl_info()
-        guard let symbol = unsafeBitCast(api.pointee.get_version, to: UnsafeRawPointer?.self),
-              dladdr(symbol, &info) != 0, let name = info.dli_fname
-        else { return nil }
-        return URL(fileURLWithPath: String(cString: name)).resolvingSymlinksInPath()
-    }
-
-    /// Plugin dylibs librime would pick up. Hufu bundles no native plugins, so this
-    /// is normally empty; a missing `rime-plugins` directory is not an error.
-    public var availablePlugins: [String] {
-        guard let dir = libraryURL?.deletingLastPathComponent().appendingPathComponent("rime-plugins") else { return [] }
-        let names = (try? FileManager.default.contentsOfDirectory(atPath: dir.path)) ?? []
-        return names.filter { $0.hasSuffix(".dylib") }.map {
-            $0.replacingOccurrences(of: "librime-", with: "").replacingOccurrences(of: ".dylib", with: "")
-        }.sorted()
-    }
-
     public var version: String {
         api.pointee.get_version().map { String(cString: $0) } ?? "unknown"
     }
@@ -156,7 +136,7 @@ public final class RimeEngine {
         self.traits = traits
     }
 
-    /// Loads modules (including plugins) and opens the deployer against `traits`.
+    /// Loads librime modules and opens the deployer against `traits`.
     /// Call `finalize()` before re-initializing with different directories.
     public func initialize(_ traits: RimeTraits) {
         if !isSetUp { setup(traits) }

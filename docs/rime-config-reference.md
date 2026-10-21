@@ -196,7 +196,7 @@ engine:
 
 语法要点：`@名字` 挂载具名组件（配置写在顶层同名节点，如 `table_translator@custom_phrase` 读 `custom_phrase:` 节点）；lua 组件用 `lua_xxx@*脚本名`，`*` 表示全局命名空间（所有方案共享），`@脚本名@名字空间` 可带独立配置。顺序敏感：processors 中越靠后优先级越低；filters 中越靠前越先看到候选。
 
-注意：Hufu 不捆绑 librime-lua，上面流水线中的 `lua_*` 组件只是 RIME 生态示例，内置虎码方案不使用。
+注意：Hufu 不启用 librime-lua，上面流水线中的 `lua_*` 组件只是 RIME 生态示例，内置虎码方案不使用。
 
 Hufu 可视化：高级 YAML（流水线结构不开放编辑；翻译器参数见下两节）。
 catalog: —（见 translators 节的 translator.enable_completion）
@@ -244,7 +244,7 @@ catalog: recognizer.punct_prefix
 - **punct_translator**：标点/符号候选，读 `punctuator` 配置与 symbols 表。
 - **echo_translator**：把输入原样回显为候选（常配 recognizer 的 email/url tag，让网址可直接上屏）。
 - **history_translator**：最近上屏内容重复输入。
-- **lua_translator@\*…**：Lua 脚本翻译器（需 librime-lua）。Hufu 不捆绑该插件；时间、日期、星期、农历与计算器由前端原生实现，不再挂载 Lua 翻译器。
+- **lua_translator@\*…**：Lua 脚本翻译器（需 librime-lua）。Hufu 不启用该插件；时间、日期、星期、农历与计算器由前端原生实现，不再挂载 Lua 翻译器。
 
 Hufu 可视化：编码提示已收录；其余翻译器参数走高级 YAML。
 catalog: translator.enable_completion
@@ -284,7 +284,7 @@ catalog: translator.enable_completion
 - **uniquifier**：去除完全相同的候选（一般放在 filters 最后）。
 - **charset_filter**（librime 内置，需配合 extended_charset 开关）：过滤字符集外汉字。
 - **single_char_filter**：只留单字候选。
-- **lua_filter@\*…**：RIME 生态中常见的 Lua 滤镜（corrector、autocap_filter、v_filter、pin_cand_filter、long_word_filter、reduce_english_filter、search@radical_pinyin 等），需要 librime-lua；Hufu 不捆绑该插件，也不会挂载这些滤镜。
+- **lua_filter@\*…**：RIME 生态中常见的 Lua 滤镜（corrector、autocap_filter、v_filter、pin_cand_filter、long_word_filter、reduce_english_filter、search@radical_pinyin 等），需要 librime-lua；Hufu 不启用该插件，也不会挂载这些滤镜。
 
 ### Hufu 的简繁四模式
 
@@ -643,7 +643,7 @@ catalog: advanced.app_options
 
 ## Lua 扩展与虎码常用脚本
 
-Hufu 不捆绑 librime-lua，因此 `lua_processor@*` / `lua_translator@*` / `lua_filter@*` / `lua_segmentor@*` 都不会被加载；`dicts/huma` 也已移除 `lua/` 与 `rime.lua`。原先由虎码 Lua 脚本提供的便利功能改由前端原生实现：
+Hufu 不启用 librime-lua，因此 `lua_processor@*` / `lua_translator@*` / `lua_filter@*` / `lua_segmentor@*` 都不会被加载；`dicts/huma` 也已移除 `lua/` 与 `rime.lua`。原先由虎码 Lua 脚本提供的便利功能改由前端原生实现：
 
 | 原脚本 | 功能 | 现在的实现 |
 |---|---|---|

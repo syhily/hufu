@@ -1,12 +1,12 @@
 # Hufu 架构
 
-> 状态：MVP（v0.1）· 最后更新 2026-10-21
+> 状态：MVP（v0.1）· 最后更新 2026-10-22
 
 Hufu 是 librime 的一个新前端：输入法本体用 InputMethodKit + AppKit 实现，配置管理用 SwiftUI 实现，
 两者之间只通过**文件**和**分布式通知**交互。只内置虎码方案（`tigress`）；方案、词库与补丁格式仍遵循 RIME。
 虎码官方数据通过 `dicts/huma` git submodule（[hufu-scheme](https://github.com/syhily/hufu-scheme)）引入，
 方案定制（词表裁剪、schema 调整）全部在方案仓库完成；构建时 `scripts/stage-huma.sh` 组装并预编译 librime 二进制产物。
-安装包不捆绑任何 librime 插件：只随包分发 `librime.1.dylib`、OpenCC 数据与虎码方案/词库。
+安装包不捆绑任何可动态加载的 librime 插件：librime 静态链接进输入法与 CLI，可执行文件自包含；随包只分发 OpenCC 数据与虎码方案/词库。
 
 ```mermaid
 flowchart LR
@@ -34,7 +34,7 @@ flowchart LR
 
 | 模块 | 位置 | 职责 | 依赖 |
 |---|---|---|---|
-| CRime | `Packages/HufuKit/Frameworks/CRime.xcframework` | librime 预编译二进制与头文件（由 `scripts/fetch-librime.sh` 组装，不入库） | — |
+| CRime | `Packages/HufuKit/Frameworks/CRime.xcframework` | librime 1.17.0 静态库与头文件（ghostflyby 静态包 + 自有 `CRime` module map，由 `scripts/fetch-librime.sh` 组装，不入库） | — |
 | RimeKit | `Packages/HufuKit/Sources/RimeKit` | librime C API 的类型化 Swift 封装：引擎生命周期、会话、按键映射、配置读取 | CRime |
 | HufuCore | `Packages/HufuKit/Sources/HufuCore` | 配置值模型、三层补丁合成、设置目录、导入器、自定义短语 | Yams |
 | HufuPanel | `Packages/HufuKit/Sources/HufuPanel` | 候选窗：主题解析、Core Text 布局与绘制；设置 App 的预览复用同一视图 | HufuCore |
@@ -50,7 +50,6 @@ flowchart LR
   MacOS/Hufu                      输入法进程
   Helpers/hufu                    CLI（不能放 MacOS/：文件系统大小写不敏感，会覆盖 Hufu）
   Applications/Hufu Settings.app  设置
-  Frameworks/librime.1.dylib
   SharedSupport/                  只读数据：虎码方案与词库（dicts/huma submodule 直接采用，定制在方案仓库完成）、
                                   OpenCC（librime 库存 + 方案的拆分/拼音/emoji 表 + 产品层 st_tu 简繁表）、hufu.yaml、hufu/defaults、build/（预编译产物）
 

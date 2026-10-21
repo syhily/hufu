@@ -82,7 +82,10 @@ def verify(package, sums, output, preview_baseline=False):
             probe = run("deny-probe", prefix + ["/usr/bin/stat", str(repo / "project.yml")], env, root)
             if probe.returncode == 0 or "Operation not permitted" not in probe.stderr:
                 raise ValueError("Sandbox denial was not verified")
-            files = [cli, app / "Contents/MacOS/Hufu"] + list((app / "Contents/Frameworks").rglob("*.dylib"))
+            frameworks = app / "Contents/Frameworks"
+            files = [cli, app / "Contents/MacOS/Hufu"]
+            if frameworks.is_dir():
+                files += list(frameworks.rglob("*.dylib"))
             if len(files) > 64:
                 raise ValueError("Hard Mach-O inventory limit exceeded")
             forbidden = re.compile(r"^\s*(?:/opt/homebrew/|/usr/local/|/Users/|/Library/Input Methods/)", re.M)

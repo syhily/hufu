@@ -87,7 +87,6 @@ targets:
         HUFU_INFO_TEMPLATE: "$(SRCROOT)/Apps/Hufu/Info.plist"
         INFOPLIST_FILE: "$(DERIVED_FILE_DIR)/HufuInfo.plist"
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
-        LD_RUNPATH_SEARCH_PATHS: "$(inherited) @executable_path/../Frameworks"
         CODE_SIGN_ENTITLEMENTS: Apps/Hufu/Hufu.entitlements
     preBuildScripts:
       - name: Stamp build metadata

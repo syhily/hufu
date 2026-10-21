@@ -120,9 +120,6 @@ struct Doctor: AsyncParsableCommand {
         }
         print("input source: \(InputSourceRegistrar.status())")
 
-        let plugins = PluginLocator.plugins()
-        print("plugins: \(plugins.isEmpty ? "无" : plugins.joined(separator: " "))")
-
         let store = SettingsStore(paths: paths)
         let schemas = store.enabledSchemas()
         print("deployed schemas: \(schemas.isEmpty ? "none (run `hufu deploy`)" : schemas.joined(separator: ", "))")

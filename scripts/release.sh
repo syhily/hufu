@@ -150,7 +150,7 @@ MD
   echo
   echo "## 许可与源码"
   echo
-  echo "Hufu 原创代码采用 MIT。安装包不包含任何原生插件，也不含 GPL 组件（仅 librime，BSD-3-Clause）；"
+  echo "Hufu 原创代码采用 MIT。安装包不包含可动态加载的原生插件，也不含 GPL 组件（librime 静态链接，BSD-3-Clause）；"
   echo "内置词库采用虎码官方免费发布的「秃版」（2026.08.15）。第三方组件与许可见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)。"
   echo
   echo "最低系统：macOS 26。输入法与设置应用为 universal（Apple Silicon + Intel）；内置的 \`hufu\` 命令行工具随构建机架构（当前为 Apple Silicon）。"

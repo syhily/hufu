@@ -22,7 +22,7 @@ xcodegen generate
 xcodebuild -project Hufu.xcodeproj -scheme Hufu -configuration Debug -derivedDataPath build/DerivedData build
 ```
 
-脚本校验固定的 SHA-256，并组装 librime 与 `build/SharedSupport`。`stage-huma.sh` 直接采用 `dicts/huma` submodule 的虎码词表与方案（方案定制都在方案仓库完成），并预编译 librime 二进制产物。Hufu 不捆绑任何 librime 原生插件。`Hufu` scheme 构建两个 App，其构建后脚本嵌入 librime 与 SharedSupport。
+脚本校验固定的 SHA-256，并组装 librime 与 `build/SharedSupport`。`stage-huma.sh` 直接采用 `dicts/huma` submodule 的虎码词表与方案（方案定制都在方案仓库完成），并预编译 librime 二进制产物。Hufu 不随包提供可动态加载的 librime 插件；输入法与 CLI 静态链接引擎。`Hufu` scheme 构建两个 App，其构建后脚本嵌入 SharedSupport 与许可材料。
 
 为当前用户构建并安装：
 

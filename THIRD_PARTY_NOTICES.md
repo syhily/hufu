@@ -2,13 +2,13 @@
 
 Hufu's original code is licensed under [MIT](LICENSE), Copyright (c) 2026 syhily. Hufu is based on AIME (© 2026 ZOOL LLC, MIT); the original licence and attribution are retained. This does not relicense dependencies, dictionaries, or adapted community documents. Hufu is not a Squirrel fork and contains no Squirrel GPLv3 source code.
 
-This inventory covers what the Hufu app bundles. It is not a substitute for the full license texts, which must accompany distributed components. Hufu bundles no native librime plugins. The current local build has not yet passed the complete license-packaging audit; see [the release checklist](docs/release-checklist.md).
+This inventory covers what the Hufu app bundles. It is not a substitute for the full license texts, which must accompany distributed components. Hufu ships no separately loaded native plugin dylibs. The current local build has not yet passed the complete license-packaging audit; see [the release checklist](docs/release-checklist.md).
 
 ## Components and data
 
 | Component | Upstream / license | Status and handling |
 | --- | --- | --- |
-| librime 1.17.0 (33e7814) | [rime/librime](https://github.com/rime/librime), BSD-3-Clause | **Bundled** as `Contents/Frameworks/librime.1.dylib` from the official prebuilt release; sha256 pinned in `Vendor/librime.lock`. No librime native plugins are copied. Statically includes yaml-cpp (MIT), leveldb (BSD-3), marisa-trie (BSD-2/LGPL-2.1 dual), glog (BSD-3), OpenCC (Apache-2.0). |
+| librime 1.17.0 (33e7814) | [rime/librime](https://github.com/rime/librime), BSD-3-Clause; packaged by [ghostflyby/librime-xcframework](https://github.com/ghostflyby/librime-xcframework) | **Statically linked** into `Hufu.app` and the `hufu` CLI from release `1.17.0-pack.10.0.0` (`librime-static.xcframework.zip`, sha256 `9e992311…38ac` pinned in `Vendor/librime.lock`; same upstream librime 1.17.0). No `Contents/Frameworks/librime.1.dylib` is shipped. The static archive merges yaml-cpp (MIT), leveldb (BSD-3), marisa-trie (BSD-2/LGPL-2.1 dual, BSD option used), glog (BSD-3), OpenCC (Apache-2.0), darts-clone (BSD-3/LGPL-2.1 dual, BSD option used), utf8-cpp (BSL-1.0), Lua 5.5 (MIT), librime-lua (BSD-3), librime-octagram (BSD-3; relicensed from GPLv3 in July 2026) and librime-predict (BSD-3). Hufu mounts no Lua components. See the [packager's third-party notices](https://github.com/ghostflyby/librime-xcframework/blob/1.17.0-pack.10.0.0/THIRD_PARTY_NOTICES.md) and its `third-party-notices.zip` for full texts. |
 | OpenCC data | [BYVoid/OpenCC](https://github.com/BYVoid/OpenCC), Apache-2.0 | **Bundled** in `Contents/SharedSupport/opencc/` from the librime dependency archive. |
 | 虎码官方词库与方案（虎码秃版 2026.08.15） | [tiger-code.com](https://www.tiger-code.com) / [huma.ysepan.com](https://huma.ysepan.com), official free release; mirrored by [syhily/hufu-scheme](https://github.com/syhily/hufu-scheme) | **Bundled** in `Contents/SharedSupport/` from the pinned `dicts/huma` git submodule (upstream mirror [hufu-scheme](https://github.com/syhily/hufu-scheme); the exact commit is the repository's gitlink): schemas, word table filtered to entries of four characters or fewer, and OpenCC data. Product-side schema tweaks are applied to the staged copy, not to the submodule. Distributed under the official free-release terms; attribution to 虎码官方. The version string is recorded in `Contents/SharedSupport/hufu/VERSION`. |
 | GitHub Octicon mark | [primer/octicons](https://github.com/primer/octicons), MIT | **Bundled** as the About page's repository icon. The unmodified `mark-github-16.svg`, pinned source commit and SHA-256 are recorded in `SharedSupport/hufu/licenses/github-octicon.source.json`; its full license accompanies the resource. Displayed as a monochrome template image. |
@@ -19,13 +19,13 @@ This inventory covers what the Hufu app bundles. It is not a substitute for the 
 
 ## Distribution checklist
 
-The build embeds Hufu's original license, these notices and the release checklist under `Contents/Resources/LicenseMaterials/` before signing. Hufu bundles no native librime plugins, so there is no native-plugin inventory or binary hash to verify. This is not a complete corresponding-source package or distribution approval.
+The build embeds Hufu's original license, these notices and the release checklist under `Contents/Resources/LicenseMaterials/` before signing. Hufu ships no separately loaded native plugin dylibs, so there is no plugin inventory or binary hash to verify. This is not a complete corresponding-source package or distribution approval.
 
 Before publishing any binary or dictionary package:
 
 1. Inventory the exact versions, source URLs, archive hashes, bundled libraries, scripts, and data files, including transitive components in prebuilt archives.
 2. Include the full required license texts and copyright notices with the distributed artifacts, plus any applicable `NOTICE` file. This summary is not a substitute for those texts.
-3. The installer bundles no native librime plugins and no GPL component: `scripts/fetch-librime.sh` copies only `librime.1.dylib`, OpenCC data, binaries and headers. The whole package is distributed under permissive terms (MIT/BSD/Apache); Hufu's original source remains MIT.
+3. The installer ships no separately loaded native librime plugins and no GPL component: `scripts/fetch-librime.sh` links librime statically from the pinned ghostflyby xcframework and copies only the dynamic tools, OpenCC data and headers into `Vendor/`, never into the app bundle. The whole package is distributed under permissive terms (MIT/BSD/Apache); Hufu's original source remains MIT.
 4. Ensure original MIT source contains no copied, translated, or adapted GPL implementation code, including Squirrel code. Data import compatibility is not permission to copy source.
 5. For CC BY 4.0 data, include attribution, a license link, and modification notices. Do not imply endorsement by named brands or upstream authors.
 

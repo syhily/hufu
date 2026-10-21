@@ -1,5 +1,8 @@
 # librime prebuilt pin — see docs/decisions/0001-librime-prebuilt-engine.md
 LIBRIME_VERSION=1.17.0
 LIBRIME_COMMIT=33e7814
+# Static macOS xcframework from ghostflyby/librime-xcframework (same 1.17.0 upstream).
+RIME_PACK_TAG=1.17.0-pack.10.0.0
 11d8dc663c6ec06d5ccb6111ba664a9e7b631b703ac6acd07cffbac664021850  rime-33e7814-macOS-universal.tar.bz2
 dfe6047e87be271963d7466bd1a6e3d9e660c30e5e73e4bb94e8782c0a6ac8df  rime-deps-33e7814-macOS-universal.tar.bz2
+9e9923112ee9cee9bb53c25b41e51a2d7ea2ab3d91f34c7c99682224a23718ac  librime-static.xcframework.zip

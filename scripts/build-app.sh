@@ -3,7 +3,8 @@
 #   Contents/MacOS/Hufu                      input method
 #   Contents/Helpers/hufu                    CLI (+ its resource bundle)
 #   Contents/Applications/Hufu Settings.app  settings
-#   Contents/Frameworks/librime.1.dylib, Contents/SharedSupport
+#   Contents/SharedSupport                   dictionaries, OpenCC data, prebuilt rime data
+# librime is linked statically into the input method and CLI; no Frameworks payload.
 # Used by install-dev.sh and package.sh. Signs ad-hoc unless HUFU_SIGN_IDENTITY is set.
 set -euo pipefail
 
@@ -44,11 +45,12 @@ lipo -info "$CLI_DIR/hufu" | grep -q "x86_64 arm64" || { echo "error: CLI is not
 rm -rf "$OUT" && mkdir -p "$OUT"
 APP="$OUT/Hufu.app"
 ditto "$BUILT/Hufu.app" "$APP"
+# Ensure no stale dylib payload survives an incremental build.
+rm -rf "$APP/Contents/Frameworks"
 # Not Contents/MacOS: the file system is case-insensitive and "hufu" would replace "Hufu".
 mkdir -p "$APP/Contents/Helpers" "$APP/Contents/Applications"
 cp "$CLI_DIR/hufu" "$APP/Contents/Helpers/hufu"
 ditto "$CLI_DIR/HufuKit_HufuCore.bundle" "$APP/Contents/Helpers/HufuKit_HufuCore.bundle"
-install_name_tool -add_rpath "@executable_path/../Frameworks" "$APP/Contents/Helpers/hufu" 2>/dev/null || true
 ditto "$BUILT/Hufu Settings.app" "$APP/Contents/Applications/Hufu Settings.app"
 
 # Keep CFBundleShortVersionString numeric, but retain the full SemVer for updates.
@@ -72,7 +74,6 @@ sign() {
   [[ "${HUFU_REQUIRE_TIMESTAMP:-0}" == 1 ]] && { echo "timestamp service unavailable" >&2; return 1; }
   codesign --force --options runtime --timestamp=none --sign "$IDENTITY" "$@"
 }
-sign "$APP/Contents/Frameworks/librime.1.dylib"
 sign "$APP/Contents/Helpers/HufuKit_HufuCore.bundle"
 sign --entitlements Apps/Hufu/Hufu.entitlements "$APP/Contents/Helpers/hufu"
 sign --entitlements Apps/HufuSettings/HufuSettings.entitlements "$APP/Contents/Applications/Hufu Settings.app"
