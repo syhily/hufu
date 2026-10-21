@@ -174,7 +174,7 @@ The [documentation index](docs/README.md) collects usage, configuration, develop
 
 ## Acknowledgements
 
-[RIME / librime](https://github.com/rime/librime) · [Squirrel](https://github.com/rime/squirrel) · [OpenCC](https://github.com/BYVoid/OpenCC) · [Yams](https://github.com/jpsim/Yams) · [swift-argument-parser](https://github.com/apple/swift-argument-parser) · [Tiger-Code](https://www.tiger-code.com)
+[AIME](https://github.com/zoolapp/aime) · [RIME / librime](https://github.com/rime/librime) · [Squirrel](https://github.com/rime/squirrel) · [OpenCC](https://github.com/BYVoid/OpenCC) · [Yams](https://github.com/jpsim/Yams) · [swift-argument-parser](https://github.com/apple/swift-argument-parser) · [Tiger-Code](https://www.tiger-code.com)
 
 ## License and attribution
 

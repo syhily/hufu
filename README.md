@@ -174,7 +174,7 @@ swift build --package-path Packages/HufuKit -c release --product hufu
 
 ## 致谢
 
-[RIME / librime](https://github.com/rime/librime) · [鼠须管](https://github.com/rime/squirrel) · [OpenCC](https://github.com/BYVoid/OpenCC) · [Yams](https://github.com/jpsim/Yams) · [swift-argument-parser](https://github.com/apple/swift-argument-parser) · [虎码官网](https://www.tiger-code.com)
+[AIME](https://github.com/zoolapp/aime) · [RIME / librime](https://github.com/rime/librime) · [鼠须管](https://github.com/rime/squirrel) · [OpenCC](https://github.com/BYVoid/OpenCC) · [Yams](https://github.com/jpsim/Yams) · [swift-argument-parser](https://github.com/apple/swift-argument-parser) · [虎码官网](https://www.tiger-code.com)
 
 ## 许可与归属
 

@@ -16,7 +16,7 @@ struct AboutView: View {
                 version
                 projectLinks
                 licenses
-                Text("© 2026 syhily. 感谢 RIME 与开源社区。")
+                Text("© 2026 syhily. 感谢 AIME、RIME 与开源社区。")
                     .font(.caption)
                     .foregroundStyle(Theme.secondaryText)
                     .frame(maxWidth: .infinity)
