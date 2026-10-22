@@ -70,7 +70,8 @@ base64url 载荷，共 8 套、三语言各一份。载荷必须与 `SharedSuppo
 
 ## 来源与禁止事项
 
-页面骨架与 CSS/JS 最初来自 AIME（艾么输入法，作者自己的旧项目）文档站，已获授权适配；
+页面骨架与 CSS/JS 最初参考 AIME 文档站（aime.zool.app）的渲染产物适配；AIME 是 ZOOL 的
+开源项目（zoolapp/aime，© 2026 ZOOL LLC，MIT），Hufu 由其派生，保留原许可与署名。
 界面文案、链接与图片均已按 Hufu 重写。**不要向本目录加入任何带 AIME 字样的图片或品牌资源。**
 唯一保留的 AIME 出处说明是 `open-source` 页的致谢行。
 
