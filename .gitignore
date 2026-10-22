@@ -17,6 +17,8 @@ Vendor/*
 !Vendor/README.md
 !Vendor/src
 !Vendor/src/**
+!Vendor/hufu
+!Vendor/hufu/**
 
 # Local artifacts
 .ui-acceptance/

@@ -23,6 +23,7 @@ MODE="${1:-all}"
 ARCHS="arm64;x86_64"
 DEPLOYMENT_TARGET="15.0"
 BOOST_CACHE="$BUILD/cache"
+SHIM_SRC="$ROOT/Vendor/hufu/gears_subset.cc"
 
 case "$MODE" in
   all|opencc-data) ;;
@@ -58,6 +59,10 @@ script_sha() {
   shasum -a 256 "$0" | cut -d' ' -f1
 }
 
+shim_sha() {
+  shasum -a 256 "$SHIM_SRC" | cut -d' ' -f1
+}
+
 full_key() {
   {
     echo "$LIBRIME_COMMIT"
@@ -66,6 +71,7 @@ full_key() {
     echo "$OPENCC_COMMIT"
     echo "$YAML_CPP_COMMIT"
     echo "$BOOST_VERSION $BOOST_SHA256"
+    shim_sha
     script_sha
   } | shasum -a 256 | cut -d' ' -f1
 }
@@ -233,9 +239,19 @@ build_librime() {
     cp "$rime_build/bin/$tool" "$BUILD/bin/$tool"
   done
 
+  echo "==> compiling gears subset shim"
+  local shim_obj="$WORK/gears_subset.o"
+  clang++ -std=c++17 -O2 -fPIC \
+    -arch arm64 -arch x86_64 -mmacosx-version-min="$DEPLOYMENT_TARGET" \
+    -I"$rime_src/src" -I"$rime_src/include" -I"$rime_build/src" \
+    -I"$PREFIX/include" -I"$BOOST_SRC" \
+    -c "$SHIM_SRC" -o "$shim_obj"
+  lipo -info "$shim_obj"
+
   echo "==> merging static archives"
   rm -f "$BUILD/lib/librime.a"
   libtool -static -o "$BUILD/lib/librime.a" \
+    "$shim_obj" \
     "$rime_build/lib/librime.a" \
     "$PREFIX/lib/libyaml-cpp.a" \
     "$PREFIX/lib/libleveldb.a" \
@@ -254,6 +270,15 @@ build_librime() {
 #include "rime_api_stdbool.h"
 #include "rime_api.h"
 #include "rime_levers_api.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+void hufu_rime_register_components(void);
+int hufu_rime_check_components(void);
+#ifdef __cplusplus
+}
+#endif
 H
   cat > "$hdr/module.modulemap" <<'M'
 module CRime {
@@ -273,6 +298,10 @@ check_inputs() {
   require_submodule marisa-trie "$MARISA_COMMIT"
   require_submodule opencc "$OPENCC_COMMIT"
   require_submodule yaml-cpp "$YAML_CPP_COMMIT"
+  [[ -f "$SHIM_SRC" ]] || {
+    echo "missing $SHIM_SRC" >&2
+    exit 1
+  }
 }
 
 check_inputs

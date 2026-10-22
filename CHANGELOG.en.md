@@ -26,6 +26,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 - The simplified↔traditional table (st_tu) now ships with the installer's librime/OpenCC layer; the schema repo no longer bundles stock OpenCC tables. Conversion covers Tiger-Code's full charset, and traditional characters remain directly typable with their own codes when conversion is off.
 - librime 1.17.0 is now statically linked: the input method and `hufu` CLI are self-contained, the installer no longer ships a separate `librime.1.dylib`, and startup needs no external engine library, which also reduces the signing and distribution surface.
 - librime, leveldb, marisa-trie, OpenCC and yaml-cpp are now built in-tree from pinned source submodules instead of downloaded prebuilt engines or static packages. Staging tools, the input method and the CLI share one build, with glog logging and test/documentation dependencies disabled.
+- Only the 26 librime gear components the Tiger-Code schemas actually use are linked, and Release builds strip local symbols, substantially reducing the input method and CLI size.
 
 
 ### Removed

@@ -41,6 +41,8 @@ rm -rf "$CLI_DIR" && mkdir -p "$CLI_DIR"
 lipo -create "$CLI_X64/hufu" "$CLI_ARM/hufu" -output "$CLI_DIR/hufu"
 ditto "$CLI_ARM/HufuKit_HufuCore.bundle" "$CLI_DIR/HufuKit_HufuCore.bundle"
 lipo -info "$CLI_DIR/hufu" | grep -q "x86_64 arm64" || { echo "error: CLI is not a universal binary" >&2; exit 1; }
+# Remove local symbols before signing (the app is stripped by Xcode's Release settings).
+strip -x "$CLI_DIR/hufu"
 
 rm -rf "$OUT" && mkdir -p "$OUT"
 APP="$OUT/Hufu.app"

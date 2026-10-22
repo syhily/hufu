@@ -25,6 +25,10 @@ settings:
       # No developer account is required: local builds sign ad-hoc. Set your own
       # DEVELOPMENT_TEAM / Apple Development identity here once you have one.
       CODE_SIGN_IDENTITY: "-"
+    Release:
+      DEPLOYMENT_POSTPROCESSING: YES
+      STRIP_INSTALLED_PRODUCT: YES
+      STRIP_STYLE: all
 packages:
   HufuKit:
     path: Packages/HufuKit

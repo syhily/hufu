@@ -28,6 +28,9 @@ jobs:
       - name: Set up build (Xcode, XcodeGen, librime, dictionaries)
         uses: ./.github/actions/setup-build
 
+      - name: Check script tests
+        run: python3 -m unittest discover -s scripts/tests -v
+
       - name: Build package
         run: |
           swift build --package-path Packages/HufuKit
@@ -58,6 +61,12 @@ jobs:
 
       - name: Generate Xcode project
         run: xcodegen generate
+
+      - name: Build Debug app
+        run: xcodebuild -project Hufu.xcodeproj -scheme Hufu -configuration Debug -derivedDataPath build/DerivedData CODE_SIGNING_ALLOWED=NO build
+
+      - name: Check trimmed rime components
+        run: bash scripts/check-rime-trim.sh build/DerivedData/Build/Products/Debug/Hufu.app/Contents/MacOS/Hufu.debug.dylib
 
       - name: Build unsigned app
         run: xcodebuild -project Hufu.xcodeproj -scheme Hufu -configuration Release -derivedDataPath build/DerivedData CODE_SIGNING_ALLOWED=NO build

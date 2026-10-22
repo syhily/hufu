@@ -142,7 +142,14 @@ public final class RimeEngine {
         if !isSetUp { setup(traits) }
         if isInitialized { finalize() }
         var raw = makeRawTraits(traits)
+        // librime's gears module is replaced by Hufu's whitelist shim; the
+        // registry is cleared by RimeFinalize, so register on every initialize.
+        hufu_rime_register_components()
         api.pointee.initialize(&raw)
+#if DEBUG
+        let missing = hufu_rime_check_components()
+        precondition(missing == 0, "librime gears shim is missing \(missing) components")
+#endif
         self.traits = traits
         isInitialized = true
         deployerLoaded = false
