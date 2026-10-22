@@ -36,8 +36,8 @@ flowchart LR
 |---|---|---|---|
 | CRime | `Packages/HufuKit/Frameworks/CRime.xcframework` | 由 `Vendor/src` 下的 librime 1.17.0 与依赖源码构建的静态库和头文件（`scripts/build-librime.sh`，不入库） | — |
 | RimeKit | `Packages/HufuKit/Sources/RimeKit` | librime C API 的类型化 Swift 封装：引擎生命周期、会话、按键映射、配置读取 | CRime |
-| HufuCore | `Packages/HufuKit/Sources/HufuCore` | 配置值模型、三层补丁合成、设置目录、导入器、自定义短语 | Yams |
-| HufuPanel | `Packages/HufuKit/Sources/HufuPanel` | 候选窗：主题解析、Core Text 布局与绘制；设置 App 的预览复用同一视图 | HufuCore |
+| HufuCore | `Packages/HufuKit/Sources/HufuCore` | 配置值模型、三层补丁合成、设置目录、导入器、自定义短语；`UserSettings` 统一拥有 `features.json` 与生成层的设置，`InputOptions` 拥有会话选项决策，`DeployCoordinator` 拥有部署/导入/同步队列与超时 | Yams |
+| HufuPanel | `Packages/HufuKit/Sources/HufuPanel` | 候选窗：主题解析、Core Text 布局与绘制；`CandidatePresentation` 拥有前端候选、简繁过滤与显示序号→rime 序号映射；设置 App 的预览复用同一视图 | HufuCore |
 | HufuAI | `Packages/HufuKit/Sources/HufuAI` | 可选 AI 助手：Provider 抽象、自然语言改配置、文本抽词 | HufuCore |
 | hufu | `Packages/HufuKit/Sources/hufu` | 命令行：deploy / bench / doctor / diagnostics / import-squirrel / get / set / sync / register | RimeKit, HufuCore |
 | Hufu.app | `Apps/Hufu` | IMK 输入法服务 | RimeKit, HufuCore, HufuPanel |
@@ -77,9 +77,10 @@ build/rime/                        源码构建产物：bin/ 静态工具、shar
 1. 设置 App 把改动写入 `hufu/generated/<name>.yaml`，并重新合成 `<name>.custom.yaml`
    （defaults → imported → generated，后者覆盖前者，见 ADR-0003）。
 2. 被修改的目标记入 `hufu/.dirty`；部署前删除其 `build/` 产物，规避 librime 秒级时间戳比较。
-3. 点击「部署」：若输入法进程在运行，发送 `dev.yufan.hufu.reload`，输入法清理会话 → 重新初始化 →
-   部署 `hufu.yaml` → `start_maintenance`，完成后回发 `dev.yufan.hufu.deploy.result`；
-   否则调用捆绑 CLI `hufu deploy`。
+3. 设置改动后自动部署（或在终端运行 `hufu deploy`）：若输入法进程在运行，发送类型化的
+   `DeployRequest`（`DeployProtocol` 统一通知名与
+   mode）；`DeployCoordinator` 负责排队、工作区锁、导入快照随行与超时，输入法清理会话 → 重新初始化 →
+   部署 `hufu.yaml` → `start_maintenance`，完成后回发 `DeployReply`。否则调用捆绑 CLI `hufu deploy`。
 4. 手写补丁层如需调整，可先用 `hufu deploy --dry-run` 在临时副本上校验，失败自动回滚；设置 App 不提供原始 YAML 编辑。
 
 librime 的「工作区更新」只编译 `default.yaml` 和各方案；前端配置 `hufu.yaml` 需要前端自己

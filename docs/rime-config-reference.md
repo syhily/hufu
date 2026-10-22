@@ -156,8 +156,8 @@ switches:
 
 规则：`name` 与 `options`（多选一）二选一——`name` 是二态开关，`options` 是多选（如明月拼音的 `zh_hans/zh_hant/zh_hant_tw`）；`reset` 是部署后的初始状态索引；`states`/`abbrev` 决定菜单显示；`switcher/save_options` 列出的开关会被记忆（见 switcher 节）。opencc 类开关（simplification、emoji_cn）由 `simplifier@xxx` 的 `option_name` 关联消费。
 
-Hufu 可视化：已收录（常用开关默认值做成 bool）。`simplification` 不单独暴露：它的运行时状态由「输入习惯 › 简繁模式」决定（见 filters 节）。
-catalog: switches.emoji_cn, switches.full_shape, switches.ascii_punct, switches.chaifen, switches.pinyin, switches.extended_char
+Hufu 可视化：已收录（常用开关默认值做成 bool）。`simplification` 不单独暴露：它的运行时状态由「输入习惯 › 简繁模式」决定（见 filters 节）。`ascii_punct` 也不在 catalog：运行时以「输入习惯 › 标点」（`features.json`）为准，避免同一概念有两个默认值。
+catalog: switches.emoji_cn, switches.full_shape, switches.chaifen, switches.pinyin, switches.extended_char
 
 ## engine 总览
 
@@ -301,7 +301,7 @@ catalog: translator.enable_completion
 对候选流做转换/排序/过滤，按列表顺序执行：
 
 - **simplifier@xxx**：OpenCC 简繁/emoji 转换。`simplifier@emoji_cn`（option_name: emoji_cn，opencc_config: emoji.json，inherit_comment: false）把候选经 emoji 映射多一份；`simplifier@simplification`（option_name: simplification，opencc_config: st_tu.json（默认），可选 s2t/s2hk/s2tw/s2twp，tips: none，tags 限定作用段）实现繁体输出。
-  catalog: simplification.opencc_config（设置 › 输入习惯 › 繁体标准）。
+  catalog: 不单独收录；由「设置 › 输入习惯 › 简繁」的专用控件写入生成层。
 
 - **uniquifier**：去除完全相同的候选（一般放在 filters 最后）。
 - **charset_filter**（librime 内置，需配合 extended_charset 开关）：过滤字符集外汉字。

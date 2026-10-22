@@ -21,7 +21,7 @@ Hufu 虎符输入法：macOS 输入法，librime 静态内嵌，只支持虎码�
 ## 验证入口（改动合入前必须通过）
 
 ```bash
-swift test --package-path Packages/HufuKit --no-parallel   # 247 项
+swift test --package-path Packages/HufuKit --no-parallel   # 全量单元测试
 python3 -m unittest discover -s scripts/tests              # 构建/许可证/白名单校验
 bash scripts/stage-huma.sh                                 # 词典组装 + 预编译
 bash scripts/check-rime-trim.sh <二进制>                    # 链接产物符号断言
@@ -33,4 +33,4 @@ bash scripts/check-rime-trim.sh <二进制>                    # 链接产物符
 
 ## 决策记录
 
-架构决策见 `docs/decisions/`（ADR-0001…0007），新增重要取舍时按序编号追加。
+架构决策见 `docs/decisions/`（ADR-0001…0008），新增重要取舍时按序编号追加。
