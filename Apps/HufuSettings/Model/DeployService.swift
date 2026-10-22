@@ -45,8 +45,13 @@ final class DeployService {
     }
 
     let paths: HufuPaths
+    /// Injected so a test (or UI automation) can replace the notification transport.
+    let client: DeployClient
 
-    init(paths: HufuPaths) { self.paths = paths }
+    init(paths: HufuPaths, client: DeployClient = DeployClient()) {
+        self.paths = paths
+        self.client = client
+    }
 
     var inputMethodIsRunning: Bool {
         !NSRunningApplication.runningApplications(withBundleIdentifier: Locations.inputMethodBundleID).isEmpty
@@ -62,7 +67,7 @@ final class DeployService {
         if usesInputMethod {
             // Never start a second writer on timeout: the input method may still be
             // deploying. Report the unknown outcome instead.
-            return await requestViaInputMethod(mode: automatic ? "auto" : "full", progress: progress)
+            return await requestViaInputMethod(mode: automatic ? .auto : .full, progress: progress)
                 ?? .failure("输入法未在 3 分钟内返回结果，可能仍在应用设置；请稍后查看日志 \(paths.logDir.path)")
         }
         let result = await run(["deploy"])
@@ -73,7 +78,7 @@ final class DeployService {
     /// the userdbs open, so it must do the export itself; the CLI only works without it.
     func sync() async -> Outcome {
         if usesInputMethod {
-            return await requestViaInputMethod(mode: "sync", progress: { _, _ in })
+            return await requestViaInputMethod(mode: .sync, progress: { _, _ in })
                 ?? .failure("输入法未在 3 分钟内返回同步结果，可能仍在同步；请稍后查看日志 \(paths.logDir.path)")
         }
         let result = await run(["sync"])
@@ -83,46 +88,18 @@ final class DeployService {
     /// After `import-squirrel --no-deploy`: the running input method deploys and merges the
     /// imported snapshots itself (a second process cannot open its user dictionaries).
     func deployImportedViaInputMethod() async -> Outcome {
-        await requestViaInputMethod(mode: "import", progress: { _, _ in })
+        await requestViaInputMethod(mode: .import, progress: { _, _ in })
             ?? .failure("输入法未在 3 分钟内返回导入结果，可能仍在处理；请稍后查看日志 \(paths.logDir.path)")
     }
 
-    /// Validates pending changes in a throwaway copy of the workspace.
-    func dryRun() async -> CommandResult { await run(["deploy", "--dry-run"]) }
-
-    private func requestViaInputMethod(mode: String, progress: @escaping @MainActor (String, Int) -> Void) async -> Outcome? {
-        let center = DistributedNotificationCenter.default()
-        let request = UUID().uuidString
-        nonisolated(unsafe) let progressToken = center.addObserver(
-            forName: Notification.Name("dev.yufan.hufu.deploy.progress"), object: nil, queue: .main
-        ) { note in
-            guard note.userInfo?["request"] as? String == request else { return }
-            let stage = note.userInfo?["stage"] as? String ?? ""
-            let total = note.userInfo?["total"] as? Int ?? 0
-            MainActor.assumeIsolated { progress(stage, total) }
+    private func requestViaInputMethod(mode: DeployMode, progress: @escaping @MainActor (String, Int) -> Void) async -> Outcome? {
+        let reply = await client.send(DeployRequest(mode: mode)) { update in
+            progress(update.stage, update.total)
         }
-        defer { center.removeObserver(progressToken) }
-        let logDir = paths.logDir.path
-        let stream = AsyncStream<Outcome> { continuation in
-            nonisolated(unsafe) let token = center.addObserver(forName: Notification.Name("dev.yufan.hufu.deploy.result"), object: nil, queue: .main) { note in
-                // Only the answer to this request counts.
-                guard note.userInfo?["request"] as? String == request else { return }
-                let ok = note.userInfo?["ok"] as? Bool ?? false
-                let message = note.userInfo?["message"] as? String ?? "设置未能生效"
-                continuation.yield(ok ? .success : .failure("\(message)（日志：\(logDir)）"))
-                continuation.finish()
-            }
-            continuation.onTermination = { _ in center.removeObserver(token) }
-        }
-        center.postNotificationName(Notification.Name("dev.yufan.hufu.reload"), object: nil,
-                                    userInfo: ["request": request, "mode": mode], deliverImmediately: true)
-        return await withTaskGroup(of: Outcome?.self) { group in
-            group.addTask { for await outcome in stream { return outcome }; return nil }
-            group.addTask { try? await Task.sleep(for: .seconds(180)); return nil }
-            let first = await group.next() ?? nil
-            group.cancelAll()
-            return first
-        }
+        guard let reply else { return nil }
+        guard !reply.ok else { return .success }
+        let message = reply.message ?? "设置未能生效"
+        return .failure("\(message)（日志：\(reply.log ?? paths.logDir.path)）")
     }
 
     /// Runs the bundled `hufu` CLI off the main thread.

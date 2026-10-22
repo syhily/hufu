@@ -22,6 +22,8 @@ final class SettingsModel {
     let store: SettingsStore
     let catalog: SettingCatalog
     let deployer: DeployService
+    /// One owner for every user-facing setting, whichever file it lands in.
+    let userSettings: UserSettings
 
     /// Bumped after every write so views re-read values.
     private(set) var revision = 0
@@ -43,9 +45,11 @@ final class SettingsModel {
     init() {
         var paths = HufuPaths.standard
         paths.sharedDataDir = Locations.sharedSupport
+        let store = SettingsStore(paths: paths)
         self.paths = paths
-        self.store = SettingsStore(paths: paths)
+        self.store = store
         self.catalog = store.catalog
+        self.userSettings = UserSettings(paths: paths, store: store)
         self.deployer = DeployService(paths: paths)
         self.phrases = CustomPhrases.loadDictionary(from: store.phraseTableURL(.hufu))
         hasPendingChanges = !ConfigLayers(paths: paths).dirtyTargets().isEmpty
@@ -53,7 +57,7 @@ final class SettingsModel {
         if hasPendingChanges { scheduleAutoDeploy() }
         // The shipped schema mounts words_simp; the product default is off, and a crash
         // between "switch flipped" and "deploy done" must not leave the mount behind.
-        syncWordTables()
+        reconcileSchema()
     }
 
     // MARK: - Status
@@ -438,41 +442,48 @@ final class SettingsModel {
     // MARK: - Usage statistics
 
     let statsStore = UsageStatsStore()
-    var features: HufuFeatures { _ = revision; return HufuFeatures.load(paths) }
+    var features: HufuFeatures { _ = revision; return userSettings.features }
+
+    var scriptMode: ScriptMode { _ = revision; return features.scriptMode }
+    var wordsEnabled: Bool { _ = revision; return features.wordsEnabled }
+    var asciiPunct: Bool { _ = revision; return features.asciiPunct }
+    var scriptVariant: String { _ = revision; return userSettings.scriptVariant }
 
     func setUsageStats(_ enabled: Bool) { updateFeatures { $0.usageStats = enabled } }
+    func setScriptMode(_ mode: ScriptMode) { updateFeatures { $0.scriptMode = mode } }
+    func setWordsEnabled(_ enabled: Bool) { updateFeatures { $0.wordsEnabled = enabled } }
+    func setAsciiPunct(_ enabled: Bool) { updateFeatures { $0.asciiPunct = enabled } }
 
-    /// Writes hufu/features.json and tells the input method to reload it.
-    func updateFeatures(_ body: (inout HufuFeatures) -> Void) {
-        var features = HufuFeatures.load(paths)
-        let before = features
-        body(&features)
-        // Consent to send text is given for one host; a new endpoint needs it again.
-        if URL(string: features.aiBaseURL)?.host() != URL(string: before.aiBaseURL)?.host() { features.aiRemoteAllowed = false }
-        guard features != before else { return }
+    func setScriptVariant(_ value: String) {
         do {
-            try features.save(paths)
-            DistributedNotificationCenter.default().postNotificationName(
-                HufuFeatures.changedNotification, object: nil, userInfo: nil, deliverImmediately: true)
+            if try userSettings.setScriptVariant(value) { hasPendingChanges = true }
+            lastError = nil
         } catch {
             lastError = String(describing: error)
         }
         revision += 1
-        // 词汇输入 sits in the schema, not in features.json: rewrite the mount and let the
-        // ordinary auto-deploy apply it (no separate confirmation).
-        if features.wordsEnabled != before.wordsEnabled || features.scriptMode != before.scriptMode {
-            syncWordTables()
-        }
     }
 
-    /// Writes the word-table mount derived from the current features. Silent when it
-    /// already matches; otherwise the pending flag schedules the usual deploy.
-    private func syncWordTables() {
-        let features = self.features
+    /// Writes hufu/features.json, applies the schema side, and tells the input method.
+    func updateFeatures(_ body: (inout HufuFeatures) -> Void) {
         do {
-            if try store.applyWordTables(enabled: features.wordsEnabled, mode: features.scriptMode) {
-                hasPendingChanges = true
-            }
+            let update = try userSettings.updateFeatures(body)
+            guard update.featuresChanged else { revision += 1; return }
+            DistributedNotificationCenter.default().postNotificationName(
+                HufuFeatures.changedNotification, object: nil, userInfo: nil, deliverImmediately: true)
+            if update.schemaChanged { hasPendingChanges = true }
+            lastError = nil
+        } catch {
+            lastError = String(describing: error)
+        }
+        revision += 1
+    }
+
+    /// The launch reconciliation: rewrite the word-table mount if a previous run stopped
+    /// between the switch and the deploy.
+    private func reconcileSchema() {
+        do {
+            if try userSettings.reconcileSchema() { hasPendingChanges = true }
         } catch {
             lastError = String(describing: error)
         }

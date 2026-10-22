@@ -43,7 +43,7 @@ struct CatalogPane: View {
 
     var body: some View {
         let settings = model.catalog.settings(in: pane.catalogGroup ?? "")
-            .filter { $0.type != .custom && !CatalogPane.shownElsewhere.contains($0.id) }
+            .filter { $0.type != .custom }
         Form {
             Section { PaneHeader(title: pane.title, subtitle: subtitle, symbol: pane.symbol) }
 
@@ -69,8 +69,6 @@ struct CatalogPane: View {
         .formStyle(.cards)
     }
 
-    /// Catalog settings drawn in a section of their own.
-    static let shownElsewhere: Set<String> = ["simplification.opencc_config"]
 }
 
 /// Trigger behavior belongs with shortcuts; the candidate button's visibility stays
@@ -122,7 +120,7 @@ private struct PunctuationSection: View {
     var body: some View {
         Section {
             LabeledContent {
-                Picker("", selection: Binding(get: { model.features.asciiPunct }, set: { value in model.updateFeatures { $0.asciiPunct = value } })) {
+                Picker("", selection: Binding(get: { model.asciiPunct }, set: { model.setAsciiPunct($0) })) {
                     Text("中文标点").tag(false)
                     Text("英文标点").tag(true)
                 }
@@ -147,20 +145,21 @@ private struct PunctuationSection: View {
 private struct ScriptSection: View {
     @Environment(SettingsModel.self) private var model
 
-    /// The four standards the product offers; the catalog setting also lists s2tw.
+    /// Every OpenCC standard the catalog offers, with the product's labels.
     private static let variants = [
         ("st_tu.json", "虎码标准"),
-        ("s2twp.json", "台湾正体"),
-        ("s2hk.json", "香港繁体"),
         ("s2t.json", "通用繁体"),
+        ("s2tw.json", "台湾正体"),
+        ("s2twp.json", "台湾正体（含常用词）"),
+        ("s2hk.json", "香港繁体"),
     ]
 
     var body: some View {
         Section {
             LabeledContent {
                 Picker("", selection: Binding(
-                    get: { model.features.scriptMode },
-                    set: { mode in model.updateFeatures { $0.scriptMode = mode } }
+                    get: { model.scriptMode },
+                    set: { model.setScriptMode($0) }
                 )) {
                     Text("繁简混打").tag(ScriptMode.mixed)
                     Text("打简出繁").tag(ScriptMode.tradOutput)
@@ -192,11 +191,11 @@ private struct ScriptSection: View {
                 }
             }
             .padding(.trailing, 28)
-            .disabled(!model.features.scriptMode.usesTraditionalConversion)
+            .disabled(!model.scriptMode.usesTraditionalConversion)
 
             Toggle(isOn: Binding(
-                get: { model.features.wordsEnabled },
-                set: { on in model.updateFeatures { $0.wordsEnabled = on } }
+                get: { model.wordsEnabled },
+                set: { model.setWordsEnabled($0) }
             )) {
                 VStack(alignment: .leading, spacing: 2) {
                     Text("词汇输入")
@@ -213,10 +212,10 @@ private struct ScriptSection: View {
 
     /// The copy follows the switch, then names the tables the current mode mounts.
     private var wordsDetail: LocalizedStringKey {
-        guard model.features.wordsEnabled else {
+        guard model.wordsEnabled else {
             return "关闭时只出单字和自定义短语；打开后按简繁模式挂载对应词表，改完几秒后自动生效。"
         }
-        switch model.features.scriptMode {
+        switch model.scriptMode {
         case .mixed: return "已挂载简体词表与繁体编码词表：简码出简体词，繁体字自己的编码出繁体词。"
         case .tradOutput: return "已挂载打简出繁词表：简体编码直接出校验过的繁体词。"
         case .tradOnly: return "已挂载只繁词表：用繁体字自己的编码出繁体词。"
@@ -225,7 +224,7 @@ private struct ScriptSection: View {
     }
 
     private var explanation: LocalizedStringKey {
-        switch model.features.scriptMode {
+        switch model.scriptMode {
         case .mixed: "简体优先：按《通用规范汉字表》一级→二级→三级排序，繁体字形排在最后。"
         case .tradOutput: "用简体编码打字，候选直接是繁体；候选同样限定在 8105 字集内。"
         case .tradOnly: "只出繁体；转换后仍带简体字形的候选会被过滤。"
@@ -233,26 +232,15 @@ private struct ScriptSection: View {
         }
     }
 
-    /// The standard is the schema's `simplification/opencc_config`: writing it goes
-    /// through the catalog's deploy flow. features.json keeps the choice as a fallback
-    /// for files edited by hand.
+    /// The standard is owned by the generated layer (`simplification/opencc_config`);
+    /// `UserSettings` handles the read and the write.
     private var variant: Binding<String> {
         Binding(
             get: {
-                if let setting = model.setting("simplification.opencc_config"),
-                   case let .string(value)? = model.value(setting),
-                   Self.variants.contains(where: { $0.0 == value }) {
-                    return value
-                }
-                let stored = model.features.tradVariant + ".json"
+                let stored = model.scriptVariant
                 return Self.variants.contains(where: { $0.0 == stored }) ? stored : "st_tu.json"
             },
-            set: { value in
-                if let setting = model.setting("simplification.opencc_config") {
-                    model.set(.string(value), for: setting)
-                }
-                model.updateFeatures { $0.tradVariant = String(value.dropLast(".json".count)) }
-            }
+            set: { model.setScriptVariant($0) }
         )
     }
 }

@@ -42,39 +42,6 @@
       "doc": "#menu"
     },
     {
-      "id": "simplification.opencc_config",
-      "group": "general",
-      "title": "繁体标准",
-      "description": "虎码的 simplification 开关输出繁体时使用的字形与用词。由 OpenCC 在本机转换。",
-      "file": "schema",
-      "keypath": "simplification/opencc_config",
-      "type": "enum",
-      "options": [
-        {
-          "value": "st_tu.json",
-          "title": "虎码标准（简→繁·异）"
-        },
-        {
-          "value": "s2t.json",
-          "title": "通用繁体"
-        },
-        {
-          "value": "s2tw.json",
-          "title": "台湾正体"
-        },
-        {
-          "value": "s2twp.json",
-          "title": "台湾正体（含常用词）"
-        },
-        {
-          "value": "s2hk.json",
-          "title": "香港繁体"
-        }
-      ],
-      "default": "st_tu.json",
-      "doc": "#simplification"
-    },
-    {
       "id": "translator.enable_completion",
       "group": "general",
       "title": "编码提示",
@@ -127,17 +94,6 @@
       "keypath": "switches/@name=extended_char/reset",
       "type": "bool",
       "default": true,
-      "doc": "#switches"
-    },
-    {
-      "id": "switches.ascii_punct",
-      "group": "general",
-      "title": "英文标点默认开启（部署时）",
-      "description": "对应虎码 ascii_punct 开关的 reset；运行时以「标点」为准，⌃. 可切换。",
-      "file": "schema",
-      "keypath": "switches/@name=ascii_punct/reset",
-      "type": "bool",
-      "default": false,
       "doc": "#switches"
     },
     {

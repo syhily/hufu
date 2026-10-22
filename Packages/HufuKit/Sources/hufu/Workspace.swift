@@ -23,16 +23,6 @@ enum Workspace {
         return lock
     }
 
-    static func shippedTargets(shared: URL) -> [ConfigTarget] {
-        var targets: [ConfigTarget] = [.default, .frontend]
-        let defaults = shared.appendingPathComponent("hufu/defaults")
-        for name in (try? FileManager.default.contentsOfDirectory(atPath: defaults.path)) ?? [] where name.hasSuffix(".yaml") {
-            let base = String(name.dropLast(5))
-            if base != "default", base != "hufu" { targets.append(.schema(base)) }
-        }
-        return targets
-    }
-
     /// Deploys and verifies that every schema in `schema_list` produced build output —
     /// librime reports success even when individual schemas fail to compile.
     static func deploy(traits: RimeTraits, paths: HufuPaths) throws -> DeployResult {
@@ -44,7 +34,8 @@ enum Workspace {
         var failed = false
         engine.notificationHandler = { if case .deployFailed = $0 { failed = true } }
         engine.initialize(traits)
-        try layers.prepareForDeploy(extraTargets: shippedTargets(shared: traits.sharedDataDir))
+        try layers.prepareForDeploy(
+            extraTargets: ConfigLayers.shippedTargets(sharedDataDir: traits.sharedDataDir))
         engine.deployAndWait(fullCheck: true)
         let frontendOK = engine.deployConfigFile("hufu.yaml")
         RunLoop.main.run(until: Date(timeIntervalSinceNow: 0.01)) // flush queued notifications
@@ -52,9 +43,7 @@ enum Workspace {
         let staging = traits.stagingDir ?? paths.stagingDir
         let built = (try? ConfigValue.load(contentsOf: staging.appendingPathComponent("default.yaml")))
         let schemas = (built?.value(at: "schema_list")?.listValue ?? []).compactMap { $0["schema"]?.stringValue }
-        let missing = schemas.filter {
-            !FileManager.default.fileExists(atPath: staging.appendingPathComponent("\($0).schema.yaml").path)
-        }
+        let missing = DeployVerification.missingSchemas(stagingDir: staging)
         let succeeded = !failed && frontendOK && built != nil && missing.isEmpty
         if succeeded { layers.markDeployed() }
         return DeployResult(

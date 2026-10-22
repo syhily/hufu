@@ -30,7 +30,9 @@ struct Deploy: AsyncParsableCommand {
         // Explicit/test workspaces must never wake the installed input method,
         // which serves a different directory and would redeploy real user data.
         if !dryRun, workspace.userDir == nil, ProcessInfo.processInfo.environment["HUFU_USER_DIR"] == nil {
-            DistributedNotificationCenter.default().postNotificationName(.init("dev.yufan.hufu.reload"), object: nil)
+            let request = DeployRequest(mode: .full)
+            DistributedNotificationCenter.default().postNotificationName(
+                DeployRequest.notification, object: nil, userInfo: request.userInfo)
         }
     }
 }
