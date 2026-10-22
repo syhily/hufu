@@ -14,15 +14,15 @@ import Testing
 @MainActor
 @Suite struct ThemeRenderProbe {
     static let state = PanelState(
-        preedit: "huma",
-        preeditSelection: NSRange(location: 0, length: 4),
+        preedit: "ai me",
+        preeditSelection: NSRange(location: 0, length: 5),
         candidates: [
             .init(label: "1", text: "虎码", comment: "输入法"),
-            .init(label: "2", text: "虎符"),
-            .init(label: "3", text: "虎"),
-            .init(label: "4", text: "虎符输入法", comment: "产品"),
+            .init(label: "2", text: "爱么"),
+            .init(label: "3", text: "爱"),
+            .init(label: "4", text: "哎么", comment: "叹词"),
             .init(label: "5", text: "Hufu", comment: "英"),
-            .init(label: "6", text: "呼玛", comment: "地名"),
+            .init(label: "6", text: "埃么"),
         ],
         highlightedIndex: 0
     )
