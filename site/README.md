@@ -1,79 +1,89 @@
 # hufu.yufan.dev
 
-Hufu（虎符输入法）官网：Astro + Starlight + MDX 的静态站点，构建产物发布到 `gh-pages`
-分支，由 GitHub Pages 提供 `https://hufu.yufan.dev`（域名由 `public/CNAME` 固定）。
+Hufu（虎符输入法）官网：自定义设计的 Astro 静态站点，散文正文用 MDX 生成，构建产物
+发布到 `gh-pages` 分支，由 GitHub Pages 提供 `https://hufu.yufan.dev`（域名由
+`public/CNAME` 固定）。
 
 ## 开发
 
 ```bash
-npm ci                              # 安装依赖（版本在 package.json 里精确钉住）
-npm run dev                         # 本地预览，默认 http://localhost:4321
-npm run build                       # 构建到 dist/
-bash ../scripts/check-site.sh dist  # 起本地 http.server，校验全部内部引用与锚点
+npm ci            # 安装依赖（astro 与 @astrojs/mdx 都钉死版本）
+npm run dev       # 本地预览，默认 http://localhost:4321
+npm run build     # 构建到 dist/
+bash ../scripts/check-site.sh dist   # 起本地 http.server，校验全部内部引用
 ```
 
-需要 Node.js 22 或更新版本。
+需要 Node.js 22.23.4 或更新版本（CI 用 Node 24）。
 
 ## 结构
 
 ```
 site/
-  astro.config.mjs       site、clean URL、Starlight 配置（侧栏、语言、head、JSON-LD）
-  src/content.config.ts  docs 与 i18n 两个 collection（Starlight loader + schema）
-  src/content/docs/      中文（root）8 个页面
-  src/content/docs/zh-hant/  繁体 8 个页面
-  src/content/docs/en/       英文 8 个页面
-  src/content/i18n/      Starlight 界面文案（zh-Hans / zh-Hant，覆盖搜索、目录、404 等）
-  src/components/ThemeGallery.astro  主题画廊（卡片、安装链接、复制 YAML）
-  src/lib/themes.ts      8 套主题的配色与布局数据，生成 hufu-ime://theme 载荷
-  src/styles/hufu.css    品牌色、明暗两套变量、图片明暗切换、主题卡样式
-  src/assets/            Starlight 顶栏 logo（mark-vermilion.svg / mark-white.svg）
-  public/                原样拷贝进 dist/：CNAME、icon.png、og.png、brand/、avatars/、
-                         screenshots/、themes/renders/
+  astro.config.mjs      site、clean URL、MDX 集成（关闭 smartypants，避免正文变排印符号）
+  public/               原样拷贝进 dist/：CNAME、icon.png、og.png、brand/、avatars/、
+                        screenshots/、themes/renders/、assets/（CSS 与 island 脚本）
+  src/lib/site.ts       locale 元数据、页头页脚与弹窗文案、搜索索引、JSON-LD 软件节点
+  src/layouts/Base.astro  <head>（meta / OG / hreflang / JSON-LD）、页头页脚、搜索与菜单弹窗
+  src/content-pages/    18 篇 MDX 正文：{route}.{zh|zh-hant|en}.mdx
+  src/pages/            24 个路由：index、download、dictionaries、themes、docs、
+                        changelog、privacy、open-source，各含 zh-Hans / zh-hant / en
 ```
 
-## 加页面
+散文类路由（download、dictionaries、docs、changelog、privacy、open-source）的
+`index.astro` 只负责 frontmatter、`<Base>` 外壳和引入对应的 MDX：
 
-1. 在 `src/content/docs/<slug>.mdx` 写简体页，`title` 与 `description` 用 frontmatter。
-2. 同 slug 写到 `src/content/docs/zh-hant/<slug>.mdx` 与 `en/<slug>.mdx`。Starlight 会给
-   `zh-hant/`、`en/` 自动加语言前缀，路由分别是 `/zh-hant/<slug>/`、`/en/<slug>/`。
-   缺译时 Starlight 会用中文正文回退渲染并在页头提示，直到补齐。
-3. 在 `astro.config.mjs` 的 `sidebar` 加一项：`slug` 只写不带语言前缀的 slug，
-   标签放在 `label`，繁体与英文放在 `translations`（键是 `zh-Hant`、`en`）。
+```astro
+---
+import Base from '@/layouts/Base.astro';
+import Content from '@/content-pages/download.zh.mdx';
 
-首页用 `template: splash` + `hero`，正文里用 `@astrojs/starlight/components` 的
-`Card` / `CardGrid` 排版；其余页面走默认文档模板。
+const meta = { title: '…', description: '…' };
+---
 
-Starlight 内置界面文案只带 `zh`、`zh-TW` 等代码；本站语言标签是 `zh-Hans` /
-`zh-Hant`，所以 `src/content/i18n/` 里放了两份完整字典（源自 Starlight 的
-`zh-CN` / `zh-TW`），否则搜索、目录、404 等界面会漏出原始键名。
+<Base locale="zh" slug="download" title={meta.title} description={meta.description} application>
+  <Content />
+</Base>
+```
 
-## 主题画廊
+正文在 `src/content-pages/<route>.<locale>.mdx`，整页包在一个 `<main>` 里，按 JSX 规则
+书写：`class` → `className`、`for` → `htmlFor`、`srcset` → `srcSet`、SVG 的
+`stroke-width` 等改驼峰、`img`/`input`/`br` 自闭合。CJK 段落保持单行（软换行会变成空格）。
+代码块正文用 `{`…`}` 字符串表达式包住，否则 MDX 会把 `--` 变排印符号、把 URL 自动变成链接
+（构建时用 `smartypants: false` 关掉前者，表达式同时挡住自动链接）。改完用
+`git worktree` 拉出基线按文本 / 图片 / 链接逐页比对。
 
-`src/lib/themes.ts` 是 `SharedSupport/hufu.yaml` 里 `preset_color_schemes` 与
-`style/hufu` 的手工镜像：每套主题的 13 个颜色键与 9 个布局键必须与 yaml 一致
-（yaml 省略的 `preedit_back_color` 按面板默认补成透明）。
-`payload()` 生成 `hufu-theme` v2 的规范 JSON（键排序，base64url），`installLink()`
-拼成 `hufu-ime://theme?v=2&d=…`，`yamlSnippet()` 生成可粘贴的 YAML。
+首页（`index.astro`）与主题页（`themes/index.astro`）是重设计页面，保留 `.astro` 而不套
+MDX。导航、页脚、搜索条目和语言文案集中在 `src/lib/site.ts` 的 `chrome`，改一处三语言
+同时生效。
 
-**改配色方案时同步改两处**：`SharedSupport/hufu.yaml`（App 实际使用）与
-`src/lib/themes.ts`（站点展示与安装链接），否则站点发出的主题与 App 内置的不一致。
-渲染图在 `public/themes/renders/`，由仓库内的 `ThemeRenderProbe` 生成。
+`public/assets/` 里的 CSS 与脚本是原样保留的静态资源（`layout.js` 管导航/搜索/主题切换/
+词库筛选，`home.js` + `home-sections.js` 管首页主题切换与常用语演示，`themes.js` 管主题
+画廊与 YAML 生成，`theme-geometry.js` 被后两者 import）。它们不走 Astro 打包，URL 稳定；
+页面里用 `<script type="module" src="/assets/…" is:inline>` 引入。
+
+## 主题载荷
+
+`themes/index.astro` 的 `data-d` 与安装链接里内嵌 `hufu-ime://theme?v=2&d=…` 的
+base64url 载荷，共 8 套、三语言各一份。载荷必须与 `SharedSupport/hufu.yaml` 的
+`preset_color_schemes` 对齐，并满足 App `ThemePackage` 的约束：`format: hufu-theme`、
+`version: 2`、13 个颜色键（yaml 省略的 `preedit_back_color` 按 RIME 默认补
+`0X00000000`）、9 个布局键、键名排序。**改配色时同时更新 yaml 与三份 themes 页面里的
+载荷**，否则站点发出的主题会被 App 拒收。
 
 ## 图片
 
-`public/screenshots/` 是设置页截图（`scripts/ui-shots.sh` 生成，含 `settings/` 明细与
-首页 hero 的 640/960/1440 三档），`public/brand/` 是品牌 SVG，`public/avatars/` 是
-演示用头像。页面里的明暗切换用 `only-light` / `only-dark` 两个 class（见 `hufu.css`）。
+`themes/renders/` 是候选窗主题渲染图（由仓库内 `ThemeRenderProbe` 生成），
+`screenshots/` 是设置页截图（`scripts/ui-shots.sh` 生成），`brand/` 是品牌 SVG，
+`avatars/` 是首页演示用的头像。
 
 ## 来源与禁止事项
 
-页面结构参考了 AIME（艾么输入法，作者自己的旧项目）文档站，已获授权适配；界面文案、
-链接与图片均已按 Hufu 重写。**不要向本目录加入任何带 AIME 字样的图片或品牌资源。**
+页面骨架与 CSS/JS 最初来自 AIME（艾么输入法，作者自己的旧项目）文档站，已获授权适配；
+界面文案、链接与图片均已按 Hufu 重写。**不要向本目录加入任何带 AIME 字样的图片或品牌资源。**
 唯一保留的 AIME 出处说明是 `open-source` 页的致谢行。
 
 ## 部署
 
-`.github/workflows/site.yml`：push 到 `main` 且改动 `site/**` 时，用 Node 22 + npm 缓存
+`.github/workflows/site.yml`：push 到 `main` 且改动 `site/**` 时，用 Node 24 + npm 缓存
 执行 `npm ci` → `npm run build` → `scripts/check-site.sh site/dist`，然后把 `site/dist`
 以纯 git 方式发布到 `gh-pages`（内容未变则跳过提交）。

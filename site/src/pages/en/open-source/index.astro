@@ -1,0 +1,13 @@
+---
+import Base from '@/layouts/Base.astro';
+import Content from '@/content-pages/open-source.en.mdx';
+
+const meta = {
+  title: "Open source · Hufu",
+  description: "Original Hufu code uses MIT. Dependencies retain their licenses; the Tiger-Code word lists ship under their official release terms.",
+};
+---
+
+<Base locale="en" slug="open-source" title={meta.title} description={meta.description}>
+  <Content />
+</Base>

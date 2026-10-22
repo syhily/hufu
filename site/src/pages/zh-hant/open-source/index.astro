@@ -1,0 +1,13 @@
+---
+import Base from '@/layouts/Base.astro';
+import Content from '@/content-pages/open-source.zh-hant.mdx';
+
+const meta = {
+  title: "開源與致謝 · Hufu",
+  description: "Hufu 原創程式碼採用 MIT 許可。第三方元件保留各自許可，虎碼詞表按官方發布條款隨包提供。",
+};
+---
+
+<Base locale="zh-hant" slug="open-source" title={meta.title} description={meta.description}>
+  <Content />
+</Base>

@@ -1,0 +1,13 @@
+---
+import Base from '@/layouts/Base.astro';
+import Content from '@/content-pages/download.zh.mdx';
+
+const meta = {
+  title: "安装与下载 · Hufu",
+  description: "Hufu 0.1.0 预览版可下载，支持 macOS 15.0+。安装包为 ad-hoc 签名、未经 Apple 公证，首次打开请在 Finder 中右键 › 打开。",
+};
+---
+
+<Base locale="zh" slug="download" title={meta.title} description={meta.description} application>
+  <Content />
+</Base>

@@ -1,0 +1,13 @@
+---
+import Base from '@/layouts/Base.astro';
+import Content from '@/content-pages/privacy.en.mdx';
+
+const meta = {
+  title: "Privacy · Hufu",
+  description: "Everyday typing stays on your Mac and never uses the network. Only an AI action you start goes online, and the model you choose decides how the text is handled.",
+};
+---
+
+<Base locale="en" slug="privacy" title={meta.title} description={meta.description}>
+  <Content />
+</Base>
