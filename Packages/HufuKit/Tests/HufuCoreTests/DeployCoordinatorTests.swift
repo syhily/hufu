@@ -58,6 +58,18 @@ struct DeployCoordinatorTests {
 
     private enum TestError: Error { case boom }
 
+    /// Polls until `condition` holds or the deadline passes. Fixed sleeps were
+    /// flaky in CI: 50 lock retries × 1 ms nominal can take far longer on a
+    /// loaded runner, so assertions about "after the retries" must wait for the
+    /// reply, not for the clock.
+    private func waitUntil(_ condition: () -> Bool, timeout: Duration = .seconds(5)) async {
+        let clock = ContinuousClock()
+        let deadline = clock.now + timeout
+        while !condition(), clock.now < deadline {
+            try? await Task.sleep(for: .milliseconds(10))
+        }
+    }
+
     @Test func queuedDeploysRunOneAtATimeAndAnswerEachRequest() {
         let driver = FakeDriver()
         let coordinator = DeployCoordinator(driver: driver)
@@ -145,7 +157,7 @@ struct DeployCoordinatorTests {
         coordinator.onReply = { replies.append($0) }
 
         coordinator.enqueue(.init(request: "a", mode: .full))
-        try? await Task.sleep(for: .milliseconds(200))
+        await waitUntil { replies.count == 1 }
         #expect(replies.count == 1)
         #expect(replies.first?.ok == false)
         #expect(replies.first?.message?.contains("占用") == true)
@@ -160,7 +172,7 @@ struct DeployCoordinatorTests {
         coordinator.onReply = { replies.append($0) }
 
         coordinator.enqueue(.init(request: "import", mode: .import, importedSnapshots: ["a"]))
-        try? await Task.sleep(for: .milliseconds(200))
+        await waitUntil { replies.count == 1 }
         #expect(replies.count == 1)
         #expect(replies.first?.request == "import")
         #expect(driver.warnings.count == 1)
@@ -174,7 +186,7 @@ struct DeployCoordinatorTests {
 
         coordinator.enqueue(.init(request: "a", mode: .full))
         #expect(coordinator.isBusy)
-        try? await Task.sleep(for: .milliseconds(80))
+        await waitUntil { replies.count == 1 }
         #expect(replies.count == 1)
         #expect(replies.first?.ok == false)
         #expect(replies.first?.message?.contains("超时") == true)
