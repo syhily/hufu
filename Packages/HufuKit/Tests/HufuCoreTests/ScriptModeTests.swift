@@ -180,8 +180,6 @@ struct ScriptModeTests {
 
         #expect(ScriptMode.tradOutput.usesTraditionalConversion && ScriptMode.tradOnly.usesTraditionalConversion)
         #expect(!ScriptMode.mixed.usesTraditionalConversion && !ScriptMode.simpOnly.usesTraditionalConversion)
-        #expect(ScriptMode.tradOnly.filters && ScriptMode.simpOnly.filters)
-        #expect(!ScriptMode.mixed.filters && !ScriptMode.tradOutput.filters)
     }
 
     // MARK: - Shipped tables

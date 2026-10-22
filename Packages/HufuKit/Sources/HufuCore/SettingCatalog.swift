@@ -75,6 +75,52 @@ public struct SettingCatalog: Sendable, Decodable {
         }
 
         public var isListToggle: Bool { listItems != nil }
+
+        /// The single owner of "what is a legal value for this setting": type coercion,
+        /// enum membership and range checks. SettingsStore writes and the AI assistant
+        /// both ask here instead of re-deriving the rules.
+        public func validate(_ value: ConfigValue) -> ConfigValue? {
+            if isListToggle, let bool = value.boolValue { return .bool(bool) }
+            switch type {
+            case .bool:
+                if let bool = value.boolValue { return .bool(bool) }
+                if let int = value.intValue, int == 0 || int == 1 { return .bool(int == 1) }
+                if let text = value.stringValue?.lowercased(), ["true", "false"].contains(text) {
+                    return .bool(text == "true")
+                }
+                return nil
+            case .int, .double:
+                guard let number = value.doubleValue ?? value.stringValue.flatMap(Double.init), number.isFinite else { return nil }
+                if let min, number < min { return nil }
+                if let max, number > max { return nil }
+                if type == .int {
+                    guard let integer = Int(exactly: number.rounded()) else { return nil }
+                    if let min, Double(integer) < min { return nil }
+                    if let max, Double(integer) > max { return nil }
+                    return .int(integer)
+                }
+                return .double(number)
+            case .enum:
+                guard let options,
+                      let match = options.first(where: { $0.value == value || $0.value.stringValue == value.stringValue })
+                else { return nil }
+                return match.value
+            case .color:
+                guard let text = value.stringValue,
+                      text.range(of: #"^0x[0-9A-Fa-f]{6}([0-9A-Fa-f]{2})?$"#, options: .regularExpression) != nil
+                else { return nil }
+                return .string(text)
+            case .string, .font, .hotkey:
+                guard let text = value.stringValue, !text.isEmpty, text.count < 120 else { return nil }
+                return .string(text)
+            case .stringList, .hotkeyList, .switchList:
+                guard let list = value.listValue else { return nil }
+                let strings = list.compactMap(\.stringValue)
+                return strings.count == list.count ? .list(strings.map(ConfigValue.string)) : nil
+            case .custom:
+                return nil
+            }
+        }
     }
 
     public let version: Int

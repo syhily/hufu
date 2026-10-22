@@ -89,41 +89,9 @@ public struct ConfigAssistant: Sendable {
         let explanation: String?
     }
 
-    /// Coerces and checks a proposed value against the setting's declared type.
+    /// Coerces and checks a proposed value against the setting's declared type. The
+    /// rules live on `SettingCatalog.Setting` so the store, the UI and the AI agree.
     static func validate(_ value: ConfigValue, for setting: SettingCatalog.Setting) -> ConfigValue? {
-        switch setting.type {
-        case .bool:
-            if let bool = value.boolValue { return .bool(bool) }
-            if let text = value.stringValue?.lowercased(), ["true", "false"].contains(text) { return .bool(text == "true") }
-            return nil
-        case .int, .double:
-            guard let number = value.doubleValue ?? value.stringValue.flatMap(Double.init), number.isFinite else { return nil }
-            if let min = setting.min, number < min { return nil }
-            if let max = setting.max, number > max { return nil }
-            if setting.type == .int {
-                guard let integer = Int(exactly: number.rounded()) else { return nil }
-                if let min = setting.min, Double(integer) < min { return nil }
-                if let max = setting.max, Double(integer) > max { return nil }
-                return .int(integer)
-            }
-            return .double(number)
-        case .enum:
-            guard let options = setting.options, let match = options.first(where: { $0.value == value || $0.value.stringValue == value.stringValue })
-            else { return nil }
-            return match.value
-        case .color:
-            guard let text = value.stringValue, text.range(of: #"^0x[0-9A-Fa-f]{6}([0-9A-Fa-f]{2})?$"#, options: .regularExpression) != nil
-            else { return nil }
-            return .string(text)
-        case .string, .font, .hotkey:
-            guard let text = value.stringValue, !text.isEmpty, text.count < 120 else { return nil }
-            return .string(text)
-        case .stringList, .hotkeyList, .switchList:
-            guard let list = value.listValue else { return nil }
-            let strings = list.compactMap(\.stringValue)
-            return strings.count == list.count ? .list(strings.map(ConfigValue.string)) : nil
-        case .custom:
-            return nil
-        }
+        setting.validate(value)
     }
 }

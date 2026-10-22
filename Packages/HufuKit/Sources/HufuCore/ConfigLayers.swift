@@ -347,6 +347,19 @@ public struct ConfigLayers: Sendable {
         }
     }
 
+    /// Targets Hufu ships defaults for: `default`, the frontend, and every schema with a
+    /// file under `hufu/defaults`. Shared by the input method and the CLI.
+    public static func shippedTargets(sharedDataDir: URL?) -> [ConfigTarget] {
+        var targets: [ConfigTarget] = [.default, .frontend]
+        guard let sharedDataDir else { return targets }
+        let defaults = sharedDataDir.appendingPathComponent("hufu/defaults")
+        for name in (try? FileManager.default.contentsOfDirectory(atPath: defaults.path)) ?? [] where name.hasSuffix(".yaml") {
+            let base = String(name.dropLast(5))
+            if base != "default", base != "hufu" { targets.append(.schema(base)) }
+        }
+        return targets
+    }
+
     /// Every target that currently has a shim in the user directory.
     public func managedTargets() -> [ConfigTarget] {
         let fm = FileManager.default

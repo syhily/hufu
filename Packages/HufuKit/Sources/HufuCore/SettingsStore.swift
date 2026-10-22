@@ -28,6 +28,10 @@ public struct SettingsStore: Sendable {
     /// The first enabled schema is what the catalog's `schema`-file settings target.
     public func primarySchema() -> String? { enabledSchemas().first }
 
+    /// The schema-file settings target: the first enabled schema, or the shipped one
+    /// before the first deploy.
+    public func schemaID() -> String? { primarySchema() ?? shippedSchema() }
+
     /// Effective value: pending generated value, else deployed value, else catalog default.
     public func value(for setting: SettingCatalog.Setting, schemaID: String? = nil) -> ConfigValue? {
         guard let target = setting.target(schemaID: schemaID ?? primarySchema()) else { return setting.default }
@@ -83,10 +87,12 @@ public struct SettingsStore: Sendable {
     public enum WriteError: Error, CustomStringConvertible {
         case unknownTarget(String)
         case outOfRange(String)
+        case invalidValue(String)
         public var description: String {
             switch self {
             case let .unknownTarget(id): "no config target for setting \(id)"
             case let .outOfRange(id): "value out of range for \(id)"
+            case let .invalidValue(id): "value is not valid for setting \(id)"
             }
         }
     }
@@ -96,9 +102,9 @@ public struct SettingsStore: Sendable {
         guard let target = setting.target(schemaID: schemaID ?? primarySchema()) else {
             throw WriteError.unknownTarget(setting.id)
         }
-        if let number = value.doubleValue {
-            if let min = setting.min, number < min { throw WriteError.outOfRange(setting.id) }
-            if let max = setting.max, number > max { throw WriteError.outOfRange(setting.id) }
+        guard let value = setting.validate(value) else {
+            throw setting.type == .int || setting.type == .double
+                ? WriteError.outOfRange(setting.id) : WriteError.invalidValue(setting.id)
         }
         if let toggled = setting.listItems, let enabled = value.boolValue {
             var entries = list(target: target, keypath: setting.keypath)

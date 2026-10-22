@@ -94,7 +94,7 @@ struct RimeKitTests {
     @Test func togglesAsciiModeOption() throws {
         let session = try RimeEngine.shared.createSession()
         session.setOption("ascii_mode", true)
-        #expect(session.status()?.isASCIIMode == true)
+        #expect(session.option("ascii_mode") == true)
         #expect(session.processKey(RimeKey.keysym(forCharacter: "a")) == false)
         session.setOption("ascii_mode", false)
         #expect(session.stateLabel(option: "ascii_mode", state: false, abbreviated: false) == "中")

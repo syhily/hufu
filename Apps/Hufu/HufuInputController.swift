@@ -25,8 +25,6 @@ final class HufuInputController: IMKInputController {
     var quickMenu: QuickMenu?
     /// Holding one modifier on its own opens the quick menu (keyboard-only entry).
     var menuHold = ModifierHold()
-    /// Caps Lock presses that macOS spends on switching to and from ABC.
-    private var capsSwitch = CapsLockSourceSwitch()
     /// 输入图层: committed text waiting at the cursor (underlined) until it is confirmed.
     var draft = DraftBuffer()
     /// What was just inserted into this field, so AI actions can work on "what I just
@@ -37,20 +35,9 @@ final class HufuInputController: IMKInputController {
     private var draftTimer: Task<Void, Never>?
     /// Page depth and symbol category last drawn, to pick the menu's transition direction.
     var menuShown: (depth: Int, category: Int) = (0, 0)
-    /// Candidates the frontend shows in place of librime's (`/time`, `/1234.56`, `=1+2`),
-    /// the input they were built from, and the page being shown.
-    private var specialCandidates: [SpecialInput.Candidate]?
-    private var specialInput = ""
-    private var specialPage = 0
-    private var specialPageSize = 5
-    /// 简繁: rime indices of the candidates the panel shows, in display order
-    /// (displayIndex → rimeIndex). 混打 sorts the page by tier, 只打… drops candidates.
-    private var scriptOrder: [Int] = []
-    /// True when `scriptOrder` differs from the page's own order — then numbering,
-    /// highlight and selection keys all go through the mapping.
-    private var scriptRearranged = false
-    /// Display position of the highlighted candidate while filtering.
-    private var scriptHighlight = 0
+    /// Panel content and the display→rime mapping: frontend candidates, 简繁 filter,
+    /// numbering and pagination.
+    private lazy var presentation = CandidatePresentation(scriptFilter: engine.scriptFilter)
 
     private var engine: InputEngine { InputEngine.shared }
     private var textClient: (any IMKTextInput)? { client() as? any IMKTextInput }
@@ -65,9 +52,7 @@ final class HufuInputController: IMKInputController {
         if let session, sessionGeneration == engine.generation, session.isAlive { return session }
         session = try? rime.createSession()
         sessionGeneration = engine.generation
-        applyAppOptions(newSession: true)
-        applyScriptOption()
-        applyPunctOption()
+        applyOptions(newSession: true, includeAscii: true)
         return session
     }
 
@@ -87,54 +72,66 @@ final class HufuInputController: IMKInputController {
         flushDraft(client: textClient)
     }
 
-    /// Chinese/English state for this client, per `AsciiStatePolicy`: by default the
-    /// state shared by all apps, or the app's own state for apps that start in English.
-    private func applyAppOptions(newSession: Bool) {
-        guard let session,
-              let desired = engine.asciiState.state(for: bundleID, appDefault: appOptions.asciiMode, newSession: newSession)
-        else { return }
-        DebugLog.write("ascii apply app=\(bundleID ?? "?") appDefault=\(appOptions.asciiMode.map(String.init) ?? "nil") new=\(newSession) scope=\(engine.asciiState.scope.rawValue) was=\(session.option("ascii_mode")) now=\(desired)")
-        // Only write when it changes: every set_option makes librime post a notification.
-        if session.option("ascii_mode") != desired { session.setOption("ascii_mode", desired) }
+    /// Applies what `InputOptions` derives for this text field. `includeAscii` is false
+    /// when a feature change should not overwrite the user's Chinese/English state.
+    private func applyOptions(newSession: Bool, includeAscii: Bool) {
+        guard let session = liveSession else { return }
+        let desired = engine.inputOptions.desired(for: optionContext(session: session, newSession: newSession))
+        if includeAscii, let value = desired.asciiMode { session.setOption("ascii_mode", value) }
+        if let value = desired.asciiPunct { session.setOption("ascii_punct", value) }
+        if let value = desired.simplification { session.setOption("simplification", value) }
+        if !desired.isEmpty {
+            DebugLog.write("options apply app=\(bundleID ?? "?") new=\(newSession) scope=\(engine.inputOptions.asciiScope.rawValue)")
+        }
     }
+
+    private func optionContext(session: RimeSession, newSession: Bool) -> InputOptions.Context {
+        InputOptions.Context(
+            app: bundleID,
+            appDefault: appOptions.asciiMode,
+            appPunctuation: appOptions.asciiPunct,
+            newSession: newSession,
+            isActive: engine.activeController === self,
+            features: engine.features,
+            current: InputOptions.Session(
+                asciiMode: session.option("ascii_mode"),
+                asciiPunct: session.option("ascii_punct"),
+                simplification: session.option("simplification")
+            ),
+            remembersPunctuation: librimeRemembersPunctuation
+        )
+    }
+
+    /// `switcher/save_options` is static for the process; read it once.
+    private lazy var librimeRemembersPunctuation: Bool = {
+        (try? RimeEngine.shared.openConfig("default").stringList("switcher/save_options"))?
+            .contains("ascii_punct") == true
+    }()
 
     /// 简繁模式: 打简出繁 / 只打繁体 want librime's `simplification` conversion. ⌃O and
     /// ⌃⇧4 still flip the option for the moment (see `ScriptMode.resolved`).
     func applyScriptOption() {
-        guard let session = liveSession else { return }
-        let traditional = engine.features.scriptMode.usesTraditionalConversion
-        if session.option("simplification") != traditional { session.setOption("simplification", traditional) }
+        applyOptions(newSession: false, includeAscii: false)
     }
 
     /// Chinese/English punctuation: the app's own setting, else the state shared by all apps.
     func applyPunctOption() {
-        guard let session = liveSession else { return }
-        if engine.asciiPunct == nil {
-            let remembered = (try? RimeEngine.shared.openConfig("default").stringList("switcher/save_options"))?
-                .contains("ascii_punct") == true
-            engine.asciiPunct = remembered ? session.option("ascii_punct") : engine.features.asciiPunct
-        }
-        let desired = appOptions.asciiPunct ?? engine.asciiPunct ?? false
-        if session.option("ascii_punct") != desired { session.setOption("ascii_punct", desired) }
+        applyOptions(newSession: false, includeAscii: false)
     }
 
-    /// Records the current Chinese/English state (shared, or this app's own), and the
-    /// punctuation state unless this app pins its own.
+    /// Records the state the user leaves behind, for the next text field.
     private func rememberAsciiMode() {
         guard let session = liveSession else { return }
-        if appOptions.asciiPunct == nil, engine.activeController === self {
-            engine.asciiPunct = session.option("ascii_punct")
-        }
         DebugLog.write("ascii record app=\(bundleID ?? "?") appDefault=\(appOptions.asciiMode.map(String.init) ?? "nil") ascii=\(session.option("ascii_mode"))")
-        engine.asciiState.record(session.option("ascii_mode"), app: bundleID, appDefault: appOptions.asciiMode,
-                                 isActive: engine.activeController === self)
+        engine.inputOptions.remember(optionContext(session: session, newSession: false))
     }
 
     /// A Caps Lock press right before deactivation was macOS switching to ABC; undo the
     /// 中/英 toggle librime made for it so switching back keeps the earlier state.
     private func undoCapsLockSourceSwitch() {
-        guard let restore = capsSwitch.deactivated(at: Date()), engine.activeController === self,
-              let session = liveSession, session.option("ascii_mode") != restore else { return }
+        guard engine.activeController === self, let session = liveSession,
+              let restore = engine.inputOptions.undoCapsLockSwitch(currentAscii: session.option("ascii_mode"))
+        else { return }
         DebugLog.write("ascii caps-lock source switch: restore ascii=\(restore)")
         session.setOption("ascii_mode", restore)
     }
@@ -162,9 +159,9 @@ final class HufuInputController: IMKInputController {
         // Nothing here may call back into the client: it is blocked until activateServer
         // returns. A reused session may be stale if another window of the same app
         // switched Chinese/English meanwhile, so re-apply the remembered state.
+        engine.inputOptions.beginActivation()
         if ensureSession() != nil {
-            applyAppOptions(newSession: false)
-            applyPunctOption()
+            applyOptions(newSession: false, includeAscii: true)
         }
     }
 
@@ -363,7 +360,7 @@ final class HufuInputController: IMKInputController {
             guard flags != lastModifiers else { return false }
             guard let keysym = RimeKey.keysym(forVirtualKey: event.keyCode) else { return false }
             if keysym == RimeKey.capsLock {
-                capsSwitch.pressed(asciiBefore: session.option("ascii_mode"), at: Date())
+                engine.inputOptions.capsLockPressed(asciiBefore: session.option("ascii_mode"))
                 // Caps Lock toggles on a single event; report press + release.
                 let mask = RimeKey.capsLockMask(fromCocoaFlags: flags.rawValue)
                 handled = session.processKey(keysym, modifiers: mask)
@@ -508,7 +505,7 @@ final class HufuInputController: IMKInputController {
         if ownsPanel { engine.panel.hide() }
     }
 
-    func sync(client: (any IMKTextInput)?, commitToDraft: Bool = false) {
+    func sync(client: (any IMKTextInput)?) {
         guard let session = liveSession, let client else { return }
 
         if let text = session.consumeCommit() {
@@ -516,9 +513,7 @@ final class HufuInputController: IMKInputController {
             engine.usage.record(text, app: bundleID)
             lastCommitted = text
             // A commit of only punctuation or digits does not open a draft.
-            if commitToDraft {
-                draft.replace(with: draft.text + text)
-            } else if draftLayerActive, !draft.isEmpty || DraftBuffer.opensDraft(text) {
+            if draftLayerActive, !draft.isEmpty || DraftBuffer.opensDraft(text) {
                 appendToDraft(text, client: client)
             } else {
                 // The layer was switched off with a draft pending: it goes first.
@@ -531,8 +526,6 @@ final class HufuInputController: IMKInputController {
 
         let context = session.context()
         isComposing = context.isComposing
-        updateSpecialCandidates(for: context.input, pageSize: context.pageSize)
-        updateScriptFilter(candidates: context.candidates, session: session)
         let theme = engine.panel.theme
         let inline = appOptions.inline ?? theme.inlinePreedit
 
@@ -591,47 +584,21 @@ final class HufuInputController: IMKInputController {
         let composition = context.composition
         let start = composition.utf16Offset(ofUTF8: composition.selectionStart)
         let end = composition.utf16Offset(ofUTF8: composition.selectionEnd)
-        let candidates: [PanelState.Candidate]
-        let highlightedIndex: Int
-        let pageNumber: Int
-        let isLastPage: Bool
-        if let injected = specialVisible {
-            // These inputs reach librime as punctuation or not at all, so its menu is
-            // replaced wholesale; labels stay 1..n for the page.
-            candidates = injected.enumerated().map { offset, candidate in
-                PanelState.Candidate(label: "\(offset + 1)", text: candidate.text, comment: candidate.comment)
-            }
-            highlightedIndex = 0
-            pageNumber = specialPage
-            isLastPage = specialPage >= specialPageCount - 1
-        } else if scriptRearranged {
-            // 只打繁体 / 只打简体 drop candidates: the panel shows the kept ones
-            // renumbered 1..n, and `select` maps a display index back to rime's.
-            candidates = scriptOrder.enumerated().map { display, rime in
-                let candidate = context.candidates[rime]
-                return PanelState.Candidate(label: "\(display + 1)", text: candidate.text, comment: candidate.comment)
-            }
-            highlightedIndex = scriptOrder.firstIndex(of: context.highlightedIndex) ?? 0
-            scriptHighlight = highlightedIndex
-            pageNumber = context.pageNumber
-            isLastPage = context.isLastPage
-        } else {
-            candidates = context.candidates.enumerated().map { index, candidate in
-                PanelState.Candidate(label: context.labels[safe: index] ?? "\(index + 1)", text: candidate.text, comment: candidate.comment)
-            }
-            highlightedIndex = context.highlightedIndex
-            pageNumber = context.pageNumber
-            isLastPage = context.isLastPage
-        }
-        let state = PanelState(
+        let state = presentation.present(CandidatePresentation.Input(
             preedit: composition.preedit,
             preeditSelection: NSRange(location: start, length: max(0, end - start)),
-            candidates: candidates,
-            highlightedIndex: highlightedIndex,
-            pageNumber: pageNumber,
-            isLastPage: isLastPage,
+            input: context.input,
+            candidates: context.candidates.map { .init(text: $0.text, comment: $0.comment) },
+            labels: context.labels,
+            highlightedIndex: context.highlightedIndex,
+            pageNumber: context.pageNumber,
+            isLastPage: context.isLastPage,
+            pageSize: context.pageSize,
+            specialOptions: specialOptions,
+            scriptMode: engine.features.scriptMode,
+            traditional: session.option("simplification"),
             showsMenuButton: engine.features.panelMenuButton
-        )
+        ))
         engine.panel.view.onMenu = { [weak self] in self?.openMenu(client: nil) }
         engine.panel.view.onSelect = { [weak self] index in self?.select(index) }
         engine.panel.view.onPage = { [weak self] backward in self?.page(backward: backward) }
@@ -640,33 +607,22 @@ final class HufuInputController: IMKInputController {
     }
 
     private func select(_ index: Int) {
-        if let visible = specialVisible {
+        switch presentation.selection(forDisplayIndex: index) {
+        case let .special(text):
             // Never fall through to librime here: its menu only holds punctuation for
             // these inputs, and selecting that would commit the raw `/…` instead.
-            if index >= 0, index < visible.count {
-                commitSpecialInput(visible[visible.startIndex + index].text)
-            }
+            commitSpecialInput(text)
+        case let .rime(rimeIndex):
+            guard let session = liveSession else { return }
+            session.selectCandidate(onCurrentPage: rimeIndex)
+            sync(client: textClient)
+        case .none:
             return
         }
-        guard let session = liveSession else { return }
-        let rimeIndex: Int
-        if scriptRearranged {
-            // The panel renumbered and reordered the page: map back before asking
-            // librime, whose page still holds the original order.
-            guard index >= 0, index < scriptOrder.count else { return }
-            rimeIndex = scriptOrder[index]
-        } else {
-            rimeIndex = index
-        }
-        session.selectCandidate(onCurrentPage: rimeIndex)
-        sync(client: textClient)
     }
 
     private func page(backward: Bool) {
-        if specialVisible != nil {
-            let pages = specialPageCount
-            guard pages > 1 else { return }
-            specialPage = min(max(0, specialPage + (backward ? -1 : 1)), pages - 1)
+        if presentation.page(backward: backward) {
             sync(client: textClient)
             return
         }
@@ -676,30 +632,6 @@ final class HufuInputController: IMKInputController {
     }
 
     // MARK: - Frontend candidates (计算器 / 大写数字 / 时间日期)
-
-    /// The page of frontend candidates currently shown, if any.
-    private var specialVisible: ArraySlice<SpecialInput.Candidate>? {
-        guard let candidates = specialCandidates, !candidates.isEmpty else { return nil }
-        let start = min(specialPage * specialPageSize, candidates.count)
-        return candidates[start..<min(start + specialPageSize, candidates.count)]
-    }
-
-    private var specialPageCount: Int {
-        guard let candidates = specialCandidates, !candidates.isEmpty else { return 0 }
-        return (candidates.count + specialPageSize - 1) / specialPageSize
-    }
-
-    /// Rebuilds the frontend list for the current composition. The page survives until
-    /// the input changes; only the page keys move it.
-    private func updateSpecialCandidates(for input: String, pageSize: Int) {
-        if input != specialInput {
-            specialInput = input
-            specialPage = 0
-        }
-        specialPageSize = max(1, pageSize)
-        specialCandidates = input.isEmpty ? nil : SpecialInput.candidates(for: input, options: specialOptions)
-        if specialPage >= specialPageCount { specialPage = 0 }
-    }
 
     /// Settings › 输入习惯 › 便利功能, read live so a toggle needs no deploy.
     private var specialOptions: SpecialInput.Options {
@@ -716,23 +648,9 @@ final class HufuInputController: IMKInputController {
         sync(client: textClient)
     }
 
-    /// Applies 简繁 to this page of candidates: 混打 reorders it by tier, 打简出繁 and the
-    /// two "only" modes drop what falls outside their table. The mode actually in force
-    /// comes from the session's `simplification` option, so ⌃O / ⌃⇧4 (混打 ↔ 打简出繁,
-    /// 只打简体 ↔ 只打繁体) is reflected immediately.
-    private func updateScriptFilter(candidates: [RimeCandidate], session: RimeSession) {
-        let mode = engine.features.scriptMode.resolved(traditional: session.option("simplification"))
-        let order = engine.scriptFilter.order(candidates.map(\.text), mode: mode)
-        scriptOrder = order
-        scriptRearranged = order != Array(candidates.indices)
-    }
-
     /// Puts one of the frontend's candidates into the app. librime only held the raw
     /// input, so its composition is dropped and `selectCandidate` is never called.
     private func commitSpecialInput(_ text: String) {
-        specialCandidates = nil
-        specialInput = ""
-        specialPage = 0
         insertMenuText(text, client: textClient)
         lastCommitted = text
         engine.usage.record(text, app: bundleID)
@@ -744,16 +662,15 @@ final class HufuInputController: IMKInputController {
     /// 三选 (`;` `'`) commit, `-` `=` page, space / Return take the highlighted one.
     /// The rules live in `SpecialInput.action` so they are unit tested.
     private func handleSpecialKey(_ event: NSEvent) -> Bool {
-        guard let visible = specialVisible, !visible.isEmpty,
+        guard presentation.hasSpecialCandidates,
               event.modifierFlags.intersection([.command, .control, .option]).isEmpty,
               let typed = event.charactersIgnoringModifiers, typed.count == 1,
               let character = typed.first,
-              let action = SpecialInput.action(for: character, input: liveSession?.input ?? "",
-                                               pageCount: specialPageCount, options: specialOptions) else { return false }
+              let action = presentation.action(for: character, input: liveSession?.input ?? "") else { return false }
         switch action {
         case .select(let index):
-            guard index < visible.count else { return true }
-            commitSpecialInput(visible[visible.startIndex + index].text)
+            guard case let .special(text) = presentation.selection(forDisplayIndex: index) else { return true }
+            commitSpecialInput(text)
         case .page(let backward):
             page(backward: backward)
         }
@@ -765,7 +682,7 @@ final class HufuInputController: IMKInputController {
     /// highlight. Everything is mapped through `select`, so librime never acts on a
     /// position the panel does not show.
     private func handleScriptKey(_ event: NSEvent) -> Bool {
-        guard scriptRearranged,
+        guard !presentation.hasSpecialCandidates, presentation.isRearranged,
               event.modifierFlags.intersection([.command, .control, .option]).isEmpty,
               let typed = event.charactersIgnoringModifiers, typed.count == 1,
               let character = typed.first else { return false }
@@ -773,11 +690,11 @@ final class HufuInputController: IMKInputController {
         case "1"..."9", ";", "'", " ":
             // Nothing survived the filter on this page: swallow the key rather than let
             // librime commit a candidate the panel never showed.
-            guard !scriptOrder.isEmpty else { return true }
+            guard !presentation.isEmptyFilteredPage else { return true }
             switch character {
             case ";": select(1)
             case "'": select(2)
-            case " ": select(scriptHighlight)
+            case " ": select(presentation.highlightedDisplayIndex)
             default: select((character.wholeNumberValue ?? 1) - 1)
             }
             return true
@@ -850,7 +767,7 @@ final class HufuInputController: IMKInputController {
         }
     }
 
-    @objc func syncUserData(_ sender: Any?) { engine.syncUserData() }
+    @objc func syncUserData(_ sender: Any?) { engine.requestSync() }
     @objc func openUserFolder(_ sender: Any?) { NSWorkspace.shared.open(engine.paths.userDataDir) }
     @objc func openLogFolder(_ sender: Any?) { NSWorkspace.shared.open(engine.paths.logDir) }
 }

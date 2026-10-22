@@ -31,8 +31,8 @@ public struct HufuFeatures: Sendable, Codable, Equatable {
     /// 简繁模式: 混打 / 打简出繁 / 只打繁体 / 只打简体. Replaces the old `traditional`
     /// bool; older features.json files are read through it.
     public var scriptMode = ScriptMode.mixed
-    /// 繁体标准: `st_tu` / `s2twp` / `s2hk` / `s2t`. The schema's
-    /// `simplification/opencc_config` is what actually converts; this records the choice.
+    /// 繁体标准: `st_tu` / `s2twp` / `s2hk` / `s2t`. Legacy fallback only: the generated
+    /// layer's `simplification/opencc_config` is the owner.
     public var tradVariant = "st_tu"
     /// English punctuation by default (librime's `ascii_punct` switch). The state is
     /// shared by all apps: ⌃⇧3 in one app switches the others too (#10).

@@ -70,18 +70,6 @@ public struct RimeContextSnapshot: Sendable, Equatable {
     public var isComposing: Bool { !composition.preedit.isEmpty || !candidates.isEmpty }
 }
 
-public struct RimeStatusSnapshot: Sendable, Equatable {
-    public var schemaID: String
-    public var schemaName: String
-    public var isDisabled: Bool
-    public var isComposing: Bool
-    public var isASCIIMode: Bool
-    public var isFullShape: Bool
-    public var isSimplified: Bool
-    public var isTraditional: Bool
-    public var isASCIIPunct: Bool
-}
-
 /// One librime input session (one per client text field context).
 @MainActor
 public final class RimeSession {
@@ -192,24 +180,6 @@ public final class RimeSession {
             isLastPage: menu.is_last_page,
             commitTextPreview: ctx.commit_text_preview.map { String(cString: $0) },
             input: input
-        )
-    }
-
-    public func status() -> RimeStatusSnapshot? {
-        var status = RimeStatus_stdbool()
-        status.data_size = Int32(MemoryLayout<RimeStatus_stdbool>.size - MemoryLayout<Int32>.size)
-        guard api.pointee.get_status(sid, &status) else { return nil }
-        defer { _ = api.pointee.free_status(&status) }
-        return RimeStatusSnapshot(
-            schemaID: status.schema_id.map { String(cString: $0) } ?? "",
-            schemaName: status.schema_name.map { String(cString: $0) } ?? "",
-            isDisabled: status.is_disabled,
-            isComposing: status.is_composing,
-            isASCIIMode: status.is_ascii_mode,
-            isFullShape: status.is_full_shape,
-            isSimplified: status.is_simplified,
-            isTraditional: status.is_traditional,
-            isASCIIPunct: status.is_ascii_punct
         )
     }
 

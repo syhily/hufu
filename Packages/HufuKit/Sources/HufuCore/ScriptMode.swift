@@ -33,9 +33,6 @@ public enum ScriptMode: String, Sendable, Codable, CaseIterable, Equatable {
         case .tradOnly, .simpOnly: traditional ? .tradOnly : .simpOnly
         }
     }
-
-    /// Only 混打 keeps every candidate; 打简出繁 and both "only" modes drop some.
-    public var filters: Bool { self == .tradOnly || self == .simpOnly }
 }
 
 /// Character tables behind 简繁: 《通用规范汉字表》 in its published order and the
