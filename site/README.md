@@ -24,33 +24,25 @@ site/
                         screenshots/、themes/renders/、assets/（CSS 与 island 脚本）
   src/lib/site.ts       locale 元数据、页头页脚与弹窗文案、搜索索引、JSON-LD 软件节点
   src/layouts/Base.astro  <head>（meta / OG / hreflang / JSON-LD）、页头页脚、搜索与菜单弹窗
-  src/content-pages/    18 篇 MDX 正文：{route}.{zh|zh-hant|en}.mdx
-  src/pages/            24 个路由：index、download、dictionaries、themes、docs、
-                        changelog、privacy、open-source，各含 zh-Hans / zh-hant / en
+  src/content.config.ts pages collection（glob + zod：title、description、application）
+  src/content/pages/    18 篇 MDX 正文：<locale>/<route>.mdx（id 形如 zh/download）
+  src/pages/            [...slug].astro 生成 18 条散文路由；首页与主题页仍是静态 .astro
 ```
 
-散文类路由（download、dictionaries、docs、changelog、privacy、open-source）的
-`index.astro` 只负责 frontmatter、`<Base>` 外壳和引入对应的 MDX：
+散文类路由（download、dictionaries、docs、changelog、privacy、open-source）由
+`src/pages/[...slug].astro` 一条动态路由生成：`getStaticPaths()` 读取 `pages`
+collection，按 id 的第一段决定语言前缀（`zh` 无前缀，`zh-hant` / `en` 加对应前缀），
+再用 `render(entry)` 取 `<Content />` 套进 `Base`。它只生成这 18 条路径，不碰首页与
+`themes`，静态路由优先也不冲突。
 
-```astro
----
-import Base from '@/layouts/Base.astro';
-import Content from '@/content-pages/download.zh.mdx';
-
-const meta = { title: '…', description: '…' };
----
-
-<Base locale="zh" slug="download" title={meta.title} description={meta.description} application>
-  <Content />
-</Base>
-```
-
-正文在 `src/content-pages/<route>.<locale>.mdx`，整页包在一个 `<main>` 里，按 JSX 规则
-书写：`class` → `className`、`for` → `htmlFor`、`srcset` → `srcSet`、SVG 的
-`stroke-width` 等改驼峰、`img`/`input`/`br` 自闭合。CJK 段落保持单行（软换行会变成空格）。
-代码块正文用 `{`…`}` 字符串表达式包住，否则 MDX 会把 `--` 变排印符号、把 URL 自动变成链接
-（构建时用 `smartypants: false` 关掉前者，表达式同时挡住自动链接）。改完用
-`git worktree` 拉出基线按文本 / 图片 / 链接逐页比对。
+**加一篇散文页**：在 `src/content/pages/zh/`、`zh-hant/`、`en/` 各放一篇同名 `.mdx`
+（如 `download.mdx`），frontmatter 写 `title`、`description`（可选 `application: true`
+给下载页加 SoftwareApplication JSON-LD），无需改路由。正文整页包在一个 `<main>` 里，
+按 JSX 规则书写：`class` → `className`，`img`/`input`/`br` 自闭合；`for`、`srcset`、
+SVG 的 `stroke-width` 等保留 HTML 原名（Astro 不会把驼峰属性映射回 HTML）。CJK 段落
+保持单行（软换行会变成空格）。代码块正文用 `{`…`}` 字符串表达式包住，否则 MDX 会把
+`--` 变排印符号、把 URL 自动变成链接（构建时用 `smartypants: false` 关掉前者，表达式
+同时挡住自动链接）。改完用 `git worktree` 拉出基线按文本 / 图片 / 链接逐页比对。
 
 首页（`index.astro`）与主题页（`themes/index.astro`）是重设计页面，保留 `.astro` 而不套
 MDX。导航、页脚、搜索条目和语言文案集中在 `src/lib/site.ts` 的 `chrome`，改一处三语言

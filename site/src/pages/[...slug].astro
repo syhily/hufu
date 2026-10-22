@@ -1,0 +1,40 @@
+---
+import { getCollection, render } from 'astro:content';
+import type { CollectionEntry } from 'astro:content';
+import Base from '@/layouts/Base.astro';
+import type { Locale } from '@/lib/site';
+
+export async function getStaticPaths() {
+  const pages = await getCollection('pages');
+  return pages.map((entry) => {
+    const [locale, ...parts] = entry.id.split('/');
+    if (!['zh', 'zh-hant', 'en'].includes(locale)) {
+      throw new Error(`Unknown locale in content id: ${entry.id}`);
+    }
+    const slug = parts.join('/');
+    return {
+      params: { slug: locale === 'zh' ? slug : `${locale}/${slug}` },
+      props: { entry, locale: locale as Locale, slug },
+    };
+  });
+}
+
+interface Props {
+  entry: CollectionEntry<'pages'>;
+  locale: Locale;
+  slug: string;
+}
+
+const { entry, locale, slug } = Astro.props;
+const { Content } = await render(entry);
+---
+
+<Base
+  locale={locale}
+  slug={slug}
+  title={entry.data.title}
+  description={entry.data.description}
+  application={entry.data.application}
+>
+  <Content />
+</Base>
