@@ -26,6 +26,7 @@ Hufu 每个版本面向用户的变动都记在这里。English: [CHANGELOG.en.m
 - librime 1.17.0 改为静态链接：输入法与 `hufu` 命令行自包含，安装包不再包含独立的 `librime.1.dylib`，启动时无需加载外部引擎库，也减少了签名与分发面。
 - librime 与 leveldb、marisa-trie、OpenCC、yaml-cpp 改为仓库内固定源码 submodule 自编译，不再下载预编译引擎或静态包；暂存工具、输入法与 CLI 使用同一份构建，并关闭 glog 日志与测试/文档依赖。
 - 只链接虎码方案实际使用的 26 个 librime gear 组件，并在 Release 构建中剥离本地符号；输入法与 CLI 体积明显减小。
+- OpenCC 关闭旧 `ocd`/DartsDict 支持（`ENABLE_DARTS=OFF`），仅保留 `.ocd2`/marisa 路径；`AGENTS.md` 同时明确 `Vendor/src/**` 三方源码只读，后续裁剪只能通过构建选项、消费方 shim 或产品层封装完成。
 
 ### 移除
 

@@ -27,6 +27,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 - librime 1.17.0 is now statically linked: the input method and `hufu` CLI are self-contained, the installer no longer ships a separate `librime.1.dylib`, and startup needs no external engine library, which also reduces the signing and distribution surface.
 - librime, leveldb, marisa-trie, OpenCC and yaml-cpp are now built in-tree from pinned source submodules instead of downloaded prebuilt engines or static packages. Staging tools, the input method and the CLI share one build, with glog logging and test/documentation dependencies disabled.
 - Only the 26 librime gear components the Tiger-Code schemas actually use are linked, and Release builds strip local symbols, substantially reducing the input method and CLI size.
+- OpenCC's legacy `ocd`/DartsDict support is disabled (`ENABLE_DARTS=OFF`), leaving only the `.ocd2`/marisa path; `AGENTS.md` now makes `Vendor/src/**` third-party sources read-only, so future trimming must use build options, consumer shims or product-layer code.
 
 
 ### Removed

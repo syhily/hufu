@@ -33,23 +33,40 @@ committed; everything built from them lives under `build/rime/`.
 - Release apps use Xcode's `DEPLOYMENT_POSTPROCESSING`/`STRIP_INSTALLED_PRODUCT`
   (`STRIP_STYLE=all`); the universal CLI is stripped with `strip -x` before signing.
 
-## Trimming status
-
-Already done:
+## Applied trimming
 
 - glog/gflags removed via `ENABLE_LOGGING=OFF`.
-- 26-component gears subset; unregistered components are not extracted from the archive.
-- Release symbol stripping for both apps and the CLI.
-- Duplicate marisa-trie build removed (`USE_SYSTEM_MARISA=ON`).
+- Tests, benchmarks, documentation and dependency tools disabled; only librime's own
+  `rime_deployer`, `rime_dict_manager`, `rime_patch` and `rime_table_decompiler` are built.
+- leveldb built without Snappy, CRC32C and tcmalloc.
+- Boost limited to the static `Boost.Regex` library required by librime.
+- 26-component gears subset via the consumer shim (`hufu/gears_subset.cc`); see
+  [ADR-0007](../docs/decisions/0007-binary-trimming.md).
+- OpenCC built with `USE_SYSTEM_MARISA=ON` and `ENABLE_DARTS=OFF`: only the `.ocd2`/marisa
+  path used by Hufu remains; legacy `ocd`/DartsDict support is not compiled.
+  Note that librime's own Prism still uses its bundled `darts.h`, so darts-clone remains
+  in the licence inventory even though OpenCC's `DartsDict` is gone.
+- Release apps use Xcode's `DEPLOYMENT_POSTPROCESSING`/`STRIP_INSTALLED_PRODUCT`
+  (`STRIP_STYLE=all`); the universal CLI is stripped with `strip -x` before signing.
 
-Future candidates, in rough order of payoff:
+## Not allowed (see AGENTS.md)
 
-1. Drop `darts-clone` by configuring OpenCC with `ENABLE_DARTS=OFF`; keep only `ocd2` dictionaries.
-2. Replace Boost.Regex with `std::regex` and remove Boost entirely; this needs source changes and
-   is not currently done.
-3. Revisit the component whitelist whenever schemas change; the shim is consumer-owned so it can
-   shrink without patching librime.
-4. If a lightweight logger is needed later, implement it in Hufu rather than re-enabling glog.
+`Vendor/src/**` and the downloaded Boost source are read-only upstream code. These
+candidates were evaluated and abandoned because they require editing third-party sources:
+
+- Removing unused librime source files from the build or its `CMakeLists.txt`.
+- Replacing Boost.Regex with `std::regex` inside librime.
+
+The only existing source patch is the historical exception documented in
+[ADR-0006](../docs/decisions/0006-in-tree-librime-build.md): enable librime's tools in a
+static build and find Boost.Regex as a component. Do not add further patches.
+
+## Future evaluation
+
+- **ThinLTO**: potentially shrinks the merged archive and final binaries, but couples the
+  build to a specific toolchain and needs real size/runtime measurements first.
+- **`ENABLE_TIMESTAMP=OFF`**: negligible size benefit for Hufu's schemas; not worth the
+  reproducibility/behaviour change today.
 
 `build/rime/` is ignored. Delete it to force a clean rebuild; the script also skips work when the
 submodule pins, the shim and its own contents are unchanged.
