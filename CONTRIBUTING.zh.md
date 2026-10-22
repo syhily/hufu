@@ -12,7 +12,7 @@
 
 ## 构建与安装
 
-Fork 仓库，从当前默认分支创建聚焦本次改动的分支。clone 时带 `--recurse-submodules`（或在已有仓库中运行一次 `git submodule update --init --recursive`），以取得 `dicts/huma` 与 `Vendor/src` 源码。需要 CMake 3.22+ 与 Python 3。在仓库根目录运行：
+Fork 仓库，从当前默认分支创建聚焦本次改动的分支。clone 时带 `--recurse-submodules`（或在已有仓库中运行一次 `git submodule update --init --recursive`），以取得 `Vendor/src` 源码；`dicts/huma` 已随主仓库提供。需要 CMake 3.22+ 与 Python 3。在仓库根目录运行：
 
 ```bash
 bash scripts/build-librime.sh
@@ -22,7 +22,7 @@ xcodegen generate
 xcodebuild -project Hufu.xcodeproj -scheme Hufu -configuration Debug -derivedDataPath build/DerivedData build
 ```
 
-`build-librime.sh` 按 `Vendor/librime.lock` 校验每个 submodule，在 `build/rime/` 中编译唯一的 universal 静态 librime 与依赖，并重新生成 `CRime.xcframework`。`stage-huma.sh` 直接采用 `dicts/huma` submodule 的虎码词表与方案（方案定制都在方案仓库完成），并预编译 librime 二进制产物。Hufu 不随包提供可动态加载的 librime 插件；输入法与 CLI 静态链接引擎。`Hufu` scheme 构建两个 App，其构建后脚本嵌入 SharedSupport 与许可材料。
+`build-librime.sh` 按 `Vendor/librime.lock` 校验每个 `Vendor/src` submodule，在 `build/rime/` 中编译唯一的 universal 静态 librime 与依赖，并重新生成 `CRime.xcframework`。`stage-huma.sh` 直接采用主仓库 `dicts/huma` 目录的虎码词表与方案（方案定制在该目录完成），并预编译 librime 二进制产物。Hufu 不随包提供可动态加载的 librime 插件；输入法与 CLI 静态链接引擎。`Hufu` scheme 构建两个 App，其构建后脚本嵌入 SharedSupport 与许可材料。
 
 为当前用户构建并安装：
 
@@ -47,7 +47,7 @@ bash scripts/install-dev.sh
 
 **禁止把 GPL 源码复制、翻译、移植或改写进 Hufu 的 MIT 源码树，包括 Squirrel 代码。** Hufu 不是 Squirrel 的 fork；这条要求也适用于基于此类代码生成的 AI 补丁。应独立实现，并使用兼容且注明来源的依赖。
 
-`dicts/huma` 是指向 [hufu-scheme](https://github.com/syhily/hufu-scheme) 的 git submodule，虎码官方包的定制裁剪版（虎码秃版 2026.08.15，官方免费发布），随 App 的 `Contents/SharedSupport/` 分发；须保留上游版本、来源与许可声明。不要直接修改 submodule：修正应反馈给虎码官方，本地补充请放在 `huma_custom`（设置 › 自定义短语），产品侧的方案调整直接提交到方案仓库。不得把 GPL 实现代码引入 Hufu 的 MIT 源码。新增依赖或数据集时，在 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) 记录上游 URL、版本／commit、许可证及声明。来源或授权不明确时，先核实再引入，不能因仓库公开就视为 MIT。
+`dicts/huma` 是主仓库内的普通目录，存放虎码官方包的定制裁剪版（虎码秃版 2026.08.15，官方免费发布），随 App 的 `Contents/SharedSupport/` 分发；须保留上游版本、来源与许可声明。修正应反馈给虎码官方，本地补充请放在 `huma_custom`（设置 › 自定义短语），产品侧的方案调整直接提交到 `dicts/huma`。不得把 GPL 实现代码引入 Hufu 的 MIT 源码。新增依赖或数据集时，在 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) 记录上游 URL、版本／commit、许可证及声明。来源或授权不明确时，先核实再引入，不能因仓库公开就视为 MIT。
 
 原创代码贡献采用 MIT。不要粘贴未获授权的第三方词库内容；内置词表是官方发布物，不是社区词库投稿渠道。
 

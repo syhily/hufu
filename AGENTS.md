@@ -1,6 +1,6 @@
 # AGENTS.md
 
-Hufu 虎符输入法：macOS 输入法，librime 静态内嵌，只支持虎码（方案数据来自 submodule `dicts/huma` → syhily/hufu-scheme）。
+Hufu 虎符输入法：macOS 输入法，librime 静态内嵌，只支持虎码（方案数据位于主仓库普通目录 `dicts/huma`）。
 
 ## 红线：不修改第三方组件
 

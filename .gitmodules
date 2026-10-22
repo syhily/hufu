@@ -1,6 +1,3 @@
-[submodule "dicts/huma"]
-	path = dicts/huma
-	url = https://github.com/syhily/hufu-scheme
 [submodule "Vendor/src/librime"]
 	path = Vendor/src/librime
 	url = https://github.com/rime/librime.git

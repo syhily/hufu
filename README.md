@@ -33,7 +33,7 @@ Hufu 是虎码的 macOS 输入法前端。它把 [librime](https://github.com/ri
 
 ## 特性
 
-- **只做虎码**：方案列表只有虎码（schema id `tigress`）。官方秃版 2026.08.15 通过 `dicts/huma` submodule 引入（[hufu-scheme](https://github.com/syhily/hufu-scheme)），词表在方案仓库裁剪为单字与四字及以下词组。
+- **只做虎码**：方案列表只有虎码（schema id `tigress`）。官方秃版 2026.08.15 位于主仓库 `dicts/huma` 目录，词表已裁剪为单字与四字及以下词组。
 - **内置码表**：单字 117,662 条、词组 125,655 条、简码词 3,134 条，共 246,451 条原始记录（按来源文件递归统计，未去重）。
 - **保留官方方案能力**：`` ` `` 拼音反查（PY_c）、`'` 临时英文（easy_english）、拆分提示（chaifen）、拼音注解、emoji 注解。
 - **简繁四模式**：繁简混打（默认，按《通用规范汉字表》一级→二级→三级排序，繁体字形殿后）、打简出繁（候选同样限定在 8105 字集内）、只打繁体、只打简体；繁体标准可选虎码 `st_tu`、台湾正体、香港繁体或通用繁体。
@@ -76,7 +76,7 @@ bash scripts/build-app.sh        # → build/Release/Hufu.app
 bash scripts/install-dev.sh      # 安装到 ~/Library/Input Methods 并注册
 ```
 
-已经 clone 过仓库的话，先初始化源码 submodule：`git submodule update --init --recursive`。`dicts/huma` 是指向 [hufu-scheme](https://github.com/syhily/hufu-scheme) 的 submodule（虎码官方秃版 2026.08.15 的定制裁剪版），`Vendor/src/` 是 librime 与依赖源码，均固定到某个 commit；方案内容（词表裁剪、schema 调整）全部在方案仓库维护，本仓库不直接修改 submodule 内容。
+已经 clone 过仓库的话，先初始化 `Vendor/src` 源码 submodule：`git submodule update --init --recursive`。`dicts/huma` 是主仓库内的普通方案数据目录（虎码官方秃版 2026.08.15 的定制裁剪版），方案内容（词表裁剪、schema 调整）直接在此维护；`Vendor/src/` 是 librime 与依赖源码，固定到某个 commit。
 
 `stage-huma.sh` 默认保留四字及以下词组，可用环境变量调整：
 
@@ -186,7 +186,7 @@ Hufu 原创代码采用 [MIT](LICENSE) 许可，版权归 syhily 所有。项目
 
 - **librime 1.17.0 及其依赖**：由 `Vendor/src` 固定源码构建并静态链接——librime/leveldb（BSD-3-Clause）、marisa-trie（BSD-2-Clause）、yaml-cpp（MIT）、Boost（BSL-1.0）、OpenCC（Apache-2.0）。安装包不包含可动态加载的 librime 原生插件。
 - **OpenCC 数据**：Apache-2.0，由同一份 OpenCC 源码构建。
-- **虎码官方词库与方案**（虎码秃版 2026.08.15）：由虎码官方在 [tiger-code.com](https://www.tiger-code.com) 免费发布，经 [hufu-scheme](https://github.com/syhily/hufu-scheme) submodule（`dicts/huma`）引入。
+- **虎码官方词库与方案**（虎码秃版 2026.08.15）：由虎码官方在 [tiger-code.com](https://www.tiger-code.com) 免费发布，随主仓库 `dicts/huma` 目录引入。
 - **Noto Sans SC**：SIL Open Font License 1.1，用于图标与品牌图形的字形轮廓。
 
 发行包只包含 MIT / BSD / Apache / OFL / BSL 许可的组件与官方免费发布的数据，不含 GPL 组件，且不包含任何可动态加载的原生插件。第三方组件的完整清单见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)，发布核对项见[发布清单](docs/release-checklist.md)。

@@ -4,8 +4,8 @@
 
 Hufu 是 librime 的一个新前端：输入法本体用 InputMethodKit + AppKit 实现，配置管理用 SwiftUI 实现，
 两者之间只通过**文件**和**分布式通知**交互。只内置虎码方案（`tigress`）；方案、词库与补丁格式仍遵循 RIME。
-虎码官方数据通过 `dicts/huma` git submodule（[hufu-scheme](https://github.com/syhily/hufu-scheme)）引入，
-方案定制（词表裁剪、schema 调整）全部在方案仓库完成；构建时 `scripts/build-librime.sh` 从 `Vendor/src` 源码编译静态 librime，`scripts/stage-huma.sh` 组装并预编译词库。
+虎码官方数据位于主仓库 `dicts/huma` 目录，
+方案定制（词表裁剪、schema 调整）直接在该目录完成；构建时 `scripts/build-librime.sh` 从 `Vendor/src` 源码编译静态 librime，`scripts/stage-huma.sh` 组装并预编译词库。
 安装包不捆绑任何可动态加载的 librime 插件：librime 静态链接进输入法与 CLI，可执行文件自包含；随包只分发 OpenCC 数据与虎码方案/词库。
 
 ```mermaid
@@ -52,7 +52,7 @@ build/rime/                        源码构建产物：bin/ 静态工具、shar
   MacOS/Hufu                      输入法进程
   Helpers/hufu                    CLI（不能放 MacOS/：文件系统大小写不敏感，会覆盖 Hufu）
   Applications/Hufu Settings.app  设置
-  SharedSupport/                  只读数据：虎码方案与词库（dicts/huma submodule 直接采用，定制在方案仓库完成）、
+  SharedSupport/                  只读数据：虎码方案与词库（dicts/huma 直接采用，定制在该目录完成）、
                                   OpenCC（源码构建的库存表 + 方案的拆分/拼音/emoji 表 + 产品层 st_tu 简繁表）、hufu.yaml、hufu/defaults、build/（预编译产物）
 
 ~/Library/Hufu/Rime/              用户目录（librime user_data_dir）

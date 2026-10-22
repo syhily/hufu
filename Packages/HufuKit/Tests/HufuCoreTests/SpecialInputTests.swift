@@ -57,7 +57,7 @@ struct SpecialInputTests {
     // MARK: - Chinese numerals
 
     /// Expected values are number.lua's own output (run against Lua 5.5 with the file
-    /// pulled from hufu-scheme@76226af).
+    /// from the Tiger-Code scheme data at upstream commit 76226af).
     @Test func numeralsMatchTheLuaTranslator() {
         let samples: [String: [String]] = [
             "1": ["一", "壹", "壹元整", "一元整"],

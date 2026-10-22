@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 # Assembles build/SharedSupport — the read-only data directory bundled into Hufu.app:
-#   * 虎码官方秃版（git submodule dicts/huma → syhily/hufu-scheme，方案定制全部在上游完成）
+#   * 虎码官方秃版（主仓库 dicts/huma 目录，方案定制在此维护）
 #   * OpenCC data built from the pinned OpenCC source
 #   * Hufu's own files from SharedSupport/ (default.yaml, frontend config, hufu/…)
-# Fully reproducible: every input is a pinned git submodule or built by build-librime.sh.
+# Fully reproducible: every input is in-repo or a pinned Vendor/src submodule.
 # Hufu bundles no native plugins; the scheme no longer ships Lua scripts.
 set -euo pipefail
 
@@ -13,7 +13,7 @@ OUT="$ROOT/build/SharedSupport"
 HUFU_VERSION="2026.08.15"
 
 if [[ ! -f "$SRC/tigress.dict.yaml" ]]; then
-  echo "stage-huma: dicts/huma is empty; run: git submodule update --init --recursive" >&2
+  echo "stage-huma: dicts/huma is empty; restore it with: git checkout -- dicts/huma" >&2
   exit 1
 fi
 

@@ -12,7 +12,7 @@ Use macOS 26+, Xcode 26+ with command-line tools selected, and XcodeGen (`brew i
 
 ## Build and install
 
-Fork the repository and create a focused branch from the current default branch. Clone with `--recurse-submodules` (or run `git submodule update --init --recursive` once) so `dicts/huma` and the `Vendor/src` sources are present. CMake 3.22+ and Python 3 are required. Run from the repository root:
+Fork the repository and create a focused branch from the current default branch. Clone with `--recurse-submodules` (or run `git submodule update --init --recursive` once) so the `Vendor/src` sources are present; `dicts/huma` is already part of the main repository. CMake 3.22+ and Python 3 are required. Run from the repository root:
 
 ```bash
 bash scripts/build-librime.sh
@@ -22,7 +22,7 @@ xcodegen generate
 xcodebuild -project Hufu.xcodeproj -scheme Hufu -configuration Debug -derivedDataPath build/DerivedData build
 ```
 
-`build-librime.sh` verifies every submodule against `Vendor/librime.lock`, builds one static universal librime and its dependencies into `build/rime/`, and regenerates `CRime.xcframework`. `stage-huma.sh` copies the Tiger-Code tables from the `dicts/huma` submodule (schema customisation lives upstream in the scheme repo) and prebuilds librime's binaries. Hufu ships no separately loaded librime plugins; the app and CLI link the static engine. The `Hufu` scheme builds both apps; its post-build script embeds SharedSupport and license materials.
+`build-librime.sh` verifies every `Vendor/src` submodule against `Vendor/librime.lock`, builds one static universal librime and its dependencies into `build/rime/`, and regenerates `CRime.xcframework`. `stage-huma.sh` copies the Tiger-Code tables from the in-repo `dicts/huma` directory (schema customisation lives there) and prebuilds librime's binaries. Hufu ships no separately loaded librime plugins; the app and CLI link the static engine. The `Hufu` scheme builds both apps; its post-build script embeds SharedSupport and license materials.
 
 To build and install for the current user:
 
@@ -46,7 +46,7 @@ Do not commit downloaded binaries, generated projects, build output, or local in
 
 **Do not copy, translate, port, or adapt GPL source code into Hufu's MIT source tree, including Squirrel code.** Hufu is not a Squirrel fork. This applies to AI-generated patches derived from such code as well. Use independently written implementations and compatible, attributed dependencies.
 
-`dicts/huma` is a git submodule pinned to [hufu-scheme](https://github.com/syhily/hufu-scheme), the customised mirror of the official Tiger-Code package (虎码秃版 2026.08.15, official free release). It ships in the app's `Contents/SharedSupport/`; keep its upstream version, provenance and licence notice intact. Do not edit the submodule in place: report corrections to the Tiger-Code project, keep local additions in `huma_custom` (Settings › Custom Phrases), and make product-side schema tweaks in the scheme repo. Do not import GPL implementation code into Hufu's MIT source. For every new dependency or dataset, record its upstream URL, version/commit, license, and notices in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md). If provenance or permission is unclear, resolve it before inclusion; never assume a public repository means MIT.
+`dicts/huma` is an ordinary directory in the main repository holding the customised official Tiger-Code package (虎码秃版 2026.08.15, official free release). It ships in the app's `Contents/SharedSupport/`; keep its upstream version, provenance and licence notice intact. Report corrections to the Tiger-Code project, keep local additions in `huma_custom` (Settings › Custom Phrases), and make schema tweaks directly in `dicts/huma`. Do not import GPL implementation code into Hufu's MIT source. For every new dependency or dataset, record its upstream URL, version/commit, license, and notices in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md). If provenance or permission is unclear, resolve it before inclusion; never assume a public repository means MIT.
 
 Original code contributions are under MIT. Do not paste third-party dictionary content without permission; the bundled dictionary is an official upstream release rather than a community word-list submission channel.
 
