@@ -10,6 +10,7 @@ on:
     branches: [main]
     paths:
       - 'site/**'
+      - 'dicts/huma/**'
       - 'scripts/check-site.sh'
       - '.github/workflows/site.yml'
   workflow_dispatch:
@@ -38,6 +39,9 @@ jobs:
 
       - name: Install site dependencies
         run: npm ci --prefix site
+
+      - name: Build dictionary index
+        run: python3 site/scripts/build-dict-index.py
 
       - name: Build site
         run: npm run build --prefix site

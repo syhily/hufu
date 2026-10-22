@@ -1,6 +1,76 @@
 ---
-title: "Vocabulary · Hufu"
-description: "Download AI and internet word lists. Each includes a version, source and SHA-256 checksum."
+title: "Vocabulary & code lookup · Hufu"
+description: "Look up Tiger-Code by character, word or code. The official vocabulary ships with Hufu; word input mounts tables per script mode."
 ---
 
-<main id="main"><div className="page-content wrap"><div className="page-heading"><a className="back-link" href="/en/">Hufu home <span aria-hidden="true">/</span></a><h1>Tiger-Code vocabulary, ready on install.</h1><p>The official Tiger-Code vocabulary ships with Hufu. Word input mounts the tables that match the script mode; your own phrases live in huma_custom.</p></div><div className="resource-summary"><p><strong>5 tables · about 500k records</strong><span>Official Tiger-Code release 2026.08.15 · ships with the app</span></p><a className="button primary" href="#">Vocabulary notes <svg className="inline-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 12h16m-6-6 6 6-6 6"></path></svg></a></div><p className="resource-note">Tables are prebuilt into the installer; the input method never downloads vocabulary.</p><form className="resource-filters" role="search"><label for="resource-search">Find vocabulary</label><input id="resource-search" type="search" placeholder="Name or example, e.g. DeepSeek" /><label className="sr-only" for="resource-category">Category</label><select id="resource-category"><option value="all">All</option><option value="builtin">Characters</option><option value="words">Words</option><option value="custom">Custom</option></select></form><p className="filter-count" id="resource-count" aria-live="polite"></p><div className="resource-list"></div><p id="resources-empty" className="empty-message" hidden>No matching list. Try another name or category.</p><section className="prose source-note"><h2>Where the tables come from.</h2><p>The vocabulary comes from the official Tiger-Code release 2026.08.15 (syhily/dicts/huma) and is built with the installer. The three word tables are prebuilt, so switching modes never recompiles them.</p><p>The Tiger-Code tables are used under their official release terms; brand entries grant no trademark licence or endorsement.</p><div className="inline-links"><a href="https://github.com/syhily/hufu/tree/main/dicts/huma">Tables · dicts/huma <svg className="inline-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M6 18 18 6M6 6h12v12"></path></svg></a><a href="https://github.com/syhily/hufu/tree/main/dicts/huma">虎码方案 · dicts/huma <svg className="inline-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M6 18 18 6M6 6h12v12"></path></svg></a></div></section></div></main>
+<main id="main"><div className="page-content wrap">
+  <div className="page-heading"><a className="back-link" href="/en/">Hufu home <span aria-hidden="true">/</span></a><h1>Tiger-Code vocabulary, ready on install.</h1><p>The official Tiger-Code vocabulary ships with Hufu. Look up single characters and simplified words here; word input mounts the tables that match the script mode.</p></div>
+
+  <div className="resource-summary"><p><strong>5 tables · about 500k rows</strong><span>Official Tiger-Code release 2026.08.15 · ships with the app</span></p></div>
+  <p className="resource-note">Tables are prebuilt into the installer; the input method never downloads vocabulary.</p>
+
+  <section className="dict-search" data-dict-search data-locale="en">
+    <h2>Look up a code.</h2>
+    <p className="dict-intro">Type a character, word or code. Data comes from the bundled dictionaries, so it matches what the input method uses.</p>
+    <form className="resource-filters" role="search">
+      <label for="dict-query">Look up</label>
+      <input id="dict-query" data-dict-input type="search" autocomplete="off" spellcheck="false" placeholder="e.g. 我们, 的, tuja, uni" />
+    </form>
+    <p className="dict-status" data-dict-status role="status" aria-live="polite"></p>
+    <div className="dict-results" data-dict-results></div>
+    <p className="dict-empty" data-dict-empty hidden>No matching characters or words.</p>
+    <noscript><p className="dict-noscript">Lookup needs JavaScript.</p></noscript>
+    <script type="module" src="/assets/dict-search.js"></script>
+  </section>
+
+  <section className="prose source-note">
+    <h2>Five tables.</h2>
+    <p>Single characters (including Traditional characters) and simplified words are searchable here; the Traditional tables ship with the app and are mounted when you switch script mode.</p>
+    <div className="dict-table-wrap">
+      <table className="dict-tables">
+        <thead><tr><th>Table</th><th>Contents</th><th>Size</th></tr></thead>
+        <tbody>
+          <tr><td><code>tigress</code></td><td>Single characters and short codes</td><td>117,662 rows / 103,460 characters</td></tr>
+          <tr><td><code>tigress_words_simp</code></td><td>Simplified words</td><td>128,789 rows / 125,656 words</td></tr>
+          <tr><td><code>tigress_words_trad</code></td><td>Traditional output from simplified codes</td><td>128,786 rows / 125,639 words</td></tr>
+          <tr><td><code>tigress_words_tradown</code></td><td>Traditional words by their own codes</td><td>125,639 rows / 125,639 words</td></tr>
+          <tr><td><code>huma_custom</code></td><td>Your own phrases, not in this index</td><td>—</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h2>Where the tables come from.</h2>
+    <p>The vocabulary comes from the official Tiger-Code release 2026.08.15 (<a href="https://github.com/syhily/hufu/tree/main/dicts/huma">dicts/huma</a>) and is built with the installer. The three word tables are prebuilt, so switching modes never recompiles them.</p>
+    <p>The Tiger-Code tables are used under their official release terms; brand entries grant no trademark licence or endorsement.</p>
+  </section>
+
+  <style>{`
+    .dict-search { margin: 24px 0 40px; padding: 24px 28px; border: 1px solid var(--line); border-radius: var(--radius-lg, 18px); background: var(--card); }
+    .dict-search h2 { margin: 0 0 8px; font-size: 20px; }
+    .dict-intro { margin: 0 0 18px; color: var(--muted); }
+    .dict-search .resource-filters { margin: 0; }
+    .dict-status { min-height: 1.5em; margin: 12px 0 0; color: var(--muted); font-size: 14px; }
+    .dict-group-title { margin: 20px 0 6px; color: var(--muted); font-size: 14px; font-weight: 500; letter-spacing: .02em; }
+    .dict-list { display: grid; gap: 0; margin: 0; padding: 0; list-style: none; }
+    .dict-row { display: flex; align-items: baseline; gap: 16px; padding: 8px 0; border-top: 1px solid var(--line); }
+    .dict-text { flex: 0 0 auto; min-width: 4.5em; font-size: 18px; }
+    .dict-codes { display: flex; flex-wrap: wrap; gap: 6px; }
+    .dict-code { display: inline-flex; align-items: baseline; gap: 6px; padding: 4px 9px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); color: var(--ink); font-family: var(--mono); font-size: 13px; cursor: pointer; }
+    .dict-code:hover { border-color: var(--accent); color: var(--accent); }
+    .dict-code code { font: inherit; }
+    .dict-code .dict-kind { color: var(--muted); font-family: var(--font); font-size: 11px; }
+    .dict-code.is-copied { border-color: var(--accent); color: var(--accent); }
+    .dict-code.is-copied::after { content: "✓"; font-family: var(--font); }
+    .dict-empty, .dict-noscript { margin: 16px 0 0; color: var(--muted); }
+    .dict-table-wrap { overflow-x: auto; margin: 16px 0 28px; }
+    .dict-tables { width: 100%; border-collapse: collapse; font-size: 15px; }
+    .dict-tables th, .dict-tables td { padding: 10px 12px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+    .dict-tables th { color: var(--muted); font-size: 13px; font-weight: 500; }
+    .dict-tables code { font-family: var(--mono); font-size: 13px; }
+    @media (max-width: 640px) {
+      .dict-search { padding: 20px; }
+      .dict-row { flex-direction: column; gap: 6px; }
+      .dict-text { min-width: 0; }
+    }
+  `}</style>
+</div></main>

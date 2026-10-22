@@ -1,6 +1,76 @@
 ---
-title: "词库资源 · Hufu"
-description: "下载 AI 与互联网词表。每份提供版本、来源和 SHA-256 校验值。"
+title: "词库与编码查询 · Hufu"
+description: "内置虎码官方词库；按单字、词语或编码查询虎码，词汇输入按简繁模式挂载词表。"
 ---
 
-<main id="main"><div className="page-content wrap"><div className="page-heading"><a className="back-link" href="/">Hufu 首页 <span aria-hidden="true">/</span></a><h1>虎码词库，装好就有。</h1><p>内置虎码官方秃版词库；词汇输入打开后按简繁模式挂载词表，自定义短语写在 huma_custom。</p></div><div className="resource-summary"><p><strong>5 张词表 · 约 50 万条记录</strong><span>虎码官方秃版 2026.08.15 · 随安装包提供</span></p><a className="button primary" href="#">查看词库说明 <svg className="inline-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 12h16m-6-6 6 6-6 6"></path></svg></a></div><p className="resource-note">词表随安装包预编译，输入法联网时也不会下载任何词表。</p><form className="resource-filters" role="search"><label for="resource-search">查找词库</label><input id="resource-search" type="search" placeholder="名称或示例词，例如 DeepSeek" /><label className="sr-only" for="resource-category">分类</label><select id="resource-category"><option value="all">全部分类</option><option value="builtin">单字</option><option value="words">词汇</option><option value="custom">自定义</option></select></form><p className="filter-count" id="resource-count" aria-live="polite"></p><div className="resource-list"></div><p id="resources-empty" className="empty-message" hidden>没有匹配的词库，换个名称或分类试试。</p><section className="prose source-note"><h2>词表从哪来。</h2><p>词表来自虎码官方秃版 2026.08.15（syhily/dicts/huma），随安装包一起构建；三张词汇表由构建脚本预编译，切换模式时不会重新编译。</p><p>虎码词表按官方发布条款使用；品牌词条不代表商标授权或任何背书。</p><div className="inline-links"><a href="https://github.com/syhily/hufu/tree/main/dicts/huma">词表目录 · dicts/huma <svg className="inline-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M6 18 18 6M6 6h12v12"></path></svg></a><a href="https://github.com/syhily/hufu/tree/main/dicts/huma">虎码方案 · dicts/huma <svg className="inline-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M6 18 18 6M6 6h12v12"></path></svg></a></div><p>词表随安装包预编译，输入法联网时也不会下载任何词表。</p></section></div></main>
+<main id="main"><div className="page-content wrap">
+  <div className="page-heading"><a className="back-link" href="/">Hufu 首页 <span aria-hidden="true">/</span></a><h1>虎码词库，装好就有。</h1><p>内置虎码官方秃版词库；可在这里查单字与简体词汇的虎码编码。词汇输入打开后按简繁模式挂载词表，自定义短语写在 huma_custom。</p></div>
+
+  <div className="resource-summary"><p><strong>5 张词表 · 约 50 万行</strong><span>虎码官方秃版 2026.08.15 · 随安装包提供</span></p></div>
+  <p className="resource-note">词表随安装包预编译，输入法联网时也不会下载任何词表。</p>
+
+  <section className="dict-search" data-dict-search data-locale="zh">
+    <h2>查虎码编码。</h2>
+    <p className="dict-intro">输入汉字、词语或编码，查对应的虎码。查询数据来自随包词表，与输入法内一致。</p>
+    <form className="resource-filters" role="search">
+      <label for="dict-query">查询编码</label>
+      <input id="dict-query" data-dict-input type="search" autocomplete="off" spellcheck="false" placeholder="例如 我们、的、tuja、uni" />
+    </form>
+    <p className="dict-status" data-dict-status role="status" aria-live="polite"></p>
+    <div className="dict-results" data-dict-results></div>
+    <p className="dict-empty" data-dict-empty hidden>没有匹配的字词，试试别的写法或编码。</p>
+    <noscript><p className="dict-noscript">查询需要启用 JavaScript。</p></noscript>
+    <script type="module" src="/assets/dict-search.js"></script>
+  </section>
+
+  <section className="prose source-note">
+    <h2>5 张词表。</h2>
+    <p>单字（含繁体字）与简体词汇在本页可查；繁体词表随安装包提供，切换简繁模式时由输入法挂载。</p>
+    <div className="dict-table-wrap">
+      <table className="dict-tables">
+        <thead><tr><th>词表</th><th>内容</th><th>条目</th></tr></thead>
+        <tbody>
+          <tr><td><code>tigress</code></td><td>单字与简码</td><td>117,662 行 / 103,460 字</td></tr>
+          <tr><td><code>tigress_words_simp</code></td><td>简体词汇</td><td>128,789 行 / 125,656 词</td></tr>
+          <tr><td><code>tigress_words_trad</code></td><td>打简出繁（预转换繁体）</td><td>128,786 行 / 125,639 词</td></tr>
+          <tr><td><code>tigress_words_tradown</code></td><td>只繁（繁体编码）</td><td>125,639 行 / 125,639 词</td></tr>
+          <tr><td><code>huma_custom</code></td><td>自定义短语，用户维护，不入本页索引</td><td>—</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h2>词表从哪来。</h2>
+    <p>词表来自虎码官方秃版 2026.08.15（<a href="https://github.com/syhily/hufu/tree/main/dicts/huma">dicts/huma</a>），随安装包一起构建；三张词汇表由构建脚本预编译，切换模式时不会重新编译。</p>
+    <p>虎码词表按官方发布条款使用；品牌词条不代表商标授权或任何背书。</p>
+  </section>
+
+  <style>{`
+    .dict-search { margin: 24px 0 40px; padding: 24px 28px; border: 1px solid var(--line); border-radius: var(--radius-lg, 18px); background: var(--card); }
+    .dict-search h2 { margin: 0 0 8px; font-size: 20px; }
+    .dict-intro { margin: 0 0 18px; color: var(--muted); }
+    .dict-search .resource-filters { margin: 0; }
+    .dict-status { min-height: 1.5em; margin: 12px 0 0; color: var(--muted); font-size: 14px; }
+    .dict-group-title { margin: 20px 0 6px; color: var(--muted); font-size: 14px; font-weight: 500; letter-spacing: .02em; }
+    .dict-list { display: grid; gap: 0; margin: 0; padding: 0; list-style: none; }
+    .dict-row { display: flex; align-items: baseline; gap: 16px; padding: 8px 0; border-top: 1px solid var(--line); }
+    .dict-text { flex: 0 0 auto; min-width: 4.5em; font-size: 18px; }
+    .dict-codes { display: flex; flex-wrap: wrap; gap: 6px; }
+    .dict-code { display: inline-flex; align-items: baseline; gap: 6px; padding: 4px 9px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); color: var(--ink); font-family: var(--mono); font-size: 13px; cursor: pointer; }
+    .dict-code:hover { border-color: var(--accent); color: var(--accent); }
+    .dict-code code { font: inherit; }
+    .dict-code .dict-kind { color: var(--muted); font-family: var(--font); font-size: 11px; }
+    .dict-code.is-copied { border-color: var(--accent); color: var(--accent); }
+    .dict-code.is-copied::after { content: "✓"; font-family: var(--font); }
+    .dict-empty, .dict-noscript { margin: 16px 0 0; color: var(--muted); }
+    .dict-table-wrap { overflow-x: auto; margin: 16px 0 28px; }
+    .dict-tables { width: 100%; border-collapse: collapse; font-size: 15px; }
+    .dict-tables th, .dict-tables td { padding: 10px 12px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+    .dict-tables th { color: var(--muted); font-size: 13px; font-weight: 500; }
+    .dict-tables code { font-family: var(--mono); font-size: 13px; }
+    @media (max-width: 640px) {
+      .dict-search { padding: 20px; }
+      .dict-row { flex-direction: column; gap: 6px; }
+      .dict-text { min-width: 0; }
+    }
+  `}</style>
+</div></main>

@@ -8,12 +8,14 @@ Hufu（虎符输入法）官网：自定义设计的 Astro 静态站点，散文
 
 ```bash
 npm ci            # 安装依赖（astro 与 @astrojs/mdx 都钉死版本）
+python3 scripts/build-dict-index.py   # 生成 public/dict/index.json（词库查询用）
 npm run dev       # 本地预览，默认 http://localhost:4321
-npm run build     # 构建到 dist/
+npm run build     # 构建到 dist/（会连同 dict/index.json 一起拷贝）
 bash ../scripts/check-site.sh dist   # 起本地 http.server，校验全部内部引用
 ```
 
-需要 Node.js 22.23.4 或更新版本（CI 用 Node 24）。
+需要 Node.js 22.23.4 或更新版本（CI 用 Node 24）与 Python 3。
+`public/dict/` 是生成物，已在 `site/.gitignore` 里忽略。
 
 ## 结构
 
@@ -27,6 +29,8 @@ site/
   src/content.config.ts pages collection（glob + zod：title、description、application）
   src/content/pages/    18 篇 MDX 正文：<locale>/<route>.mdx（id 形如 zh/download）
   src/pages/            [...slug].astro 生成 18 条散文路由；首页与主题页仍是静态 .astro
+  scripts/build-dict-index.py  从 dicts/huma 生成 public/dict/index.json（构建期索引）
+  public/assets/dict-search.js 词库页客户端查询（按需加载索引）
 ```
 
 散文类路由（download、dictionaries、docs、changelog、privacy、open-source）由
@@ -48,10 +52,27 @@ SVG 的 `stroke-width` 等保留 HTML 原名（Astro 不会把驼峰属性映射
 MDX。导航、页脚、搜索条目和语言文案集中在 `src/lib/site.ts` 的 `chrome`，改一处三语言
 同时生效。
 
-`public/assets/` 里的 CSS 与脚本是原样保留的静态资源（`layout.js` 管导航/搜索/主题切换/
-词库筛选，`home.js` + `home-sections.js` 管首页主题切换与常用语演示，`themes.js` 管主题
-画廊与 YAML 生成，`theme-geometry.js` 被后两者 import）。它们不走 Astro 打包，URL 稳定；
-页面里用 `<script type="module" src="/assets/…" is:inline>` 引入。
+`public/assets/` 里的 CSS 与脚本是原样保留的静态资源（`layout.js` 管导航/搜索/主题切换，
+`dict-search.js` 管词库查询，`home.js` + `home-sections.js` 管首页主题切换与常用语演示，
+`themes.js` 管主题画廊与 YAML 生成，`theme-geometry.js` 被后两者 import）。它们不走
+Astro 打包，URL 稳定；页面里用 `<script type="module" src="/assets/…">` 引入。
+
+## 词库查询
+
+`/dictionaries/`（三语言共用）是真实的虎码编码查询页，数据与输入法随包词表同源：
+
+1. `scripts/build-dict-index.py` 读取 `dicts/huma/tigress.dict.yaml`（单字）与
+   `dicts/huma/tigress_words_simp.dict.yaml`（简体词），跳过 `...` 之前的头部与注释。
+2. 单字每行的第一个最长编码标为全码，其余为简码；词汇保留全部编码但不再区分类型。
+3. 输出 `public/dict/index.json`（约 3.1 MiB）：`version`、`chars`、`words`。
+   每条记录压成一个 `|` 分隔的字符串（`字|全码|简码1 简码2`、`词|全码 简码`），
+   比嵌套数组省约 2 MiB；数组按文本排序，重复运行字节级一致。`huma_custom` 不入索引。
+4. 页面首次输入时 `public/assets/dict-search.js` 才 `fetch('/dict/index.json')`；
+   中文按文本精确/前缀/子串匹配，字母按编码精确/前缀反查，结果按单字与词汇分组，
+   最多每组 100 条，点编码复制。UI 文案按 `data-locale` 取 zh / zh-hant / en。
+
+改了 `dicts/huma/**` 后要重新跑索引脚本；CI（workflow 里 `Build dictionary index`
+一步）会在 `astro build` 前自动生成。
 
 ## 主题载荷
 
@@ -77,6 +98,7 @@ base64url 载荷，共 8 套、三语言各一份。载荷必须与 `SharedSuppo
 
 ## 部署
 
-`.github/workflows/site.yml`：push 到 `main` 且改动 `site/**` 时，用 Node 24 + npm 缓存
-执行 `npm ci` → `npm run build` → `scripts/check-site.sh site/dist`，然后把 `site/dist`
+`.github/workflows/site.yml`：push 到 `main` 且改动 `site/**` 或 `dicts/huma/**` 时，用
+Node 24 + npm 缓存执行 `npm ci` → `python3 site/scripts/build-dict-index.py` →
+`npm run build` → `scripts/check-site.sh site/dist`，然后把 `site/dist`
 以纯 git 方式发布到 `gh-pages`（内容未变则跳过提交）。
