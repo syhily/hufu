@@ -1,0 +1,52 @@
+---
+title: 在 Mac 上安裝虎符輸入法。
+description: Hufu 0.1.0 預覽版可下載，支援 macOS 15.0+。安裝包為 ad-hoc 簽名、未經 Apple 公證，首次開啟請在 Finder 中按右鍵 › 打開。
+---
+
+Hufu 0.1.0 預覽版可下載，支援 macOS 15.0+。安裝包為 ad-hoc 簽名、未經 Apple 公證，首次開啟請在 Finder 中按右鍵 › 打開。下面是安裝步驟。
+
+## Hufu 0.1.0
+
+**預覽版 · 未簽名**
+
+釋出於 2026-10-21。安裝包為 ad-hoc 預覽版，未經 Apple 公證；首次開啟請按右鍵 › 打開，或到「系統設定 › 隱私權與安全性」點「仍要打開」。簽名與公證會在開發者帳號到位後補齊。
+
+[下載安裝包 · .pkg · 60 MB](https://github.com/syhily/hufu/releases/latest)　[.zip（免安裝）](https://github.com/syhily/hufu/releases/latest)
+
+[SHA256SUMS.txt](https://github.com/syhily/hufu/releases/latest) · [對應原始碼](https://github.com/syhily/hufu/releases) · [GitHub Releases](https://github.com/syhily/hufu/releases) · [原始碼倉庫](https://github.com/syhily/hufu)
+
+| 項目 | 需求 |
+| --- | --- |
+| 系統 | macOS 15.0+ |
+| 晶片 | App：Apple 晶片與 Intel（通用二進位） |
+| 命令列工具 | `hufu`：Apple 晶片與 Intel |
+| 許可 | MIT · 依賴保留各自許可 |
+
+## 按步驟安裝。
+
+1. 下載安裝包和同一 Release 裡的 SHA256SUMS.txt，執行以下命令校驗。
+
+```
+shasum -a 256 -c SHA256SUMS.txt --ignore-missing
+```
+
+2. 按右鍵 › 打開安裝包，按提示安裝。首次開啟被系統攔下時，到「系統設定 › 隱私權與安全性」點「仍要打開」。
+
+```
+xattr -d com.apple.quarantine Hufu-0.1.0.pkg
+```
+
+3. 開啟系統設定 → 鍵盤 → 輸入法 → 編輯…，點 +，在「簡體中文」中新增虎符輸入法。首次安裝後若沒有出現，登出後重新登入。
+
+## 也可以從原始碼構建。
+
+需要 Xcode 26+、cmake 與 XcodeGen。腳本下載並校驗固定版本的 librime 依賴，再構建和註冊輸入法；本機構建的結果是 ad-hoc 簽名。
+
+```
+git clone https://github.com/syhily/hufu.git && cd hufu
+bash scripts/install-dev.sh
+```
+
+安裝新版後，下次輸入時由系統啟動輸入法程序。不要手動啟動。
+
+[設定與遷移說明](/zh-hant/docs/)

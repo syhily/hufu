@@ -1,0 +1,24 @@
+---
+title: Tiger-Code vocabulary, ready on install.
+description: The official Tiger-Code vocabulary ships with Hufu. Word input mounts the tables that match the script mode; your own phrases live in huma_custom.
+---
+
+The official Tiger-Code vocabulary ships with Hufu. Word input mounts the tables that match the script mode; your own phrases live in `huma_custom`.
+
+**5 tables · about 500k records**　Official Tiger-Code release 2026.08.15 · ships with the app
+
+| Table | Contents | Size | When it is used |
+| --- | --- | --- | --- |
+| Main table | Single characters and short codes, the base of mixed input | 117,662 characters · 3,134 short-code words | Always |
+| Words · simplified (`words_simp`) | Simplified codes, simplified words | 128,789 entries | Mixed, Simplified only |
+| Words · converted (`words_trad`) | Simplified codes, verified Traditional words | 128,786 entries | Traditional output |
+| Words · traditional codes (`words_tradown`) | A character's own Traditional code, Traditional words | 125,639 entries | Traditional only |
+| Custom phrases (`huma_custom`) | Your own phrases with hand-written Tiger-Code codes | Yours | Settings › Custom Phrases |
+
+Tables are prebuilt into the installer; the input method never downloads vocabulary. With word input off, only the main table and your phrases produce candidates.
+
+## Where the tables come from.
+
+The vocabulary comes from the official Tiger-Code release 2026.08.15 ([syhily/hufu](https://github.com/syhily/hufu/tree/main/dicts/huma)) and is built with the installer. The three word tables are prebuilt, so switching modes never recompiles them.
+
+The Tiger-Code tables are used under their official release terms; brand entries grant no trademark licence or endorsement.

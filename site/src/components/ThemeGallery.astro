@@ -1,0 +1,93 @@
+---
+/**
+ * 主题画廊：8 套内置配色的实际渲染图、色卡与 hufu-ime:// 安装链接。
+ * 数据在 src/lib/themes.ts（与 SharedSupport/hufu.yaml 同步）。
+ */
+import { themes, contrastOf, installLink, yamlSnippet } from '../lib/themes';
+
+const locale = (Astro.currentLocale ?? 'zh').toLowerCase();
+const strings: Record<string, {
+  install: string; copy: string; copied: string; stacked: string; linear: string;
+  light: string; dark: string; note: string; yaml: string; contrast: string; low: string;
+}> = {
+  zh: {
+    install: '安装到 Hufu', copy: '复制安装链接', copied: '已复制', stacked: '竖排', linear: '横排',
+    light: '浅色', dark: '深色', note: 'App 实际渲染 · PingFang SC', yaml: '复制 YAML',
+    contrast: '对比度', low: '对比度偏低',
+  },
+  'zh-hant': {
+    install: '安裝到 Hufu', copy: '複製安裝連結', copied: '已複製', stacked: '直排', linear: '橫排',
+    light: '淺色', dark: '深色', note: 'App 實際渲染 · PingFang SC', yaml: '複製 YAML',
+    contrast: '對比度', low: '對比度偏低',
+  },
+  en: {
+    install: 'Install in Hufu', copy: 'Copy install link', copied: 'Copied', stacked: 'Stacked', linear: 'Horizontal',
+    light: 'Light', dark: 'Dark', note: 'Rendered by the App · PingFang SC', yaml: 'Copy YAML',
+    contrast: 'Contrast', low: 'Low contrast',
+  },
+};
+const text = strings[locale] ?? strings.zh;
+const alt = (theme: string, layout: string) =>
+  locale === 'en'
+    ? `${theme} · ${layout} candidate window, rendered by the App`
+    : `${theme} · ${layout}候选窗，App 实际渲染`;
+---
+
+<ul class="theme-gallery">
+  {themes.map((theme) => (
+    <li class="theme-card" data-theme-id={theme.id}>
+      <h3>
+        {theme.name} <span class="theme-tag">{theme.tag === 'dark' ? text.dark : text.light}</span>
+      </h3>
+      <div class="theme-render">
+        <img src={`/themes/renders/${theme.id}-linear.png`} alt={alt(theme.name, text.linear)} width="524" height="47" loading="lazy" />
+      </div>
+      <div class="theme-colors" aria-hidden="true">
+        <span style={`background:#${theme.colors.back_color.slice(3)}`} />
+        <span style={`background:#${theme.colors.candidate_text_color.slice(3)}`} />
+        <span style={`background:#${theme.colors.hilited_candidate_back_color.slice(3)}`} />
+        <span style={`background:#${theme.colors.label_color.slice(3)}`} />
+      </div>
+      <p class="theme-meta">{text.note}</p>
+      <p class="theme-contrast">
+        {contrastOf(theme).toFixed(2)}:1 · {text.contrast}
+        {contrastOf(theme) < 3 && <span class="theme-low"> · {text.low}</span>}
+      </p>
+      <div class="theme-actions">
+        <a href={installLink(theme)}>{text.install}</a>
+        <button type="button" data-copy={installLink(theme)} data-copied={text.copied}>{text.copy}</button>
+      </div>
+      <details>
+        <summary>{text.stacked}</summary>
+        <div class="theme-render">
+          <img src={`/themes/renders/${theme.id}-stacked.png`} alt={alt(theme.name, text.stacked)} width="155" height="232" loading="lazy" />
+        </div>
+        <textarea readonly rows="6" aria-label={`${theme.name} YAML`}>{yamlSnippet(theme)}</textarea>
+        <button type="button" data-copy-yaml data-copied={text.copied}>{text.yaml}</button>
+      </details>
+    </li>
+  ))}
+</ul>
+
+<script>
+  async function copy(button: HTMLButtonElement, value: string) {
+    try {
+      await navigator.clipboard.writeText(value);
+    } catch {
+      return;
+    }
+    const original = button.textContent;
+    button.textContent = button.dataset.copied ?? original;
+    window.setTimeout(() => { button.textContent = original; }, 1600);
+  }
+
+  for (const button of document.querySelectorAll<HTMLButtonElement>('[data-copy]')) {
+    button.addEventListener('click', () => copy(button, button.dataset.copy ?? ''));
+  }
+  for (const button of document.querySelectorAll<HTMLButtonElement>('[data-copy-yaml]')) {
+    button.addEventListener('click', () => {
+      const textarea = button.closest('details')?.querySelector('textarea');
+      if (textarea) copy(button, textarea.value);
+    });
+  }
+</script>

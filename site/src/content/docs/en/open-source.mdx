@@ -1,0 +1,44 @@
+---
+title: Code and dependencies, with sources.
+description: Original Hufu code uses MIT. Dependencies retain their licenses; the Tiger-Code word lists ship under their official release terms.
+---
+
+Original Hufu code uses MIT. Dependencies retain their licenses; the Tiger-Code word lists ship under their official release terms.
+
+## Hufu code and dependencies.
+
+Hufu is an independent macOS frontend based on librime, not a Squirrel fork. Original code uses MIT; librime, OpenCC and the Tiger-Code schema keep their own licenses.
+
+[GitHub · syhily/hufu](https://github.com/syhily/hufu)　[Tables · dicts/huma](https://github.com/syhily/hufu/tree/main/dicts/huma)
+
+```
+git clone https://github.com/syhily/hufu.git
+```
+
+Hufu bundles no native plugins: librime and its dependencies are linked statically, and the installer contains no GPL component. The Tiger-Code word lists ship under their official release terms, and sources travel with each GitHub Release.
+
+[Third-party notices](https://github.com/syhily/hufu/blob/main/docs/license-packaging-verification.md)　[Releases & corresponding source](https://github.com/syhily/hufu/releases)　[MIT license text](https://github.com/syhily/hufu/blob/main/LICENSE)
+
+| Material | Licence | Notes |
+| --- | --- | --- |
+| Hufu original code | MIT | © 2026 syhily |
+| Tiger-Code word lists | Official release terms | From the official Tiger-Code release 2026.08.15, used under its release terms |
+| Bundled third-party materials | Original licenses by component | librime (BSD-3-Clause) and OpenCC (Apache-2.0); leveldb / marisa-trie / yaml-cpp / Boost keep their own licences |
+
+## The open-source projects Hufu uses.
+
+These projects provide the foundation for the engine, word lists, conversion and configuration parsing. Names and trademarks belong to their owners; these credits imply no partnership or endorsement.
+
+| Project | Licence |
+| --- | --- |
+| [RIME / librime](https://github.com/rime/librime) | BSD-3-Clause |
+| [OpenCC](https://github.com/BYVoid/OpenCC) | Apache-2.0 |
+| [leveldb](https://github.com/google/leveldb) | BSD-3-Clause |
+| [marisa-trie](https://github.com/s-yata/marisa-trie) | BSD-2-Clause / LGPL-2.1 |
+| [yaml-cpp](https://github.com/jbeder/yaml-cpp) | MIT |
+| [Boost](https://github.com/boostorg/boost) | BSL-1.0 |
+| [Yams](https://github.com/jpsim/Yams) | MIT |
+| [swift-argument-parser](https://github.com/apple/swift-argument-parser) | Apache-2.0 |
+| [Official Tiger-Code release](https://github.com/syhily/hufu/tree/main/dicts/huma) | release terms |
+
+Hufu is developed and maintained by syhily; the interface and document structure follow AIME (艾么输入法), an earlier project of the same author. Thanks to the Tiger-Code author, RIME and the open-source community.

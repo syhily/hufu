@@ -1,0 +1,48 @@
+---
+title: 中文常新，自在表達。
+description: 只做虎碼的 macOS 輸入法。開源，注重隱私，基於 librime。
+template: splash
+hero:
+  title: 中文常新，自在表達。
+  tagline: 只做虎碼的 macOS 輸入法。開源，注重隱私，基於 librime。
+  image:
+    html: '<img class="hero-mark only-light" src="/brand/mark-vermilion.svg" alt="虎符輸入法" width="220" height="264"><img class="hero-mark only-dark" src="/brand/mark-white.svg" alt="虎符輸入法" width="220" height="264">'
+  actions:
+    - text: 安裝與下載
+      link: /zh-hant/download/
+      icon: download
+      variant: primary
+    - text: 使用文件
+      link: /zh-hant/docs/
+      icon: right-arrow
+      variant: secondary
+---
+
+import { Card, CardGrid } from '@astrojs/starlight/components';
+
+<CardGrid>
+  <Card title="只做虎碼" icon="star">
+    方案列表只有虎碼（`tigress`）。官方禿版 2026.08.15 經 `dicts/huma` 引入，詞表裁剪為單字與四字及以下詞組。
+  </Card>
+  <Card title="詞彙輸入" icon="open-book">
+    預設只出單字與自訂短語。開啟後按簡繁模式掛載三張詞表：簡體、打簡出繁的預先校驗繁體、只繁。詞表在建置期預先編譯。
+  </Card>
+  <Card title="簡繁四模式" icon="translate">
+    繁簡混打按《通用規範漢字表》級別排序，另有打簡出繁、只打繁體、只打簡體。繁體標準可選虎碼 `st_tu`、台灣正體、香港繁體、通用繁體。
+  </Card>
+  <Card title="便利功能" icon="rocket">
+    `/time`、`/date`、`/week`、`/cdate`，`=1+2*3` 計算機，`/1234.56` 大寫數字。都可以在設定裡關掉。
+  </Card>
+  <Card title="主題" icon="puzzle">
+    `hufu_light`、`hufu_dark` 與自訂配色，八套內建主題都由 App 實際渲染。`hufu-ime://` 連結一鍵匯入。
+  </Card>
+  <Card title="輸入統計" icon="analytics">
+    預設關閉。開啟後在本機記錄字數、時段、應用分佈與高頻詞，不儲存完整句子，可隨時清空。
+  </Card>
+  <Card title="隱私" icon="padlock">
+    日常輸入在本機處理，不聯網。只有你主動執行 AI 動作時，目標文字才交給所選模型。
+  </Card>
+  <Card title="開源" icon="heart">
+    原創程式碼 MIT。librime、OpenCC 等依賴保留各自許可；虎碼詞表按官方發布條款隨包提供。
+  </Card>
+</CardGrid>

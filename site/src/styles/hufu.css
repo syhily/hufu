@@ -1,0 +1,175 @@
+/*
+ * 虎符品牌色：朱红 #B64032、纸白 #F7F2E9、墨黑 #242321、砂金 #D3BB8F。
+ * Starlight 的变量在这里覆盖，明暗两套；accent 与链接都用朱红。
+ */
+:root {
+  --sl-font: "PingFang SC", "Noto Sans SC", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --sl-font-mono: "SF Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  --hufu-vermilion: #b64032;
+  --hufu-paper: #f7f2e9;
+  --hufu-ink: #242321;
+  --hufu-sand: #d3bb8f;
+
+  --sl-color-accent-low: #f0d8d3;
+  --sl-color-accent: #b64032;
+  --sl-color-accent-high: #7a2418;
+
+  --sl-color-white: #242321;
+  --sl-color-gray-1: #2f2e2b;
+  --sl-color-gray-2: #45443f;
+  --sl-color-gray-3: #6b6a64;
+  --sl-color-gray-4: #8f8d85;
+  --sl-color-gray-5: #d8d1c4;
+  --sl-color-gray-6: #ebe4d8;
+  --sl-color-gray-7: #f7f2e9;
+  --sl-color-black: #fffdf8;
+
+  --sl-color-bg: #fffdf8;
+  --sl-color-bg-nav: #f7f2e9;
+  --sl-color-bg-sidebar: #f7f2e9;
+  --sl-color-hairline-shade: #e6ddce;
+  --sl-color-hairline: #e6ddce;
+  --sl-color-hairline-light: #efe8dc;
+  --sl-color-text: #242321;
+  --sl-color-text-accent: #b64032;
+  --sl-color-text-invert: #f7f2e9;
+}
+
+:root[data-theme='dark'] {
+  --sl-color-accent-low: #4a1d16;
+  --sl-color-accent: #d97a67;
+  --sl-color-accent-high: #f2c3ba;
+
+  --sl-color-white: #f7f2e9;
+  --sl-color-gray-1: #ece6da;
+  --sl-color-gray-2: #cfc8ba;
+  --sl-color-gray-3: #a49d90;
+  --sl-color-gray-4: #6f6b62;
+  --sl-color-gray-5: #3b3935;
+  --sl-color-gray-6: #2b2a27;
+  --sl-color-gray-7: #1f1e1c;
+  --sl-color-black: #171614;
+
+  --sl-color-bg: #1b1a18;
+  --sl-color-bg-nav: #171614;
+  --sl-color-bg-sidebar: #171614;
+  --sl-color-hairline-shade: #2f2d29;
+  --sl-color-hairline: #2f2d29;
+  --sl-color-hairline-light: #3a3833;
+  --sl-color-text: #f2ede3;
+  --sl-color-text-accent: #e08a78;
+  --sl-color-text-invert: #242321;
+}
+
+/* 主题页与文档里的明暗两版图片：只显示当前配色的一张。 */
+[data-theme='light'] .only-dark {
+  display: none;
+}
+[data-theme='dark'] .only-light {
+  display: none;
+}
+
+/* 首页 hero 的品牌字签。 */
+.hero-mark {
+  display: block;
+  width: min(220px, 60%);
+  margin: 0 auto 1rem;
+  border-radius: 1.5rem;
+}
+
+/* 主题画廊（src/components/ThemeGallery.astro）。 */
+.theme-gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 22rem), 1fr));
+  gap: 1.25rem;
+  margin: 1.5rem 0;
+  padding: 0;
+  list-style: none;
+}
+.theme-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin: 0;
+  padding: 1rem;
+  border: 1px solid var(--sl-color-hairline);
+  border-radius: 0.9rem;
+  background: var(--sl-color-bg-nav);
+}
+.theme-card h3 {
+  margin: 0;
+  font-size: var(--sl-text-lg);
+}
+.theme-card .theme-render {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 5rem;
+  padding: 0.5rem;
+  border-radius: 0.6rem;
+  background: var(--sl-color-black);
+}
+.theme-card .theme-render img {
+  max-width: 100%;
+  height: auto;
+}
+.theme-card .theme-colors {
+  display: flex;
+  gap: 0.35rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.theme-card .theme-colors span {
+  width: 1.25rem;
+  height: 1.25rem;
+  border-radius: 999px;
+  border: 1px solid var(--sl-color-hairline);
+}
+.theme-card .theme-meta {
+  margin: 0;
+  font-size: var(--sl-text-xs);
+  color: var(--sl-color-gray-3);
+}
+.theme-card .theme-contrast {
+  margin: 0;
+  font-size: var(--sl-text-xs);
+  color: var(--sl-color-gray-3);
+}
+.theme-card .theme-low {
+  color: var(--sl-color-orange-high);
+}
+.theme-card .theme-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+  margin-top: auto;
+}
+.theme-card .theme-actions a {
+  font-weight: 600;
+}
+.theme-card .theme-actions button {
+  font: inherit;
+  color: var(--sl-color-text-accent);
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  text-decoration: underline;
+}
+.theme-card details {
+  font-size: var(--sl-text-sm);
+}
+.theme-card textarea {
+  width: 100%;
+  min-height: 8rem;
+  font-family: var(--sl-font-mono);
+  font-size: var(--sl-text-xs);
+}
+
+/* 开源页与词库页的小表格在大屏上不必铺满。 */
+.sl-markdown-content table {
+  font-size: var(--sl-text-sm);
+}
