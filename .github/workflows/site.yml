@@ -1,0 +1,61 @@
+name: Site
+
+# Publishes the static documentation site to the gh-pages branch, which GitHub
+# Pages serves. main carries only the source directory site/ (plain HTML/CSS/JS,
+# no build step); every push touching site/ is checked by scripts/check-site.sh
+# and then published. The custom domain hufu.yufan.dev is pinned by site/CNAME;
+# DNS (CNAME hufu → syhily.github.io) is managed outside this repo.
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'site/**'
+      - 'scripts/check-site.sh'
+      - '.github/workflows/site.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: gh-pages
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Check site links and references
+        run: bash scripts/check-site.sh
+
+        # Publish with plain git: no third-party action, and the gh-pages branch
+        # keeps one commit per content change (skipped entirely when unchanged).
+      - name: Publish site/ to the gh-pages branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          staging="$(mktemp -d)"
+          cp -R site/. "$staging"/
+
+          git fetch origin gh-pages:refs/remotes/origin/gh-pages 2>/dev/null || true
+          if git show-ref --verify --quiet refs/remotes/origin/gh-pages; then
+            git switch --track origin/gh-pages
+          else
+            git switch --orphan gh-pages
+          fi
+          find . -mindepth 1 -maxdepth 1 ! -name .git -exec rm -rf {} +
+          cp -R "$staging"/. .
+
+          git add -A
+          if git diff --cached --quiet; then
+            echo "site unchanged; nothing to publish"
+            exit 0
+          fi
+          git commit -m "site: publish ${GITHUB_SHA::10}"
+          git push origin gh-pages
