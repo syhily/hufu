@@ -139,4 +139,39 @@ public struct SettingsStore: Sendable {
         guard let keypath = resolve(setting.keypath, target: target) else { return false }
         return layers.generatedValue(target, keypath: keypath) != nil
     }
+
+    // MARK: - 词汇输入
+
+    /// Writes the word-table mount for one (switch, mode) combination into the generated
+    /// layer of the primary schema. Returns true when an entry changed — the caller then
+    /// has to deploy (the app's normal auto-deploy does it).
+    @discardableResult
+    public func applyWordTables(enabled: Bool, mode: ScriptMode) throws -> Bool {
+        guard let schema = primarySchema() ?? shippedSchema() else { return false }
+        let target = ConfigTarget.schema(schema)
+        let desired = WordTables.tags(enabled: enabled, mode: mode)
+        let current = try layers.generatedPatch(target)
+        let satisfied = desired.allSatisfy { keypath, tag in
+            current.last { $0.key == keypath }?.value == .string(tag)
+        }
+        guard !satisfied else { return false }
+        try layers.updateGenerated(target) { patch in
+            for (keypath, tag) in desired.sorted(by: { $0.key < $1.key }) {
+                if let index = patch.firstIndex(where: { $0.key == keypath }) {
+                    patch[index].value = .string(tag)
+                } else {
+                    patch.append(.init(keypath, .string(tag)))
+                }
+            }
+        }
+        return true
+    }
+
+    /// Before the first deploy there is no built `default.yaml` to read the schema list
+    /// from; the shipped one still names the primaries the workspace will build.
+    private func shippedSchema() -> String? {
+        guard let shared = paths.sharedDataDir,
+              let config = try? ConfigValue.load(contentsOf: shared.appendingPathComponent("default.yaml")) else { return nil }
+        return config.value(at: "schema_list")?.listValue?.first?["schema"]?.stringValue
+    }
 }

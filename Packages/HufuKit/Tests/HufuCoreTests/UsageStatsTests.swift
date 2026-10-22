@@ -46,6 +46,17 @@ struct UsageStatsTests {
         #expect(ScriptMode.allCases.map(\.rawValue) == ["mixed", "tradOutput", "tradOnly", "simpOnly"])
     }
 
+    /// 词汇输入 arrived after the first release: old files start with words off.
+    @Test func wordInputDefaultsOff() throws {
+        let decoder = JSONDecoder()
+        #expect(try decoder.decode(HufuFeatures.self, from: Data(#"{"asciiPunct":true}"#.utf8)).wordsEnabled == false)
+        #expect(try decoder.decode(HufuFeatures.self, from: Data(#"{"wordsEnabled":true}"#.utf8)).wordsEnabled)
+        var features = HufuFeatures()
+        #expect(!features.wordsEnabled)
+        features.wordsEnabled = true
+        #expect(try decoder.decode(HufuFeatures.self, from: JSONEncoder().encode(features)).wordsEnabled)
+    }
+
     /// 便利功能 arrived after the first release: an old file turns all three on.
     @Test func convenienceSwitchesDefaultOn() throws {
         let defaults = HufuFeatures()

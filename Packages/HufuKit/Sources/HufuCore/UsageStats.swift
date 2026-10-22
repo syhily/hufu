@@ -44,6 +44,9 @@ public struct HufuFeatures: Sendable, Codable, Equatable {
     public var calculatorCandidates = true
     /// `/1234.56` offers Chinese numerals and 元角分. On by default.
     public var numeralsCandidates = true
+    /// 词汇输入: mount the word tables that match `scriptMode`. Off by default — the
+    /// candidates are single characters plus 用户自定义短语 (huma_custom).
+    public var wordsEnabled = false
 
     public struct AIAction: Sendable, Codable, Equatable, Identifiable {
         public var id: UUID
@@ -86,6 +89,7 @@ public struct HufuFeatures: Sendable, Codable, Equatable {
         dateTimeCandidates = try container.decodeIfPresent(Bool.self, forKey: .dateTimeCandidates) ?? defaults.dateTimeCandidates
         calculatorCandidates = try container.decodeIfPresent(Bool.self, forKey: .calculatorCandidates) ?? defaults.calculatorCandidates
         numeralsCandidates = try container.decodeIfPresent(Bool.self, forKey: .numeralsCandidates) ?? defaults.numeralsCandidates
+        wordsEnabled = try container.decodeIfPresent(Bool.self, forKey: .wordsEnabled) ?? defaults.wordsEnabled
     }
 
     private enum LegacyKeys: String, CodingKey { case traditional }

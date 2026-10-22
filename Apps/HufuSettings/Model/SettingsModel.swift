@@ -51,6 +51,9 @@ final class SettingsModel {
         hasPendingChanges = !ConfigLayers(paths: paths).dirtyTargets().isEmpty
         // Changes left from a previous session are applied right away.
         if hasPendingChanges { scheduleAutoDeploy() }
+        // The shipped schema mounts words_simp; the product default is off, and a crash
+        // between "switch flipped" and "deploy done" must not leave the mount behind.
+        syncWordTables()
     }
 
     // MARK: - Status
@@ -451,6 +454,25 @@ final class SettingsModel {
             try features.save(paths)
             DistributedNotificationCenter.default().postNotificationName(
                 HufuFeatures.changedNotification, object: nil, userInfo: nil, deliverImmediately: true)
+        } catch {
+            lastError = String(describing: error)
+        }
+        revision += 1
+        // 词汇输入 sits in the schema, not in features.json: rewrite the mount and let the
+        // ordinary auto-deploy apply it (no separate confirmation).
+        if features.wordsEnabled != before.wordsEnabled || features.scriptMode != before.scriptMode {
+            syncWordTables()
+        }
+    }
+
+    /// Writes the word-table mount derived from the current features. Silent when it
+    /// already matches; otherwise the pending flag schedules the usual deploy.
+    private func syncWordTables() {
+        let features = self.features
+        do {
+            if try store.applyWordTables(enabled: features.wordsEnabled, mode: features.scriptMode) {
+                hasPendingChanges = true
+            }
         } catch {
             lastError = String(describing: error)
         }

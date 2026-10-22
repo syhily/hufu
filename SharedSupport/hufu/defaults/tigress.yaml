@@ -1,3 +1,9 @@
 # Hufu defaults for 虎码 (tigress). Applied before imported and generated
 # layers, so anything here can be overridden from Hufu Settings.
-patch: {}
+patch:
+  # 词汇输入默认关：三张词表都停在没有 segmentor 会产生它的占位 tag 上，
+  # 候选只有单字与 huma_custom。设置 › 输入习惯 › 词汇输入 打开后，generated
+  # 层会按简繁模式把对应词表的 tag 改回 abc。
+  words_simp/tag: words_simp
+  words_trad/tag: words_trad
+  words_tradown/tag: words_tradown

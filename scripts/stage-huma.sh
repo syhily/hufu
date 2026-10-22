@@ -65,6 +65,38 @@ if [[ "${HUFU_SKIP_PREBUILD:-0}" != 1 ]]; then
   "$ROOT/build/rime/bin/rime_deployer" --build "$PREBUILD_USER" "$OUT" >/dev/null
   mv "$PREBUILD_USER/build" "$OUT/build"
   rm -rf "$PREBUILD_USER"
+
+  # rime_deployer only compiles the schema's main translator/dictionary. The
+  # auxiliary word tables are referenced by table_translator@... and must be
+  # compiled with temporary schemas that point at each dictionary.
+  echo "==> precompiling word tables"
+  WORD_SHARED="$ROOT/build/word-compile"
+  WORD_USER="$ROOT/build/word-compile-user"
+  rm -rf "$WORD_SHARED" "$WORD_USER"
+  mkdir -p "$WORD_SHARED" "$WORD_USER"
+  cp "$OUT"/tigress_words_*.dict.yaml "$WORD_SHARED/"
+  cat > "$WORD_SHARED/default.yaml" <<'YAML'
+config_version: "1"
+schema_list:
+  - schema: __words_simp
+  - schema: __words_trad
+  - schema: __words_tradown
+YAML
+  for name in simp trad tradown; do
+    cat > "$WORD_SHARED/__words_$name.schema.yaml" <<YAML
+schema:
+  schema_id: __words_$name
+  name: "words $name"
+translator:
+  dictionary: tigress_words_$name
+YAML
+  done
+  "$ROOT/build/rime/bin/rime_deployer" --build "$WORD_USER" "$WORD_SHARED" >/dev/null
+  for name in simp trad tradown; do
+    cp "$WORD_USER/build/tigress_words_$name.prism.bin" "$OUT/build/"
+    cp "$WORD_USER/build/tigress_words_$name.table.bin" "$OUT/build/"
+  done
+  rm -rf "$WORD_SHARED" "$WORD_USER"
 fi
 
 /usr/bin/python3 "$ROOT/scripts/dictionary-metadata.py" --shared-dir "$OUT"

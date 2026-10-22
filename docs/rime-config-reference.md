@@ -246,6 +246,28 @@ catalog: recognizer.punct_prefix
 - **history_translator**：最近上屏内容重复输入。
 - **lua_translator@\*…**：Lua 脚本翻译器（需 librime-lua）。Hufu 不启用该插件；时间、日期、星期、农历与计算器由前端原生实现，不再挂载 Lua 翻译器。
 
+### Hufu 的词汇输入
+
+`tigress.schema.yaml` 在主 `table_translator` 之后挂了三张词表，各自用一个没有 segmentor 会产生的占位 tag 停放；把 tag 改成 `abc`（`abc_segmentor` 产生的那个）即启用：
+
+| 节点 | 词表 | 编码 | 占位 tag |
+|---|---|---|---|
+| `table_translator@words_simp` | `tigress_words_simp` | 简体编码 → 简体词 | `words_simp` |
+| `table_translator@words_trad` | `tigress_words_trad` | 简体编码 → 校验过的繁体词 | `words_trad` |
+| `table_translator@words_tradown` | `tigress_words_tradown` | 繁体字自己的编码 → 繁体词 | `words_tradown` |
+
+设置 › 输入习惯 › 词汇输入（`hufu/features.json` 的 `wordsEnabled`，默认关）与简繁模式共同决定挂载：
+
+| 开关 | 模式 | 挂载 |
+|---|---|---|
+| 关 | 任意 | 全部停放（只有单字 + `huma_custom`） |
+| 开 | 繁简混打 | `words_simp` + `words_tradown` |
+| 开 | 打简出繁 | `words_trad` |
+| 开 | 只打繁体 | `words_tradown` |
+| 开 | 只打简体 | `words_simp` |
+
+补丁写在 `hufu/generated/tigress.yaml`（`words_*/tag`），随设置改动自动部署；出厂默认由 `SharedSupport/hufu/defaults/tigress.yaml` 把三张表全部停放。词表挂载跟随**设置里的**简繁模式：⌃O / ⌃⇧4 的临时切换只动 librime 的 `simplification` 选项（单字转换），词表不变。
+
 Hufu 可视化：编码提示已收录；其余翻译器参数走高级 YAML。
 catalog: translator.enable_completion
 
@@ -304,6 +326,8 @@ catalog: translator.enable_completion
 - **只打简体**：含 8105 表外汉字的候选整条剔除。
 
 候选重排/过滤在输入法前端完成（`SpecialInput` 的便利候选不参与），保留 displayIndex → rimeIndex 映射，数字键 / `;` / `'` / 空格 / 点击都按映射选词。方案的 `auto_select_pattern` 是 `^;\w+`（只对分号引导码自动上屏），词典候选不会在引擎内被自动选中，重排与之不冲突。⌃O 与 ⌃⇧4 仍只切换 `simplification` 开关：运行时在「混打 ↔ 打简出繁」或「只打简体 ↔ 只打繁体」之间临时换档，不改存下的模式。
+
+词汇（多字候选）不走运行时转换：打开「词汇输入」后按上面的模式挂载预构建词表（见 translators 节），临时切换只影响单字。
 
 Hufu 可视化：emoji 走开关，简繁走「简繁模式」（见上）；上述常见 Lua 滤镜不可用。
 catalog: switches.emoji_cn

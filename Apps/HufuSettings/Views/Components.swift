@@ -193,10 +193,34 @@ private struct ScriptSection: View {
             }
             .padding(.trailing, 28)
             .disabled(!model.features.scriptMode.usesTraditionalConversion)
+
+            Toggle(isOn: Binding(
+                get: { model.features.wordsEnabled },
+                set: { on in model.updateFeatures { $0.wordsEnabled = on } }
+            )) {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("词汇输入")
+                    Text(wordsDetail).font(.caption).foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+            }
         } header: {
             Text("简繁")
         } footer: {
-            Text("打字时 ⌃O 或 ⌃⇧4 临时切换：繁简混打 ↔ 打简出繁，只打简体 ↔ 只打繁体；下次启动回到这里的设置。已经打出的文字：选中或刚打完后按 ⌃⌥P，选「简繁转换」，在本机转换，不经过 AI。")
+            Text("打字时 ⌃O 或 ⌃⇧4 临时切换：繁简混打 ↔ 打简出繁，只打简体 ↔ 只打繁体；下次启动回到这里的设置。临时切换只影响单字，词汇词表仍按这里的模式挂载。已经打出的文字：选中或刚打完后按 ⌃⌥P，选「简繁转换」，在本机转换，不经过 AI。")
+        }
+    }
+
+    /// The copy follows the switch, then names the tables the current mode mounts.
+    private var wordsDetail: LocalizedStringKey {
+        guard model.features.wordsEnabled else {
+            return "关闭时只出单字和自定义短语；打开后按简繁模式挂载对应词表，改完几秒后自动生效。"
+        }
+        switch model.features.scriptMode {
+        case .mixed: return "已挂载简体词表与繁体编码词表：简码出简体词，繁体字自己的编码出繁体词。"
+        case .tradOutput: return "已挂载打简出繁词表：简体编码直接出校验过的繁体词。"
+        case .tradOnly: return "已挂载只繁词表：用繁体字自己的编码出繁体词。"
+        case .simpOnly: return "已挂载简体词表：只出《通用规范汉字表》内的词。"
         }
     }
 

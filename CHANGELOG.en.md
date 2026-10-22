@@ -14,6 +14,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ### Added
 
+- A word-input switch (off by default): off, candidates are single characters and your own phrases; on, the word table that matches the script mode is mounted (mixed = simplified + traditional-code tables, type-Simplified-get-Traditional = pre-converted table, Traditional only = traditional-code table, Simplified only = simplified table), under Settings › 输入习惯 › 简繁.
 - Four Simplified/Traditional modes: mixed (default, stably re-ranked by 《通用规范汉字表》 tier with traditional forms last), type Simplified get Traditional (candidates stay within the 8105 set, traditional forms judged by their simplified source), Traditional only (candidates that still carry a simplified glyph are dropped) and Simplified only (candidates outside 《通用规范汉字表》 are dropped), with Tiger-Code `st_tu`, Taiwan, Hong Kong or generic standards, under Settings › 输入习惯 › 简繁.
 - Time, date, weekday and lunar calendar lookup: `/time`, `/date`, `/week` and `/cdate`, plus Tiger-Code homophone triggers.
 - An `=expression` calculator that returns the result inline.

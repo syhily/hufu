@@ -37,6 +37,7 @@ Hufu is a native macOS frontend for Tiger-Code (虎码). It embeds [librime](htt
 - **The bundled table** — 117,662 single-character entries, 125,655 phrases and 3,134 short-code phrases: 246,451 raw records in total, counted recursively per source file and not deduplicated.
 - **The official schema's helpers** — `` ` `` Pinyin reverse lookup (`PY_c`), `'` temporary English (`easy_english`), component breakdown hints (`chaifen`), Pinyin annotations and emoji annotations.
 - **Four script modes** — mixed Simplified/Traditional (default; ranked by 《通用规范汉字表》 tiers, with traditional forms last), type Simplified get Traditional (candidates stay within the 8105 character set), Traditional only and Simplified only; the Traditional standard can be Tiger-Code `st_tu`, Taiwan, Hong Kong or generic.
+- **Word input (off by default)** — off, candidates are single characters and your own phrases; on, the word table that matches the script mode is mounted: mixed uses the simplified table plus the traditional-code table, type-Simplified-get-Traditional uses a pre-converted table, Traditional only uses the traditional-code table and Simplified only the simplified one.
 - **Native candidate window** — AppKit and Core Text, with a one-row or vertical-list layout, light/dark schemes, and adjustable fonts, radii and spacing. Themes can be imported through `hufu-ime://` links.
 - **Visual settings** — Overview, AI Assistant, Usage Statistics, Typing, Chinese/English, Shortcuts, Appearance, Apps, Vocabulary, Custom Phrases, Snippets, Sync & Backup, Advanced and About.
 - **Optional AI** — Apple's on-device Foundation Models (macOS 26) or an OpenAI-compatible endpoint. ⌃⌥P runs translation, polishing and custom actions; the assistant can also change settings in natural language and extract vocabulary from an article (you supply the Tiger-Code codes).
@@ -118,7 +119,7 @@ Settings pages:
 - **Overview** — input-method status, configuration status, import, diagnostic export.
 - **AI Assistant** — on-device or bring-your-own endpoint, AI actions, draft layer, settings assistant, vocabulary extraction.
 - **Usage Statistics** — daily characters, hours and apps, pinning frequent words.
-- **Typing** — candidate count, the four script modes and Traditional standard, Tiger-Code switches, punctuation.
+- **Typing** — candidate count, the four script modes and Traditional standard, word input, Tiger-Code switches, punctuation.
 - **Chinese/English** — Caps Lock and Shift behaviour, per-app state.
 - **Shortcuts** — hold-to-open key, schema menu, paging and selection keys.
 - **Appearance** — themes and colour schemes, fonts, candidate layout, radii and spacing; accepts `hufu-ime://` theme links.
