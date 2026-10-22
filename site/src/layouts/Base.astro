@@ -1,0 +1,254 @@
+---
+/**
+ * Shared page shell: <head> (meta, OG, hreflang, JSON-LD), header, footer and the
+ * search / menu dialogs. Everything outside <main> lives here so a page file only
+ * carries its own content.
+ */
+import {
+  chrome, langOf, ogLocaleOf, pagePath, site, software, searchItems, uiCopy,
+  type Locale,
+} from '../lib/site';
+
+interface Props {
+  locale: Locale;
+  /** '' for the home page, otherwise download / dictionaries / themes / docs / changelog / privacy / open-source */
+  slug: string;
+  title: string;
+  description: string;
+  /** Adds the SoftwareApplication node to the JSON-LD graph (home and download). */
+  application?: boolean;
+}
+
+const { locale, slug, title, description, application = false } = Astro.props;
+const t = chrome[locale];
+const canonical = site + pagePath(locale, slug);
+const alternates = (['zh', 'zh-hant', 'en'] as Locale[]).map((other) => ({
+  hreflang: langOf[other],
+  href: site + pagePath(other, slug),
+}));
+const graph: Record<string, unknown>[] = [
+  {
+    '@type': 'Organization',
+    '@id': `${site}/#organization`,
+    name: 'syhily',
+    url: 'https://github.com/syhily/hufu',
+    logo: `${site}/icon.png`,
+    sameAs: ['https://github.com/syhily'],
+  },
+  {
+    '@type': 'WebSite',
+    '@id': `${site}/#website`,
+    name: 'Hufu',
+    alternateName: t.siteAlternateName,
+    url: `${site}/`,
+    inLanguage: langOf[locale],
+    publisher: { '@id': `${site}/#organization` },
+  },
+  {
+    '@type': 'WebPage',
+    url: canonical,
+    name: title,
+    description,
+    inLanguage: langOf[locale],
+    isPartOf: { '@id': `${site}/#website` },
+    ...(application ? { mainEntity: { '@id': `${site}/#software` } } : {}),
+  },
+];
+if (application) graph.push(software);
+const jsonLd = JSON.stringify({ '@context': 'https://schema.org', '@graph': graph });
+const items = searchItems[locale];
+---
+
+<!DOCTYPE html>
+<html lang={langOf[locale]}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <meta name="theme-color" content="#FAFAF9" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#141414" media="(prefers-color-scheme: dark)" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="icon" type="image/png" href="/icon.png" />
+    <link rel="canonical" href={canonical} />
+    {alternates.map((alternate) => (
+      <link rel="alternate" hreflang={alternate.hreflang} href={alternate.href} />
+    ))}
+    <link rel="alternate" hreflang="x-default" href={site + pagePath('zh', slug)} />
+    <meta property="og:title" content={title} />
+    <meta property="og:site_name" content="Hufu" />
+    <meta property="og:locale" content={ogLocaleOf[locale]} />
+    {(['zh', 'zh-hant', 'en'] as Locale[]).filter((other) => other !== locale).map((other) => (
+      <meta property="og:locale:alternate" content={ogLocaleOf[other]} />
+    ))}
+    <meta property="og:description" content={description} />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={`${site}/og.png`} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content={t.ogImageAlt} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={`${site}/og.png`} />
+    <script type="application/ld+json" set:html={jsonLd} />
+    <script is:inline>
+      try { const t = localStorage.getItem('hufu-theme'); if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t; } catch {}
+    </script>
+    <link rel="stylesheet" href="/assets/themes.css" />
+    <link rel="stylesheet" href="/assets/site.css" />
+  </head>
+  <body data-ui-copy={JSON.stringify(uiCopy[locale])}>
+    <a class="skip-link" href="#main">{t.skip}</a>
+    <header class="site-header">
+      <div class="header-inner wrap">
+        <a class="brand" href={pagePath(locale, '')} aria-label={t.brandHome}>
+          <img class="brand-lockup screenshot-light" src="/brand/lockup-color.svg" width="220" height="82" alt="Hufu 虎符输入法" />
+          <img class="brand-lockup screenshot-dark" src="/brand/lockup-white.svg" width="220" height="82" alt="Hufu 虎符输入法" />
+          <img class="brand-small screenshot-light" src="/brand/square-black.svg" width="34" height="34" alt="Hufu 虎符输入法" />
+          <img class="brand-small screenshot-dark" src="/brand/square-white.svg" width="34" height="34" alt="Hufu 虎符输入法" />
+        </a>
+        <nav class="desktop-nav" aria-label={t.mainNav}>
+          {t.nav.map((item) => (
+            <a href={pagePath(locale, item.slug)} aria-current={item.slug === slug ? 'page' : undefined}>{item.label}</a>
+          ))}
+        </nav>
+        <div class="header-tools">
+          <a class="github-link" href="https://github.com/syhily/hufu" target="_blank" rel="noopener noreferrer" aria-label={t.githubAria} title={t.githubTitle}>
+            <svg class="inline-icon" viewBox="0 0 16 16" fill="currentColor" stroke="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M6.766 11.328c-2.063-.25-3.516-1.734-3.516-3.656 0-.781.281-1.625.75-2.188-.203-.515-.172-1.609.063-2.062.625-.078 1.468.25 1.968.703.594-.187 1.219-.281 1.985-.281.765 0 1.39.094 1.953.265.484-.437 1.344-.765 1.969-.687.218.422.25 1.515.046 2.047.5.593.766 1.39.766 2.203 0 1.922-1.453 3.375-3.547 3.64.531.344.89 1.094.89 1.954v1.625c0 .468.391.734.86.547C13.781 14.359 16 11.53 16 8.03 16 3.61 12.406 0 7.984 0 3.563 0 0 3.61 0 8.031a7.88 7.88 0 0 0 5.172 7.422c.422.156.828-.125.828-.547v-1.25c-.219.094-.5.156-.75.156-1.031 0-1.64-.562-2.078-1.609-.172-.422-.36-.672-.719-.719-.187-.015-.25-.093-.25-.187 0-.188.313-.328.625-.328.453 0 .844.281 1.25.86.313.452.64.655 1.031.655s.641-.14 1-.5c.266-.265.47-.5.657-.656"></path></svg>
+            <span class="github-label">GitHub</span>
+            <span class="github-open-source">{t.githubBadge}</span>
+            <span class="github-stars" data-github-stars aria-label={t.starsAria}>
+              <svg class="inline-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m12 3.8 2.5 5.1 5.6.8-4.05 3.95.96 5.58L12 16.6l-5.01 2.63.96-5.58L3.9 9.7l5.6-.8Z"></path></svg>
+              <span data-github-stars-count></span>
+            </span>
+          </a>
+          <button class="icon-button" data-search-open aria-label={t.searchAria} title={t.searchTitle}>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"></circle><path d="m16 16 5 5"></path></svg>
+          </button>
+          <button class="icon-button" data-theme-toggle aria-label={t.themeToggle} data-label-dark={t.themeDark} data-label-light={t.themeLight}>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 13A8.5 8.5 0 0 1 11 3.5 8.5 8.5 0 1 0 20.5 13Z"></path></svg>
+          </button>
+          <details class="language-menu" data-language-menu>
+            <summary aria-label={t.chooseLanguage}>{t.shortLabel} <svg class="inline-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 4v16m-6-6 6 6 6-6"></path></svg></summary>
+            <nav class="language-options" aria-label={t.language}>
+              {t.languages.map((language) => (
+                <a data-locale-link href={pagePath(language.locale, slug)} lang={langOf[language.locale]} hreflang={langOf[language.locale]} aria-current={language.locale === locale ? 'true' : undefined}>
+                  <span>{language.short}</span>{language.name}
+                  {language.locale === locale && (
+                    <svg class="inline-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m5 12 4 4L19 6"></path></svg>
+                  )}
+                </a>
+              ))}
+            </nav>
+          </details>
+          <button class="icon-button mobile-menu-button" data-menu-open aria-label={t.openMenu}>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"></path></svg>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <slot />
+
+    <footer class="site-footer wrap">
+      <div class="footer-brand">
+        <a class="brand" href={pagePath(locale, '')}>
+          <img class="brand-lockup screenshot-light" src="/brand/lockup-color.svg" width="220" height="82" alt="Hufu 虎符输入法" />
+          <img class="brand-lockup screenshot-dark" src="/brand/lockup-white.svg" width="220" height="82" alt="Hufu 虎符输入法" />
+          <img class="brand-small screenshot-light" src="/brand/square-black.svg" width="34" height="34" alt="Hufu 虎符输入法" />
+          <img class="brand-small screenshot-dark" src="/brand/square-white.svg" width="34" height="34" alt="Hufu 虎符输入法" />
+        </a>
+        <p>{t.tagline}</p>
+      </div>
+      <nav aria-label={t.footerNav}>
+        {t.footer.map((item) => <a href={pagePath(locale, item.slug)}>{item.label}</a>)}
+      </nav>
+      <div class="footer-note">
+        <span>{t.copyright}</span>
+        <span><a href="https://github.com/syhily/hufu">{t.footerRepo} <svg class="inline-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M6 18 18 6M6 6h12v12"></path></svg></a></span>
+      </div>
+    </footer>
+
+    <dialog id="search-dialog" class="search-dialog" aria-labelledby="search-heading">
+      <div class="dialog-top">
+        <h2 id="search-heading">{t.searchHeading}</h2>
+        <button class="icon-button" data-dialog-close aria-label={t.closeSearch}><svg class="inline-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m6 6 12 12M18 6 6 18"></path></svg></button>
+      </div>
+      <label class="sr-only" for="site-search">{t.searchLabel}</label>
+      <input id="site-search" type="search" placeholder={t.searchPlaceholder} autocomplete="off" />
+      <div id="search-results" class="search-results" data-items={JSON.stringify(items)}></div>
+      <p id="search-empty" hidden>{t.searchEmpty}</p>
+      <p class="dialog-hint">{t.searchHint}</p>
+      <span id="search-count" class="sr-only" aria-live="polite"></span>
+    </dialog>
+
+    <dialog id="menu-dialog" class="menu-dialog" aria-labelledby="menu-heading">
+      <div class="dialog-top">
+        <h2 id="menu-heading">{t.menuHeading}</h2>
+        <button class="icon-button" data-dialog-close aria-label={t.closeMenu}><svg class="inline-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m6 6 12 12M18 6 6 18"></path></svg></button>
+      </div>
+      <nav>
+        <a href="https://github.com/syhily/hufu" target="_blank" rel="noopener noreferrer">
+          <span class="menu-github-label"><svg class="inline-icon" viewBox="0 0 16 16" fill="currentColor" stroke="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M6.766 11.328c-2.063-.25-3.516-1.734-3.516-3.656 0-.781.281-1.625.75-2.188-.203-.515-.172-1.609.063-2.062.625-.078 1.468.25 1.968.703.594-.187 1.219-.281 1.985-.281.765 0 1.39.094 1.953.265.484-.437 1.344-.765 1.969-.687.218.422.25 1.515.046 2.047.5.593.766 1.39.766 2.203 0 1.922-1.453 3.375-3.547 3.64.531.344.89 1.094.89 1.954v1.625c0 .468.391.734.86.547C13.781 14.359 16 11.53 16 8.03 16 3.61 12.406 0 7.984 0 3.563 0 0 3.61 0 8.031a7.88 7.88 0 0 0 5.172 7.422c.422.156.828-.125.828-.547v-1.25c-.219.094-.5.156-.75.156-1.031 0-1.64-.562-2.078-1.609-.172-.422-.36-.672-.719-.719-.187-.015-.25-.093-.25-.187 0-.188.313-.328.625-.328.453 0 .844.281 1.25.86.313.452.64.655 1.031.655s.641-.14 1-.5c.266-.265.47-.5.657-.656"></path></svg>{t.menuGithub}</span>
+          <svg class="inline-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M6 18 18 6M6 6h12v12"></path></svg>
+        </a>
+        {t.menu.map((item) => (
+          <a href={pagePath(locale, item.slug)}>{item.label}<svg class="inline-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M6 18 18 6M6 6h12v12"></path></svg></a>
+        ))}
+      </nav>
+      <div class="mobile-languages" aria-label={t.language}>
+        {t.languages.map((language) => (
+          <a data-locale-link href={pagePath(language.locale, slug)} lang={langOf[language.locale]} aria-current={language.locale === locale ? 'true' : undefined}>{language.short}</a>
+        ))}
+      </div>
+    </dialog>
+
+    {t.hint && (
+      <aside class="language-hint" data-language-hint lang={langOf[t.hint.locale]} hidden>
+        <a data-locale-link href={pagePath(t.hint.locale, slug)}>{t.hint.label} <svg class="inline-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 12h16m-6-6 6 6-6 6"></path></svg></a>
+        <button class="icon-button" type="button" data-hint-close aria-label={t.hint.close}><svg class="inline-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m6 6 12 12M18 6 6 18"></path></svg></button>
+      </aside>
+    )}
+
+    <div class="toast" id="toast" role="status" hidden></div>
+
+    <script type="module" src="/assets/layout.js" is:inline></script>
+    <script is:inline>
+      // Live GitHub star count beside the header link; cached for an hour so visitors
+      // stay far below the unauthenticated API limit. On any failure the build-time
+      // number stays.
+      (function () {
+        var badges = document.querySelectorAll('[data-github-stars]');
+        if (!badges.length) return;
+        var key = 'hufu.githubStars';
+        var format = function (n) {
+          if (n < 1000) return String(n);
+          var k = n / 1000;
+          return (k >= 10 ? String(Math.round(k)) : k.toFixed(1).replace(/\.0$/, '')) + 'k';
+        };
+        var apply = function (n) {
+          badges.forEach(function (badge) {
+            badge.querySelector('[data-github-stars-count]').textContent = format(n);
+            var label = badge.getAttribute('aria-label') || '';
+            badge.setAttribute('aria-label', label.replace(/^\d+/, String(n)));
+            badge.hidden = false;
+          });
+        };
+        var cached = null;
+        try { cached = JSON.parse(localStorage.getItem(key) || 'null'); } catch (e) {}
+        if (cached && typeof cached.n === 'number') apply(cached.n);
+        if (cached && Date.now() - cached.t < 3600000) return;
+        fetch('https://api.github.com/repos/syhily/hufu', { headers: { Accept: 'application/vnd.github+json' } })
+          .then(function (r) { return r.ok ? r.json() : null; })
+          .then(function (d) {
+            if (!d || typeof d.stargazers_count !== 'number') return;
+            apply(d.stargazers_count);
+            try { localStorage.setItem(key, JSON.stringify({ n: d.stargazers_count, t: Date.now() })); } catch (e) {}
+          })
+          .catch(function () {});
+      })();
+    </script>
+  </body>
+</html>

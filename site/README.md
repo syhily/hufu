@@ -1,32 +1,53 @@
 # hufu.yufan.dev
 
-Hufu（虎符输入法）官网，由 GitHub Pages 服务（`CNAME` = `hufu.yufan.dev`）。
+Hufu（虎符输入法）官网，Astro 静态站点，构建产物发布到 `gh-pages` 分支，由 GitHub Pages
+提供 `https://hufu.yufan.dev`（域名由 `public/CNAME` 固定）。
 
-本目录是**源目录**：推送到 main 后，`.github/workflows/site.yml` 先跑
-`scripts/check-site.sh`，再把本目录内容发布到 `gh-pages` 分支（每改动一个提交，
-无变化则跳过）；GitHub Pages 以 `gh-pages` 分支为源对外服务。不要手工改 `gh-pages`
-分支。
+## 开发
 
-## 来源
+```bash
+npm ci            # 安装依赖（只依赖 astro，版本在 package.json 里钉住）
+npm run dev       # 本地预览，默认 http://localhost:4321
+npm run build     # 构建到 dist/
+bash ../scripts/check-site.sh dist   # 起本地 http.server，校验全部内部引用
+```
 
-页面骨架与 CSS/JS 来自 AIME（艾么输入法，作者自己的旧项目）文档站的 Astro 渲染产物，
-已获授权适配：HTML 结构与 class 保持原样（主题预览等 Astro island 依赖它们），只替换了
-文案、链接、图片与品牌资源。主题渲染图由本仓库的 `ThemeRenderProbe` 生成，设置截图由
-`scripts/ui-shots.sh` 从本机构建的 Hufu Settings 截取。
+需要 Node.js 22 或更新版本。
 
-**不要向本目录加入任何带 AIME 字样的图片或品牌资源。** 唯一保留的 AIME 出处说明是
-`open-source/` 页的致谢行（历史来源说明）。
+## 结构
 
-## 编辑
+```
+site/
+  astro.config.mjs      site、clean URL（每页构建成 <route>/index.html）
+  public/               原样拷贝进 dist/：CNAME、icon.png、og.png、brand/、avatars/、
+                        screenshots/、themes/renders/、assets/（CSS 与 island 脚本）
+  src/lib/site.ts       locale 元数据、页头页脚与弹窗文案、搜索索引、JSON-LD 软件节点
+  src/layouts/Base.astro  <head>（meta / OG / hreflang / JSON-LD）、页头页脚、搜索与菜单弹窗
+  src/pages/            24 个路由：index、download、dictionaries、themes、docs、
+                        changelog、privacy、open-source，各含 zh-Hans / zh-hant / en
+```
 
-站点是纯静态文件，改完直接提交到 main 即可，发布由 Action 完成（见上）。
+页面文案写在各自的 `.astro` 里（`<main>` 直接是 HTML，class 与 id 是 island 脚本的接口，
+改动前先看 `public/assets/*.js`）；`<head>`、导航、页脚、语言切换都在 `Base.astro`，改一处
+三语言同时生效——语言差异集中在 `src/lib/site.ts` 的 `chrome`。
 
-- `index.html`、`zh-hant/index.html`、`en/index.html`：首页
-- `<page>/index.html`（`zh-hant/`、`en/` 下同名）：download / dictionaries / themes /
-  docs / changelog / privacy / open-source
-- `_astro/`：样式与 Astro island 脚本；`brand/`、`avatars/`、`icon.png`、`og.png`：图片
-- `themes/renders/*.png`：候选窗主题渲染图（`ThemeRenderProbe` 生成）
-- `screenshots/settings/*.png`：设置页截图（`scripts/ui-shots.sh` 生成）
+`public/assets/` 里的 CSS 与脚本是原样保留的静态资源（`layout.js` 管导航/搜索/主题切换，
+`home.js` + `home-sections.js` 管首页主题切换与常用语演示，`themes.js` 管主题画廊，
+`theme-geometry.js` 被后两者 import）。它们不走 Astro 打包，URL 稳定；页面里用
+`<script type="module" src="/assets/…" is:inline>` 引入。
 
-本地预览：`python3 -m http.server -d site 8000`，然后打开 http://localhost:8000/ 。
-链接检查：`bash scripts/check-site.sh`。
+图片：`themes/renders/` 是候选窗主题渲染图（由仓库内 `ThemeRenderProbe` 生成），
+`screenshots/` 是设置页截图（`scripts/ui-shots.sh` 生成），`brand/` 是品牌 SVG，
+`avatars/` 是首页演示用的头像。
+
+## 来源与禁止事项
+
+页面骨架与 CSS/JS 最初来自 AIME（艾么输入法，作者自己的旧项目）文档站，已获授权适配；
+界面文案、链接与图片均已按 Hufu 重写。**不要向本目录加入任何带 AIME 字样的图片或品牌资源。**
+唯一保留的 AIME 出处说明是 `open-source` 页的致谢行。
+
+## 部署
+
+`.github/workflows/site.yml`：push 到 `main` 且改动 `site/**` 时，用 Node 22 + npm 缓存
+执行 `npm ci` → `npm run build` → `scripts/check-site.sh site/dist`，然后把 `site/dist`
+以纯 git 方式发布到 `gh-pages`（内容未变则跳过提交）。

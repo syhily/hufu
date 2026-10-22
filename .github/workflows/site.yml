@@ -1,10 +1,10 @@
 name: Site
 
-# Publishes the static documentation site to the gh-pages branch, which GitHub
-# Pages serves. main carries only the source directory site/ (plain HTML/CSS/JS,
-# no build step); every push touching site/ is checked by scripts/check-site.sh
-# and then published. The custom domain hufu.yufan.dev is pinned by site/CNAME;
-# DNS (CNAME hufu → syhily.github.io) is managed outside this repo.
+# Builds the Astro site in site/ and publishes its dist/ to the gh-pages branch,
+# which GitHub Pages serves. Every push touching site/ is built, checked by
+# scripts/check-site.sh and then published. The custom domain hufu.yufan.dev is
+# pinned by site/public/CNAME; DNS (CNAME hufu → syhily.github.io) lives outside
+# this repo.
 on:
   push:
     branches: [main]
@@ -24,16 +24,30 @@ concurrency:
 jobs:
   publish:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v7
 
+      - uses: actions/setup-node@v6
+        with:
+          # Astro 7 requires Node >= 22.23.4; the runner's cached 22 can be older
+          # (22.23.3 broke the build once), so pin the active LTS major instead.
+          node-version: 24
+          cache: npm
+          cache-dependency-path: site/package-lock.json
+
+      - name: Install site dependencies
+        run: npm ci --prefix site
+
+      - name: Build site
+        run: npm run build --prefix site
+
       - name: Check site links and references
-        run: bash scripts/check-site.sh
+        run: bash scripts/check-site.sh site/dist
 
         # Publish with plain git: no third-party action, and the gh-pages branch
         # keeps one commit per content change (skipped entirely when unchanged).
-      - name: Publish site/ to the gh-pages branch
+      - name: Publish site/dist to the gh-pages branch
         shell: bash
         run: |
           set -euo pipefail
@@ -41,7 +55,7 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
           staging="$(mktemp -d)"
-          cp -R site/. "$staging"/
+          cp -R site/dist/. "$staging"/
 
           git fetch origin gh-pages:refs/remotes/origin/gh-pages 2>/dev/null || true
           if git show-ref --verify --quiet refs/remotes/origin/gh-pages; then

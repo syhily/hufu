@@ -1,0 +1,12 @@
+---
+import Base from '@/layouts/Base.astro';
+
+const meta = {
+  title: "更新记录 · Hufu",
+  description: "记录输入法与官网的改动：版本、安装包与文档更新。",
+};
+---
+
+<Base locale="zh" slug="changelog" title={meta.title} description={meta.description}>
+  <main id="main"><div class="page-content wrap"><div class="page-heading"><a class="back-link" href="/">Hufu 首页 <span aria-hidden="true">/</span></a><h1>每次改了什么。</h1><p>记录输入法与官网的改动：版本、安装包与文档更新。</p></div><div class="timeline prose"><article><time>2026.10.21</time><div><h2>0.1.0：首个公开版本。</h2><span class="release-status">预览版 · 未签名</span><p>只做虎码的 macOS 输入法：librime 静态内嵌，虎码官方秃版词库随包提供；单字默认，词汇输入按简繁模式挂载三张词表；简繁四模式与繁体标准；/time、/date、=计算器、/数字大写等便利输入；主题 hufu_light / hufu_dark / 自定义与 hufu-ime:// 一键导入；输入统计默认关闭、纯本地。当前为 ad-hoc 预览版，签名与公证待开发者账号。</p><a class="text-link" href="https://github.com/syhily/hufu/releases">查看 Release <svg class="inline-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 12h16m-6-6 6 6-6 6"></path></svg></a></div></article></div></div></main>
+</Base>

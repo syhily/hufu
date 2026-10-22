@@ -1,12 +1,20 @@
 #!/usr/bin/env bash
-# Serves site/ and checks every internal page, stylesheet, script and image reference.
-# Portable to bash 3.2 (macOS): no associative arrays, no mapfile.
+# Serves a built site directory and checks every internal page, stylesheet, script and
+# image reference. Portable to bash 3.2 (macOS): no associative arrays, no mapfile.
+#
+#   bash scripts/check-site.sh              # site/dist (Astro build output)
+#   bash scripts/check-site.sh /tmp/site    # any directory with index.html files
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-SITE="$ROOT/site"
+DIR="${1:-$ROOT/site/dist}"
 PORT="${HUFU_SITE_PORT:-8765}"
 
-python3 -m http.server "$PORT" --bind 127.0.0.1 --directory "$SITE" >/dev/null 2>&1 &
+if [ ! -d "$DIR" ]; then
+  echo "check-site: no such directory: $DIR (run: npm run build --prefix site)" >&2
+  exit 1
+fi
+
+python3 -m http.server "$PORT" --bind 127.0.0.1 --directory "$DIR" >/dev/null 2>&1 &
 SERVER=$!
 trap 'kill $SERVER 2>/dev/null || true' EXIT
 sleep 1
@@ -25,7 +33,7 @@ check() {
   fi
 }
 
-# 24 pages: three locales × (index + seven inner pages).
+# Every page the site ships: the 24 known routes plus anything else that has an index.
 for loc in "" "zh-hant/" "en/"; do
   check "/$loc"
   for page in download dictionaries themes docs changelog privacy open-source; do
@@ -34,7 +42,7 @@ for loc in "" "zh-hant/" "en/"; do
 done
 
 # Every internal href/src/srcset in the HTML.
-python3 - "$SITE" > /tmp/hufu-site-refs.txt <<'PY'
+python3 - "$DIR" > /tmp/hufu-site-refs.txt <<'PY'
 import os, re, sys
 site = sys.argv[1]
 refs = set()
@@ -64,5 +72,5 @@ while read -r ref; do
   check "$ref"
 done < /tmp/hufu-site-refs.txt
 
-echo "checked $checked references, $failures failures"
+echo "checked $checked references in $DIR, $failures failures"
 [ "$failures" -eq 0 ]
